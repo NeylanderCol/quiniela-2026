@@ -9,152 +9,147 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
-:root{--navy:#0A1F5C;--navy-mid:#122680;--red:#CC0000;--red-light:#e60000;--gold:#F5A623;--gold-light:#FFB940;--white:#FFFFFF;--off-white:#F0F4FF;--gray-light:#E8ECF8;--gray-mid:#B0BBDD;--gray-text:#6B7BAA;--green:#1A7F4B;--green-light:#22A060;--bg:#060F33;}
+:root{--navy:#0A1F5C;--navy-mid:#122680;--red:#CC0000;--red-light:#e60000;--gold:#F5A623;--gold-light:#FFB940;--white:#FFFFFF;--gray-mid:#B0BBDD;--gray-text:#6B7BAA;--green:#1A7F4B;--bg:#060F33;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;}
-.header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 60%,var(--red) 100%);padding:14px 18px 0;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+.header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 60%,var(--red) 100%);padding:14px 18px 0;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.5);}
 .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .logo-area{display:flex;align-items:center;gap:10px;}
-.logo-ball{width:40px;height:40px;background:radial-gradient(circle at 35% 35%,#fff 0%,#ddd 60%,#aaa 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.4);flex-shrink:0;}
+.logo-ball{width:40px;height:40px;background:radial-gradient(circle at 35% 35%,#fff 0%,#ddd 60%,#aaa 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,.4);flex-shrink:0;}
 .logo-text{font-family:'Barlow Condensed',sans-serif;}
 .logo-title{font-size:20px;font-weight:800;letter-spacing:1px;line-height:1;}
 .logo-sub{font-size:10px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;}
 .prize-pill{background:var(--gold);color:var(--navy);padding:4px 10px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;white-space:nowrap;}
 .nav-tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;}
 .nav-tabs::-webkit-scrollbar{display:none;}
-.tab-btn{background:none;border:none;cursor:pointer;padding:9px 12px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.5px;color:var(--gray-mid);border-bottom:3px solid transparent;white-space:nowrap;transition:all 0.2s;}
+.tab-btn{background:none;border:none;cursor:pointer;padding:9px 12px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:.5px;color:var(--gray-mid);border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;}
 .tab-btn:hover{color:var(--white);}
 .tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
 .main{max-width:960px;margin:0 auto;padding:18px 14px 60px;}
-.card{background:var(--navy);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:18px;margin-bottom:14px;}
+.card{background:var(--navy);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:18px;margin-bottom:14px;}
 .card-header{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
-.match-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 14px;margin-bottom:8px;transition:border-color 0.2s;}
-.match-card:hover{border-color:rgba(245,166,35,0.3);}
+.match-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px;margin-bottom:8px;transition:border-color .2s;}
+.match-card:hover{border-color:rgba(245,166,35,.3);}
 .match-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:4px;}
-.match-group{background:var(--red);color:var(--white);padding:2px 7px;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;}
+.match-group-badge{background:var(--red);color:var(--white);padding:2px 7px;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;}
 .match-time{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--gold);font-weight:600;}
-.match-status-badge{font-size:10px;padding:2px 7px;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;}
-.badge-pending{background:rgba(176,187,221,0.15);color:var(--gray-mid);}
-.badge-done{background:rgba(26,127,75,0.2);color:#4ADB8A;}
+.match-status{font-size:10px;padding:2px 7px;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;}
+.badge-pending{background:rgba(176,187,221,.15);color:var(--gray-mid);}
+.badge-done{background:rgba(26,127,75,.2);color:#4ADB8A;}
 .match-teams{display:flex;align-items:center;justify-content:space-between;gap:6px;}
-.team-name{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;flex:1;text-align:center;line-height:1.2;}
-.score-box{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.3);padding:5px 10px;border-radius:8px;min-width:76px;justify-content:center;}
-.score-num{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;line-height:1;color:var(--white);}
-.score-sep{font-size:18px;color:var(--gray-mid);font-weight:300;}
-.score-pending{font-size:12px;color:var(--gray-mid);font-style:italic;}
-.pred-toggle{margin-top:8px;width:100%;background:none;border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:var(--gray-mid);padding:6px;font-family:'Barlow',sans-serif;font-size:12px;cursor:pointer;transition:all 0.2s;}
+.team-block{display:flex;flex-direction:column;align-items:center;flex:1;gap:3px;}
+.team-flag{font-size:22px;line-height:1;}
+.team-name{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;text-align:center;line-height:1.2;}
+.score-box{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.3);padding:6px 12px;border-radius:8px;min-width:80px;justify-content:center;flex-shrink:0;}
+.score-num{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;line-height:1;}
+.score-sep{font-size:20px;color:var(--gray-mid);font-weight:300;}
+.score-pending{font-size:13px;color:var(--gray-mid);font-style:italic;}
+.pred-toggle{margin-top:8px;width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--gray-mid);padding:6px;font-family:'Barlow',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;}
 .pred-toggle:hover{border-color:var(--gold);color:var(--gold);}
-.pred-panel{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);}
+.pred-panel{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08);}
 .pred-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:5px;}
-.pred-item{background:rgba(255,255,255,0.04);border-radius:6px;padding:7px 9px;display:flex;justify-content:space-between;align-items:center;border:1px solid transparent;}
-.pred-item.pts-5{border-color:rgba(245,166,35,0.5);background:rgba(245,166,35,0.08);}
-.pred-item.pts-4{border-color:rgba(74,219,138,0.4);background:rgba(74,219,138,0.06);}
-.pred-item.pts-3{border-color:rgba(100,150,255,0.4);background:rgba(100,150,255,0.06);}
+.pred-item{background:rgba(255,255,255,.04);border-radius:6px;padding:7px 9px;display:flex;justify-content:space-between;align-items:center;border:1px solid transparent;}
+.pred-item.pts-5{border-color:rgba(245,166,35,.5);background:rgba(245,166,35,.08);}
+.pred-item.pts-4{border-color:rgba(74,219,138,.4);background:rgba(74,219,138,.06);}
+.pred-item.pts-3{border-color:rgba(100,150,255,.4);background:rgba(100,150,255,.06);}
 .pred-name{font-size:11px;font-weight:500;color:var(--gray-mid);}
-.pred-score{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--white);}
+.pred-score{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;}
 .pred-pts{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:5px;}
-.pts-5-badge{background:var(--gold);color:var(--navy);}
-.pts-4-badge{background:#4ADB8A;color:var(--navy);}
-.pts-3-badge{background:#6496FF;color:var(--white);}
+.pts-5-b{background:var(--gold);color:var(--navy);}
+.pts-4-b{background:#4ADB8A;color:var(--navy);}
+.pts-3-b{background:#6496FF;color:#fff;}
 .standings-table{width:100%;border-collapse:collapse;}
-.standings-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-align:left;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,0.1);text-transform:uppercase;}
-.standings-table td{padding:9px 10px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.05);}
-.standings-table tr:hover td{background:rgba(255,255,255,0.03);}
+.standings-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-align:left;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.1);text-transform:uppercase;}
+.standings-table td{padding:9px 10px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.05);}
+.standings-table tr:hover td{background:rgba(255,255,255,.03);}
 .pos-badge{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;}
 .pos-1{background:var(--gold);color:var(--navy);}
 .pos-2{background:var(--gray-mid);color:var(--navy);}
-.pos-3{background:#CD7F32;color:var(--white);}
-.pos-other{background:rgba(255,255,255,0.1);color:var(--white);}
+.pos-3{background:#CD7F32;color:#fff;}
+.pos-x{background:rgba(255,255,255,.1);color:#fff;}
 .pts-total{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--gold);}
 .group-block{margin-bottom:16px;}
-.group-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:2px;background:var(--red);padding:5px 12px;border-radius:6px 6px 0 0;display:inline-block;margin-bottom:1px;}
+.group-title-bar{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:2px;background:var(--red);padding:5px 12px;border-radius:6px 6px 0 0;display:inline-block;margin-bottom:1px;}
 .group-table{width:100%;border-collapse:collapse;}
-.group-table th{background:rgba(255,255,255,0.06);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gray-mid);text-align:center;padding:5px 7px;text-transform:uppercase;}
+.group-table th{background:rgba(255,255,255,.06);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gray-mid);text-align:center;padding:5px 6px;text-transform:uppercase;}
 .group-table th:first-child{text-align:left;}
-.group-table td{padding:7px;font-size:12px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.05);}
-.group-table td:first-child{text-align:left;font-weight:600;padding-left:10px;}
-.group-table tr:nth-child(1) td,.group-table tr:nth-child(2) td{background:rgba(26,127,75,0.08);}
-.qualify-dot{display:inline-block;width:6px;height:6px;background:#4ADB8A;border-radius:50%;margin-right:5px;vertical-align:middle;}
-.third-dot{display:inline-block;width:6px;height:6px;background:var(--gold);border-radius:50%;margin-right:5px;vertical-align:middle;}
-.admin-section{margin-bottom:20px;}
-.admin-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--gold);margin-bottom:10px;letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:8px;}
+.group-table td{padding:7px 6px;font-size:12px;text-align:center;border-bottom:1px solid rgba(255,255,255,.05);}
+.group-table td:first-child{text-align:left;padding-left:10px;}
+.group-table tr:nth-child(1) td,.group-table tr:nth-child(2) td{background:rgba(26,127,75,.08);}
+.q-dot{display:inline-block;width:6px;height:6px;background:#4ADB8A;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.t-dot{display:inline-block;width:6px;height:6px;background:var(--gold);border-radius:50%;margin-right:5px;vertical-align:middle;}
+.all-preds-wrap{overflow-x:auto;}
+.all-preds-table{border-collapse:collapse;font-size:11px;min-width:600px;}
+.all-preds-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);text-align:center;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.12);text-transform:uppercase;background:rgba(0,0,0,.2);white-space:nowrap;}
+.all-preds-table th:first-child{text-align:left;position:sticky;left:0;background:#0d1e52;z-index:2;min-width:180px;}
+.all-preds-table td{padding:5px 4px;border-bottom:1px solid rgba(255,255,255,.04);text-align:center;white-space:nowrap;}
+.all-preds-table td:first-child{text-align:left;position:sticky;left:0;background:#060F33;z-index:1;padding-left:8px;}
+.all-preds-table tr:hover td{background:rgba(255,255,255,.03);}
+.all-preds-table tr:hover td:first-child{background:#0d1e52;}
+.pc{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;}
+.pc.c5{color:var(--gold);}
+.pc.c4{color:#4ADB8A;}
+.pc.c3{color:#6496FF;}
+.pc.c0{color:#FF6666;}
+.pc.cn{color:var(--gray-mid);}
 .form-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
 .form-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:110px;}
 .form-label{font-size:10px;font-weight:600;color:var(--gray-mid);letter-spacing:1px;text-transform:uppercase;}
-.form-input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:8px 10px;color:var(--white);font-family:'Barlow',sans-serif;font-size:13px;transition:border-color 0.2s;width:100%;}
+.form-input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:8px 10px;color:#fff;font-family:'Barlow',sans-serif;font-size:13px;transition:border-color .2s;width:100%;}
 .form-input:focus{outline:none;border-color:var(--gold);}
 .form-input option{background:#0A1F5C;}
-.btn{padding:9px 18px;border:none;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;}
+.btn{padding:9px 18px;border:none;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s;text-transform:uppercase;}
 .btn-primary{background:var(--gold);color:var(--navy);}
 .btn-primary:hover{background:var(--gold-light);}
-.btn-danger{background:var(--red);color:var(--white);}
+.btn-danger{background:var(--red);color:#fff;}
 .btn-danger:hover{background:var(--red-light);}
-.btn-secondary{background:rgba(255,255,255,0.1);color:var(--white);border:1px solid rgba(255,255,255,0.2);}
-.btn-secondary:hover{background:rgba(255,255,255,0.15);}
+.btn-secondary{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);}
+.btn-secondary:hover{background:rgba(255,255,255,.15);}
 .btn-warning{background:#E6A817;color:var(--navy);}
 .btn-warning:hover{background:var(--gold-light);}
 .btn-sm{padding:5px 10px;font-size:11px;}
 .btn-xs{padding:3px 8px;font-size:10px;}
 .login-wrap{min-height:80vh;display:flex;align-items:center;justify-content:center;}
-.login-box{background:var(--navy);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:36px;width:100%;max-width:340px;text-align:center;}
+.login-box{background:var(--navy);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:36px;width:100%;max-width:340px;text-align:center;}
 .login-box h2{font-family:'Barlow Condensed',sans-serif;font-size:21px;font-weight:800;margin-bottom:5px;letter-spacing:1px;}
 .login-box p{font-size:12px;color:var(--gray-mid);margin-bottom:20px;}
 .alert{padding:9px 12px;border-radius:6px;font-size:12px;margin-bottom:10px;}
-.alert-success{background:rgba(26,127,75,0.2);border:1px solid #4ADB8A;color:#4ADB8A;}
-.alert-error{background:rgba(204,0,0,0.2);border:1px solid var(--red);color:#FF6666;}
-.alert-info{background:rgba(100,150,255,0.15);border:1px solid #6496FF;color:#AAC0FF;}
-.section-divider{height:1px;background:rgba(255,255,255,0.08);margin:16px 0;}
+.alert-success{background:rgba(26,127,75,.2);border:1px solid #4ADB8A;color:#4ADB8A;}
+.alert-error{background:rgba(204,0,0,.2);border:1px solid var(--red);color:#FF6666;}
+.alert-info{background:rgba(100,150,255,.15);border:1px solid #6496FF;color:#AAC0FF;}
 .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;color:var(--gray-mid);gap:14px;}
-.spinner{width:36px;height:36px;border:3px solid rgba(245,166,35,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;}
+.spinner{width:36px;height:36px;border:3px solid rgba(245,166,35,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .empty-state{text-align:center;padding:40px;color:var(--gray-mid);font-size:13px;}
 .today-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
-.today-date{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--white);}
-.today-count{background:var(--red);color:var(--white);padding:3px 10px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;}
-.calendar-date-header{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--gold);padding:8px 0 5px;border-bottom:1px solid rgba(245,166,35,0.3);margin-bottom:8px;margin-top:18px;display:flex;align-items:center;gap:8px;}
-.calendar-date-header:first-child{margin-top:0;}
-.scroll-top{position:fixed;bottom:20px;right:16px;background:var(--gold);color:var(--navy);width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.4);transition:transform 0.2s;}
+.today-date{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;}
+.today-count{background:var(--red);color:#fff;padding:3px 10px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;}
+.cal-date-hdr{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--gold);padding:8px 0 5px;border-bottom:1px solid rgba(245,166,35,.3);margin-bottom:8px;margin-top:18px;display:flex;align-items:center;gap:8px;}
+.cal-date-hdr:first-child{margin-top:0;}
+.scroll-top{position:fixed;bottom:20px;right:16px;background:var(--gold);color:var(--navy);width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.4);transition:transform .2s;}
 .scroll-top:hover{transform:scale(1.1);}
-/* RESULTS TABLE IN ADMIN */
 .results-table{width:100%;border-collapse:collapse;font-size:12px;}
-.results-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);text-align:left;padding:7px 8px;border-bottom:1px solid rgba(255,255,255,0.12);text-transform:uppercase;background:rgba(0,0,0,0.2);}
-.results-table td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.05);vertical-align:middle;}
-.results-table tr:hover td{background:rgba(255,255,255,0.03);}
-.score-pill{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;background:rgba(0,0,0,0.3);padding:3px 8px;border-radius:5px;color:var(--gold);}
-.edit-score-row{display:flex;gap:6px;align-items:center;}
-.edit-input{background:rgba(255,255,255,0.08);border:1px solid rgba(245,166,35,0.4);border-radius:4px;padding:4px 6px;color:var(--white);font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;width:44px;text-align:center;}
+.results-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);text-align:left;padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.12);text-transform:uppercase;background:rgba(0,0,0,.2);}
+.results-table td{padding:8px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle;}
+.results-table tr:hover td{background:rgba(255,255,255,.03);}
+.score-pill{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;background:rgba(0,0,0,.3);padding:3px 8px;border-radius:5px;color:var(--gold);}
+.edit-input{background:rgba(255,255,255,.08);border:1px solid rgba(245,166,35,.4);border-radius:4px;padding:4px 6px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;width:46px;text-align:center;}
 .edit-input:focus{outline:none;border-color:var(--gold);}
-/* PREDICTIONS FULL VIEW */
-.all-preds-table{width:100%;border-collapse:collapse;font-size:11px;}
-.all-preds-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);text-align:center;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,0.12);text-transform:uppercase;background:rgba(0,0,0,0.2);white-space:nowrap;}
-.all-preds-table th:first-child{text-align:left;position:sticky;left:0;background:#0d1e52;z-index:2;}
-.all-preds-table td{padding:5px 4px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:center;white-space:nowrap;}
-.all-preds-table td:first-child{text-align:left;font-weight:600;font-size:12px;position:sticky;left:0;background:#060F33;z-index:1;}
-.all-preds-table tr:hover td{background:rgba(255,255,255,0.03);}
-.all-preds-table tr:hover td:first-child{background:#0d1e52;}
-.pred-cell{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;}
-.pred-cell.pts-5{color:var(--gold);}
-.pred-cell.pts-4{color:#4ADB8A;}
-.pred-cell.pts-3{color:#6496FF;}
-.pred-cell.pts-0{color:var(--red);}
-.pred-cell.pts-null{color:var(--gray-mid);}
-/* CSV PROMPT AREA */
-.csv-prompt-box{background:rgba(0,0,0,0.3);border:1px solid rgba(245,166,35,0.2);border-radius:8px;padding:14px;margin-bottom:12px;}
-.csv-prompt-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;}
-.csv-prompt-text{font-size:12px;color:var(--gray-mid);line-height:1.8;font-family:monospace;}
-.tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.5px;}
-.tag-green{background:rgba(74,219,138,0.2);color:#4ADB8A;border:1px solid rgba(74,219,138,0.3);}
-.tag-gold{background:rgba(245,166,35,0.2);color:var(--gold);border:1px solid rgba(245,166,35,0.3);}
-.tag-red{background:rgba(204,0,0,0.2);color:#FF6666;border:1px solid rgba(204,0,0,0.3);}
+.prompt-box{background:rgba(0,0,0,.35);border:1px solid rgba(245,166,35,.25);border-radius:10px;padding:16px;margin-bottom:14px;position:relative;}
+.prompt-copy-btn{position:absolute;top:10px;right:10px;background:var(--gold);color:var(--navy);border:none;border-radius:5px;padding:4px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;}
+.prompt-copy-btn:hover{background:var(--gold-light);}
+.prompt-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;}
+.prompt-text{font-size:12px;color:#d0d8f0;line-height:1.9;font-family:monospace;white-space:pre-wrap;word-break:break-word;}
+.admin-tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap;}
+.section-divider{height:1px;background:rgba(255,255,255,.08);margin:14px 0;}
 @media(max-width:600px){
   .header{padding:10px 12px 0;}
   .main{padding:12px 8px 60px;}
-  .team-name{font-size:13px;}
-  .score-num{font-size:20px;}
+  .team-name{font-size:12px;}
+  .team-flag{font-size:18px;}
+  .score-num{font-size:22px;}
   .pred-grid{grid-template-columns:repeat(2,1fr);}
   .form-row{flex-direction:column;}
-  .standings-table th:nth-child(5),.standings-table td:nth-child(5){display:none;}
-  .results-table th:nth-child(2),.results-table td:nth-child(2){display:none;}
 }
 </style>
 </head>
@@ -163,32 +158,43 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--white);min
 <script type="text/babel">
 const {useState,useEffect,useCallback,useRef} = React;
 
-const SUPABASE_URL = "https://zccpukcvzrzgmaluemuq.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjY3B1a2N2enJ6Z21hbHVlbXVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMDgzNzksImV4cCI6MjA5NjY4NDM3OX0.ln2MWHiFQbMjEwyNGSuP_hhgzSv3JGYFQY-q9IzLiZM";
+const SB_URL = "https://zccpukcvzrzgmaluemuq.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjY3B1a2N2enJ6Z21hbHVlbXVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMDgzNzksImV4cCI6MjA5NjY4NDM3OX0.ln2MWHiFQbMjEwyNGSuP_hhgzSv3JGYFQY-q9IzLiZM";
 const ADMIN_PASS = "destin2026";
 
 async function sb(path, opts={}) {
-  const headers = {
-    "apikey": SUPABASE_KEY,
-    "Authorization": `Bearer ${SUPABASE_KEY}`,
-    "Content-Type": "application/json",
-    ...(opts.prefer ? {"Prefer": opts.prefer} : {"Prefer": "return=representation"}),
-    ...(opts.headers||{})
-  };
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    method: opts.method||"GET",
-    headers,
-    body: opts.body||undefined
+  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
+    method: opts.method || "GET",
+    headers: {
+      "apikey": SB_KEY,
+      "Authorization": "Bearer " + SB_KEY,
+      "Content-Type": "application/json",
+      "Prefer": opts.prefer || "return=representation",
+      ...(opts.headers||{})
+    },
+    body: opts.body
   });
-  if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(`${res.status}: ${txt}`);
-  }
-  const txt = await res.text();
-  return txt ? JSON.parse(txt) : [];
+  if (!r.ok) { const t = await r.text(); throw new Error(r.status + ": " + t); }
+  const t = await r.text();
+  return t ? JSON.parse(t) : [];
 }
 
-// ── 72 PARTIDOS FASE DE GRUPOS ────────────────────────────
+const FLAGS = {
+  "México":"🇲🇽","Sudáfrica":"🇿🇦","Corea del Sur":"🇰🇷","Chequia":"🇨🇿",
+  "Canadá":"🇨🇦","Bosnia y Herzegovina":"🇧🇦","Estados Unidos":"🇺🇸","Paraguay":"🇵🇾",
+  "Catar":"🇶🇦","Suiza":"🇨🇭","Brasil":"🇧🇷","Marruecos":"🇲🇦",
+  "Haití":"🇭🇹","Escocia":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","Australia":"🇦🇺","Turquía":"🇹🇷",
+  "Alemania":"🇩🇪","Curazao":"🇨🇼","Países Bajos":"🇳🇱","Japón":"🇯🇵",
+  "Costa de Marfil":"🇨🇮","Ecuador":"🇪🇨","Suecia":"🇸🇪","Túnez":"🇹🇳",
+  "España":"🇪🇸","Cabo Verde":"🇨🇻","Bélgica":"🇧🇪","Egipto":"🇪🇬",
+  "Arabia Saudita":"🇸🇦","Uruguay":"🇺🇾","Irán":"🇮🇷","Nueva Zelanda":"🇳🇿",
+  "Francia":"🇫🇷","Senegal":"🇸🇳","Irak":"🇮🇶","Noruega":"🇳🇴",
+  "Argentina":"🇦🇷","Argelia":"🇩🇿","Austria":"🇦🇹","Jordania":"🇯🇴",
+  "Portugal":"🇵🇹","Congo":"🇨🇩","Inglaterra":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","Croacia":"🇭🇷",
+  "Ghana":"🇬🇭","Panamá":"🇵🇦","Uzbekistán":"🇺🇿","Colombia":"🇨🇴"
+};
+const F = n => FLAGS[n] || "🏳️";
+
 const PARTIDOS_SEED = [
   {id:1,fecha:"2026-06-11",hora:"22:00",equipo_a:"México",equipo_b:"Sudáfrica",grupo:"A"},
   {id:2,fecha:"2026-06-12",hora:"05:00",equipo_a:"Corea del Sur",equipo_b:"Chequia",grupo:"A"},
@@ -264,10 +270,6 @@ const PARTIDOS_SEED = [
   {id:72,fecha:"2026-06-27",hora:"07:00",equipo_a:"Jordania",equipo_b:"Argentina",grupo:"J"},
 ];
 
-// Orden de partidos en el CSV (por fecha, como aparece en el archivo Excel)
-const CSV_ORDEN = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72];
-
-// Datos iniciales del CSV por participante
 const CSV_PRONOSTICOS = {
   "Emigdio Irausquin":[[2,0],[1,1],[2,1],[2,1],[0,3],[2,1],[0,2],[1,2],[4,0],[1,1],[1,1],[2,2],[4,0],[2,0],[0,2],[2,1],[2,1],[2,0],[3,0],[2,0],[3,0],[2,1],[2,1],[0,2],[2,1],[2,1],[2,0],[1,1],[3,1],[1,1],[4,0],[1,1],[2,1],[2,2],[2,0],[0,2],[3,1],[1,1],[2,0],[0,2],[2,1],[4,0],[1,1],[0,2],[2,0],[3,1],[0,2],[2,0],[1,1],[2,0],[2,0],[1,3],[0,2],[1,2],[0,3],[0,2],[0,3],[1,2],[1,1],[2,0],[1,3],[2,0],[1,1],[2,2],[0,3],[1,1],[0,3],[1,1],[2,3],[1,1],[1,1],[0,4]],
   "Wilmer Artuza":[[2,1],[1,1],[2,0],[2,1],[0,2],[3,1],[0,2],[1,1],[3,0],[2,1],[1,1],[2,0],[2,0],[2,1],[1,2],[1,1],[2,0],[1,2],[3,0],[1,2],[3,1],[2,2],[1,1],[1,2],[1,1],[2,1],[2,1],[2,0],[2,0],[1,1],[2,0],[1,1],[2,1],[3,0],[2,0],[2,2],[2,1],[2,1],[1,1],[1,2],[2,0],[3,0],[1,2],[1,1],[2,0],[1,1],[0,2],[2,1],[1,1],[2,1],[3,1],[0,3],[0,2],[1,1],[0,2],[1,2],[0,2],[2,2],[1,1],[2,2],[1,3],[2,0],[2,0],[1,3],[1,2],[1,2],[0,2],[2,1],[1,2],[2,2],[1,1],[0,2]],
@@ -281,43 +283,70 @@ const CSV_PRONOSTICOS = {
   "Juan Sanchez":[[2,1],[1,0],[3,1],[2,1],[1,1],[3,1],[0,2],[1,1],[3,0],[1,2],[0,2],[1,2],[3,0],[2,1],[1,2],[2,1],[2,1],[2,1],[3,1],[2,1],[4,0],[2,1],[1,0],[1,2],[0,2],[0,0],[1,0],[1,0],[2,1],[2,1],[3,0],[1,0],[1,1],[3,0],[2,0],[1,2],[3,1],[1,1],[2,0],[0,1],[3,1],[3,1],[0,1],[1,1],[1,1],[3,1],[0,2],[2,0],[0,1],[0,1],[2,0],[1,2],[1,1],[0,2],[1,1],[0,2],[1,1],[2,1],[1,2],[1,1],[1,2],[1,1],[0,1],[1,2],[1,1],[1,2],[0,2],[2,1],[1,2],[0,1],[1,1],[0,2]],
 };
 
-function calcPuntos(pA,pB,rA,rB){
+function calcPts(pA,pB,rA,rB){
   if(rA===null||rB===null)return null;
   if(pA===rA&&pB===rB)return 5;
-  const mismo=(pA>pB&&rA>rB)||(pA<pB&&rA<rB)||(pA===pB&&rA===rB);
-  if(!mismo)return 0;
-  if((pA-pB)===(rA-rB))return 4;
-  return 3;
+  const ok=(pA>pB&&rA>rB)||(pA<pB&&rA<rB)||(pA===pB&&rA===rB);
+  if(!ok)return 0;
+  return (pA-pB)===(rA-rB)?4:3;
 }
 
 const DIAS=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
 const MESES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-function fechaLarga(f){const[y,m,d]=f.split("-").map(Number);const dt=new Date(y,m-1,d);return`${DIAS[dt.getDay()]}, ${d} de ${MESES[m-1]} ${y}`;}
-function getTodayIraq(){const n=new Date();const utc=n.getTime()+n.getTimezoneOffset()*60000;const iq=new Date(utc+3*3600000);return`${iq.getFullYear()}-${String(iq.getMonth()+1).padStart(2,"0")}-${String(iq.getDate()).padStart(2,"0")}`;}
+function fLarga(f){const[y,m,d]=f.split("-").map(Number);const dt=new Date(y,m-1,d);return `${DIAS[dt.getDay()]}, ${d} de ${MESES[m-1]} ${y}`;}
+function todayIQ(){const n=new Date();const u=n.getTime()+n.getTimezoneOffset()*60000;const iq=new Date(u+10800000);return `${iq.getFullYear()}-${String(iq.getMonth()+1).padStart(2,"0")}-${String(iq.getDate()).padStart(2,"0")}`;}
 
-// ── MATCH CARD ────────────────────────────────────────────
-function MatchCard({partido,pronosticos,participantes}){
+const CSV_PROMPT = `Eres un asistente que normaliza datos de pronósticos de fútbol.
+
+Tengo una hoja de cálculo con pronósticos del Mundial 2026.
+Los datos están ordenados por fecha (partidos del 11/6 al 27/6).
+
+TAREA: Convierte los datos al siguiente formato CSV exacto:
+- Primera columna: Nombre completo del participante
+- Columnas 2 a 73: Los 72 pronósticos en orden, formato GolesLocal-GolesVisitante
+- Sin espacios, sin encabezados, sin filas vacías
+- Separador: coma (,)
+
+EJEMPLO DE SALIDA:
+Pedro García,2-1,1-0,3-1,2-0,0-2,1-1,...(72 pronósticos)
+Ana Torres,1-1,2-0,0-1,...(72 pronósticos)
+
+DATOS A CONVERTIR:
+[PEGA AQUÍ LOS DATOS DE TU HOJA DE CÁLCULO]
+
+Devuelve SOLO el CSV, sin explicaciones ni texto adicional.`;
+
+function TeamBlock({name, align="center"}){
+  return(
+    <div className="team-block" style={{alignItems: align==="right"?"flex-end":align==="left"?"flex-start":"center"}}>
+      <span className="team-flag">{F(name)}</span>
+      <span className="team-name">{name}</span>
+    </div>
+  );
+}
+
+function MatchCard({p, prons, parts}){
   const[open,setOpen]=useState(false);
-  const done=partido.finalizado&&partido.goles_a!==null;
-  const preds=participantes.map(p=>{
-    const pr=pronosticos.find(x=>x.participante_id===p.id&&x.partido_id===partido.id);
+  const done=p.finalizado&&p.goles_a!==null;
+  const preds=parts.map(pt=>{
+    const pr=prons.find(x=>x.participante_id===pt.id&&x.partido_id===p.id);
     if(!pr)return null;
-    const pts=done?calcPuntos(pr.pred_a,pr.pred_b,partido.goles_a,partido.goles_b):null;
-    return{nombre:p.nombre,pred_a:pr.pred_a,pred_b:pr.pred_b,pts};
+    const pts=done?calcPts(pr.pred_a,pr.pred_b,p.goles_a,p.goles_b):null;
+    return{nombre:pt.nombre,pa:pr.pred_a,pb:pr.pred_b,pts};
   }).filter(Boolean);
   return(
     <div className="match-card">
       <div className="match-meta">
-        <span className="match-group">GRUPO {partido.grupo}</span>
-        <span className="match-time">⏰ {partido.hora} (Irak)</span>
-        <span className={`match-status-badge ${done?"badge-done":"badge-pending"}`}>{done?"✓ FINALIZADO":"PENDIENTE"}</span>
+        <span className="match-group-badge">GRUPO {p.grupo}</span>
+        <span className="match-time">⏰ {p.hora} (Irak)</span>
+        <span className={`match-status ${done?"badge-done":"badge-pending"}`}>{done?"✓ FINALIZADO":"PENDIENTE"}</span>
       </div>
       <div className="match-teams">
-        <span className="team-name">{partido.equipo_a}</span>
+        <TeamBlock name={p.equipo_a}/>
         <div className="score-box">
-          {done?<><span className="score-num">{partido.goles_a}</span><span className="score-sep">–</span><span className="score-num">{partido.goles_b}</span></>:<span className="score-pending">vs</span>}
+          {done?<><span className="score-num">{p.goles_a}</span><span className="score-sep">–</span><span className="score-num">{p.goles_b}</span></>:<span className="score-pending">vs</span>}
         </div>
-        <span className="team-name">{partido.equipo_b}</span>
+        <TeamBlock name={p.equipo_b}/>
       </div>
       {preds.length>0&&<>
         <button className="pred-toggle" onClick={()=>setOpen(!open)}>
@@ -328,8 +357,8 @@ function MatchCard({partido,pronosticos,participantes}){
             <div key={pr.nombre} className={`pred-item ${pr.pts===5?"pts-5":pr.pts===4?"pts-4":pr.pts===3?"pts-3":""}`}>
               <span className="pred-name">{pr.nombre.split(" ")[0]}</span>
               <div style={{display:"flex",alignItems:"center"}}>
-                <span className="pred-score">{pr.pred_a}–{pr.pred_b}</span>
-                {pr.pts!==null&&<span className={`pred-pts ${pr.pts===5?"pts-5-badge":pr.pts===4?"pts-4-badge":pr.pts===3?"pts-3-badge":""}`}>{pr.pts>0?`+${pr.pts}`:"0"}</span>}
+                <span className="pred-score">{pr.pa}–{pr.pb}</span>
+                {pr.pts!==null&&<span className={`pred-pts ${pr.pts===5?"pts-5-b":pr.pts===4?"pts-4-b":pr.pts===3?"pts-3-b":""}`}>{pr.pts>0?`+${pr.pts}`:"0"}</span>}
               </div>
             </div>
           ))}
@@ -339,54 +368,52 @@ function MatchCard({partido,pronosticos,participantes}){
   );
 }
 
-// ── TAB HOY ───────────────────────────────────────────────
-function TabHoy({partidos,pronosticos,participantes}){
-  const today=getTodayIraq();
+function TabHoy({partidos,prons,parts}){
+  const today=todayIQ();
   const hoy=partidos.filter(p=>p.fecha===today);
   return(
     <div>
       <div className="today-header">
-        <div className="today-date">{fechaLarga(today)}</div>
+        <div className="today-date">{fLarga(today)}</div>
         {hoy.length>0&&<span className="today-count">{hoy.length} partido{hoy.length>1?"s":""}</span>}
       </div>
-      {hoy.length===0?<div className="empty-state"><div style={{fontSize:36,marginBottom:10}}>⚽</div><div>No hay partidos hoy.</div><div style={{marginTop:6,fontSize:11,color:"#6B7BAA"}}>Revisa el Calendario completo.</div></div>
-      :hoy.map(p=><MatchCard key={p.id} partido={p} pronosticos={pronosticos} participantes={participantes}/>)}
+      {hoy.length===0
+        ?<div className="empty-state"><div style={{fontSize:36,marginBottom:10}}>⚽</div><div>No hay partidos programados hoy.</div><div style={{marginTop:6,fontSize:11,color:"#6B7BAA"}}>Revisa el Calendario completo.</div></div>
+        :hoy.map(p=><MatchCard key={p.id} p={p} prons={prons} parts={parts}/>)}
     </div>
   );
 }
 
-// ── TAB CALENDARIO ────────────────────────────────────────
-function TabCalendario({partidos,pronosticos,participantes}){
+function TabCalendario({partidos,prons,parts}){
   const fechas=[...new Set(partidos.map(p=>p.fecha))].sort();
-  const today=getTodayIraq();
+  const today=todayIQ();
   return(
     <div>
       {fechas.map(f=>(
         <div key={f}>
-          <div className="calendar-date-header">
-            <span>{fechaLarga(f)}</span>
-            {f===today&&<span style={{background:"var(--red)",fontSize:9,padding:"2px 7px",borderRadius:3,fontFamily:"Barlow Condensed",fontWeight:700,letterSpacing:1}}>HOY</span>}
+          <div className="cal-date-hdr">
+            <span>{fLarga(f)}</span>
+            {f===today&&<span style={{background:"var(--red)",fontSize:9,padding:"2px 6px",borderRadius:3,fontFamily:"Barlow Condensed",fontWeight:700,letterSpacing:1}}>HOY</span>}
           </div>
-          {partidos.filter(p=>p.fecha===f).map(p=><MatchCard key={p.id} partido={p} pronosticos={pronosticos} participantes={participantes}/>)}
+          {partidos.filter(p=>p.fecha===f).map(p=><MatchCard key={p.id} p={p} prons={prons} parts={parts}/>)}
         </div>
       ))}
     </div>
   );
 }
 
-// ── TAB POSICIONES ────────────────────────────────────────
-function TabPosiciones({partidos,pronosticos,participantes}){
-  const standings=participantes.map(p=>{
-    let pts=0,exactos=0,diferencia=0,ganador=0,cero=0,pendientes=0;
-    pronosticos.filter(pr=>pr.participante_id===p.id).forEach(pr=>{
+function TabPosiciones({partidos,prons,parts}){
+  const rows=parts.map(p=>{
+    let pts=0,e5=0,e4=0,e3=0,e0=0,pend=0;
+    prons.filter(pr=>pr.participante_id===p.id).forEach(pr=>{
       const pa=partidos.find(x=>x.id===pr.partido_id);
-      if(!pa||!pa.finalizado||pa.goles_a===null){pendientes++;return;}
-      const v=calcPuntos(pr.pred_a,pr.pred_b,pa.goles_a,pa.goles_b);
+      if(!pa||!pa.finalizado||pa.goles_a===null){pend++;return;}
+      const v=calcPts(pr.pred_a,pr.pred_b,pa.goles_a,pa.goles_b);
       pts+=v;
-      if(v===5)exactos++;else if(v===4)diferencia++;else if(v===3)ganador++;else cero++;
+      if(v===5)e5++;else if(v===4)e4++;else if(v===3)e3++;else e0++;
     });
-    return{...p,pts,exactos,diferencia,ganador,cero,pendientes};
-  }).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos||b.diferencia-a.diferencia);
+    return{...p,pts,e5,e4,e3,e0,pend};
+  }).sort((a,b)=>b.pts-a.pts||b.e5-a.e5||b.e4-a.e4);
   return(
     <div className="card">
       <div className="card-header">🏆 Tabla de Posiciones — Quiniela Destin 2026</div>
@@ -395,77 +422,75 @@ function TabPosiciones({partidos,pronosticos,participantes}){
           <thead><tr>
             <th>#</th><th>Participante</th>
             <th style={{textAlign:"center"}}>Pts</th>
-            <th style={{textAlign:"center"}}>⭐ Exacto<br/><span style={{fontSize:9,color:"var(--gray-mid)"}}>5pts</span></th>
-            <th style={{textAlign:"center"}}>🎯 Diferencia<br/><span style={{fontSize:9,color:"var(--gray-mid)"}}>4pts</span></th>
-            <th style={{textAlign:"center"}}>✓ Ganador<br/><span style={{fontSize:9,color:"var(--gray-mid)"}}>3pts</span></th>
-            <th style={{textAlign:"center"}}>✗ Fallo</th>
-            <th style={{textAlign:"center"}}>⏳ Pend.</th>
+            <th style={{textAlign:"center"}}>⭐<br/><span style={{fontSize:9,fontWeight:400}}>5pts</span></th>
+            <th style={{textAlign:"center"}}>🎯<br/><span style={{fontSize:9,fontWeight:400}}>4pts</span></th>
+            <th style={{textAlign:"center"}}>✓<br/><span style={{fontSize:9,fontWeight:400}}>3pts</span></th>
+            <th style={{textAlign:"center"}}>✗<br/><span style={{fontSize:9,fontWeight:400}}>0pts</span></th>
+            <th style={{textAlign:"center"}}>⏳</th>
           </tr></thead>
-          <tbody>
-            {standings.map((p,i)=>(
-              <tr key={p.id}>
-                <td><div className={`pos-badge pos-${i<3?i+1:"other"}`}>{i+1}</div></td>
-                <td style={{fontWeight:600}}>{p.nombre}</td>
-                <td style={{textAlign:"center"}}><span className="pts-total">{p.pts}</span></td>
-                <td style={{textAlign:"center",color:"var(--gold)",fontWeight:700}}>{p.exactos}</td>
-                <td style={{textAlign:"center",color:"#4ADB8A",fontWeight:700}}>{p.diferencia}</td>
-                <td style={{textAlign:"center",color:"#6496FF",fontWeight:700}}>{p.ganador}</td>
-                <td style={{textAlign:"center",color:"#FF6666",fontWeight:700}}>{p.cero}</td>
-                <td style={{textAlign:"center",color:"var(--gray-mid)"}}>{p.pendientes}</td>
-              </tr>
-            ))}
-          </tbody>
+          <tbody>{rows.map((p,i)=>(
+            <tr key={p.id}>
+              <td><div className={`pos-badge pos-${i<3?i+1:"x"}`}>{i+1}</div></td>
+              <td style={{fontWeight:600}}>{p.nombre}</td>
+              <td style={{textAlign:"center"}}><span className="pts-total">{p.pts}</span></td>
+              <td style={{textAlign:"center",color:"var(--gold)",fontWeight:700}}>{p.e5}</td>
+              <td style={{textAlign:"center",color:"#4ADB8A",fontWeight:700}}>{p.e4}</td>
+              <td style={{textAlign:"center",color:"#6496FF",fontWeight:700}}>{p.e3}</td>
+              <td style={{textAlign:"center",color:"#FF6666",fontWeight:700}}>{p.e0}</td>
+              <td style={{textAlign:"center",color:"var(--gray-mid)"}}>{p.pend}</td>
+            </tr>
+          ))}</tbody>
         </table>
       </div>
-      <div style={{marginTop:14,padding:"10px 12px",background:"rgba(0,0,0,0.2)",borderRadius:8,fontSize:11,color:"var(--gray-mid)",lineHeight:1.8}}>
-        <strong style={{color:"var(--gold)"}}>Puntuación:</strong> ⭐ Marcador exacto = 5 pts · 🎯 Ganador + diferencia exacta = 4 pts · ✓ Solo ganador/empate = 3 pts<br/>
-        <strong style={{color:"var(--gold)"}}>Premios:</strong> 🥇 1er lugar 60% · 🥈 2do lugar 30% · 🥉 3er lugar 10% del total acumulado
+      <div style={{marginTop:12,padding:"10px 12px",background:"rgba(0,0,0,.2)",borderRadius:8,fontSize:11,color:"var(--gray-mid)",lineHeight:1.8}}>
+        <strong style={{color:"var(--gold)"}}>Puntuación:</strong> ⭐ Marcador exacto = 5pts · 🎯 Ganador + diferencia = 4pts · ✓ Solo ganador/empate = 3pts<br/>
+        <strong style={{color:"var(--gold)"}}>Premios:</strong> 🥇 1er lugar 60% · 🥈 2do 30% · 🥉 3er 10% del acumulado
       </div>
     </div>
   );
 }
 
-// ── TAB GRUPOS ────────────────────────────────────────────
-function calcGrupos(partidos){
+function TabGrupos({partidos}){
   const g={};
   partidos.forEach(p=>{
     if(!g[p.grupo])g[p.grupo]={};
-    [p.equipo_a,p.equipo_b].forEach(eq=>{if(!g[p.grupo][eq])g[p.grupo][eq]={pts:0,j:0,g:0,e:0,p:0,gf:0,gc:0,dg:0};});
+    [p.equipo_a,p.equipo_b].forEach(eq=>{if(!g[p.grupo][eq])g[p.grupo][eq]={pts:0,j:0,gn:0,e:0,pe:0,gf:0,gc:0,dg:0};});
     if(!p.finalizado||p.goles_a===null)return;
     const a=g[p.grupo][p.equipo_a],b=g[p.grupo][p.equipo_b];
     a.j++;b.j++;a.gf+=p.goles_a;a.gc+=p.goles_b;b.gf+=p.goles_b;b.gc+=p.goles_a;
     a.dg=a.gf-a.gc;b.dg=b.gf-b.gc;
-    if(p.goles_a>p.goles_b){a.pts+=3;a.g++;b.p++;}
-    else if(p.goles_a<p.goles_b){b.pts+=3;b.g++;a.p++;}
+    if(p.goles_a>p.goles_b){a.pts+=3;a.gn++;b.pe++;}
+    else if(p.goles_a<p.goles_b){b.pts+=3;b.gn++;a.pe++;}
     else{a.pts++;b.pts++;a.e++;b.e++;}
   });
-  return g;
-}
-function TabGrupos({partidos}){
-  const grupos=calcGrupos(partidos);
-  const letras=Object.keys(grupos).sort();
+  const letras=Object.keys(g).sort();
   return(
     <div>
-      <div style={{background:"rgba(245,166,35,0.08)",border:"1px solid rgba(245,166,35,0.25)",borderRadius:8,padding:"10px 12px",marginBottom:16,fontSize:11,lineHeight:1.8}}>
-        <strong style={{color:"var(--gold)"}}>⚠️ Desempates:</strong>
-        <span style={{color:"var(--gray-mid)"}}> Calculados automáticamente por: 1) Puntos · 2) Diferencia de goles · 3) Goles a favor · 4) Resultados head-to-head.
-        Criterios como <strong style={{color:"var(--gold)"}}>fair play (tarjetas), ranking FIFA o sorteo</strong> no son calculables automáticamente — en caso de igualdad total, el desempate queda sujeto a criterios internos FIFA.</span>
+      <div style={{background:"rgba(245,166,35,.08)",border:"1px solid rgba(245,166,35,.25)",borderRadius:8,padding:"10px 12px",marginBottom:16,fontSize:11,lineHeight:1.8}}>
+        <strong style={{color:"var(--gold)"}}>⚠️ Desempates automáticos:</strong>
+        <span style={{color:"var(--gray-mid)"}}> 1) Puntos · 2) Diferencia de goles · 3) Goles a favor · 4) Head-to-head.
+        <strong style={{color:"var(--gold)"}}> Fair play (tarjetas), ranking FIFA y sorteo</strong> no son calculables — en igualdad total aplican criterios internos FIFA.</span>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(360px,1fr))",gap:14}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:14}}>
         {letras.map(l=>{
-          const equipos=Object.entries(grupos[l]).map(([n,s])=>({nombre:n,...s})).sort((a,b)=>b.pts-a.pts||b.dg-a.dg||b.gf-a.gf);
+          const eqs=Object.entries(g[l]).map(([n,s])=>({n,...s})).sort((a,b)=>b.pts-a.pts||b.dg-a.dg||b.gf-a.gf);
           return(
             <div key={l} className="group-block">
-              <div className="group-title">GRUPO {l}</div>
+              <div className="group-title-bar">GRUPO {l}</div>
               <table className="group-table">
                 <thead><tr><th>Selección</th><th>PJ</th><th>PTS</th><th>DG</th><th>GF</th><th>GC</th><th>G</th><th>E</th><th>P</th></tr></thead>
-                <tbody>{equipos.map((eq,i)=>(
-                  <tr key={eq.nombre}>
-                    <td>{i<2&&<span className="qualify-dot"/>}{i===2&&<span className="third-dot"/>}{eq.nombre}</td>
+                <tbody>{eqs.map((eq,i)=>(
+                  <tr key={eq.n}>
+                    <td>
+                      {i<2&&<span className="q-dot"/>}
+                      {i===2&&<span className="t-dot"/>}
+                      <span style={{marginRight:5}}>{F(eq.n)}</span>
+                      <span style={{fontWeight:600}}>{eq.n}</span>
+                    </td>
                     <td>{eq.j}</td>
                     <td><strong style={{color:i<2?"#4ADB8A":"inherit"}}>{eq.pts}</strong></td>
                     <td style={{color:eq.dg>0?"#4ADB8A":eq.dg<0?"#FF6666":"inherit"}}>{eq.dg>0?"+":""}{eq.dg}</td>
-                    <td>{eq.gf}</td><td>{eq.gc}</td><td>{eq.g}</td><td>{eq.e}</td><td>{eq.p}</td>
+                    <td>{eq.gf}</td><td>{eq.gc}</td><td>{eq.gn}</td><td>{eq.e}</td><td>{eq.pe}</td>
                   </tr>
                 ))}</tbody>
               </table>
@@ -474,73 +499,76 @@ function TabGrupos({partidos}){
         })}
       </div>
       <div style={{marginTop:12,fontSize:11,color:"var(--gray-mid)",display:"flex",gap:14,flexWrap:"wrap"}}>
-        <span><span className="qualify-dot"/>Clasificado directo (1° y 2°)</span>
-        <span><span className="third-dot"/>Posible mejor tercero</span>
+        <span><span className="q-dot"/>Clasificado directo (1° y 2°)</span>
+        <span><span className="t-dot"/>Posible mejor tercero</span>
       </div>
     </div>
   );
 }
 
-// ── TAB PRONÓSTICOS COMPLETOS ─────────────────────────────
-function TabPronosticos({partidos,pronosticos,participantes}){
-  const[filtroGrupo,setFiltroGrupo]=useState("TODOS");
-  const[filtroPart,setFiltroPart]=useState("TODOS");
+function TabPronosticos({partidos,prons,parts}){
+  const[fg,setFg]=useState("TODOS");
+  const[fp,setFp]=useState("TODOS");
   const grupos=["TODOS",...[...new Set(partidos.map(p=>p.grupo))].sort()];
-  const partsFiltro=partidos.filter(p=>filtroGrupo==="TODOS"||p.grupo===filtroGrupo);
-  const partsFiltro2=filtroPart==="TODOS"?participantes:participantes.filter(p=>p.id===filtroPart);
+  const pFiltrados=partidos.filter(p=>fg==="TODOS"||p.grupo===fg);
+  const partFiltrados=fp==="TODOS"?parts:parts.filter(p=>p.id===fp);
   return(
     <div>
-      <div className="card" style={{marginBottom:14}}>
-        <div className="card-header">🔍 Filtros</div>
+      <div className="card" style={{marginBottom:12}}>
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label">Grupo</label>
-            <select className="form-input" value={filtroGrupo} onChange={e=>setFiltroGrupo(e.target.value)}>
+            <label className="form-label">Filtrar por grupo</label>
+            <select className="form-input" value={fg} onChange={e=>setFg(e.target.value)}>
               {grupos.map(g=><option key={g} value={g}>{g==="TODOS"?"Todos los grupos":"Grupo "+g}</option>)}
             </select>
           </div>
           <div className="form-group">
-            <label className="form-label">Participante</label>
-            <select className="form-input" value={filtroPart} onChange={e=>setFiltroPart(e.target.value)}>
+            <label className="form-label">Filtrar por participante</label>
+            <select className="form-input" value={fp} onChange={e=>setFp(e.target.value)}>
               <option value="TODOS">Todos</option>
-              {participantes.map(p=><option key={p.id} value={p.id}>{p.nombre}</option>)}
+              {parts.map(p=><option key={p.id} value={p.id}>{p.nombre}</option>)}
             </select>
           </div>
         </div>
       </div>
       <div className="card">
-        <div style={{overflowX:"auto"}}>
+        <div className="all-preds-wrap">
           <table className="all-preds-table">
             <thead><tr>
-              <th style={{minWidth:80}}>Partido</th>
-              {partsFiltro2.map(p=><th key={p.id} style={{minWidth:70}}>{p.nombre.split(" ")[0]}</th>)}
+              <th>Partido</th>
+              {partFiltrados.map(p=><th key={p.id}>{p.nombre.split(" ")[0]}</th>)}
             </tr></thead>
-            <tbody>
-              {partsFiltro.map(pa=>{
-                const done=pa.finalizado&&pa.goles_a!==null;
-                return(
-                  <tr key={pa.id}>
-                    <td>
-                      <div style={{fontSize:11,fontWeight:700}}>{pa.equipo_a} vs {pa.equipo_b}</div>
-                      <div style={{fontSize:10,color:"var(--gray-mid)"}}>{pa.fecha} {pa.hora} · G{pa.grupo}</div>
-                      {done&&<div style={{fontSize:11,color:"var(--gold)",fontFamily:"Barlow Condensed",fontWeight:700}}>✓ {pa.goles_a}–{pa.goles_b}</div>}
-                    </td>
-                    {partsFiltro2.map(p=>{
-                      const pr=pronosticos.find(x=>x.participante_id===p.id&&x.partido_id===pa.id);
-                      if(!pr)return<td key={p.id}><span style={{color:"var(--gray-mid)",fontSize:11}}>—</span></td>;
-                      const pts=done?calcPuntos(pr.pred_a,pr.pred_b,pa.goles_a,pa.goles_b):null;
-                      const cls=pts===5?"pts-5":pts===4?"pts-4":pts===3?"pts-3":pts===0?"pts-0":"pts-null";
-                      return(
-                        <td key={p.id}>
-                          <span className={`pred-cell ${cls}`}>{pr.pred_a}–{pr.pred_b}</span>
-                          {pts!==null&&<div style={{fontSize:9,color:pts===5?"var(--gold)":pts===4?"#4ADB8A":pts===3?"#6496FF":"#FF6666",fontWeight:700}}>{pts>0?`+${pts}pts`:"0"}</div>}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                );
-              })}
-            </tbody>
+            <tbody>{pFiltrados.map(pa=>{
+              const done=pa.finalizado&&pa.goles_a!==null;
+              return(
+                <tr key={pa.id}>
+                  <td>
+                    <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:2}}>
+                      <span>{F(pa.equipo_a)}</span>
+                      <span style={{fontSize:11,fontWeight:700}}>{pa.equipo_a}</span>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:2}}>
+                      <span>{F(pa.equipo_b)}</span>
+                      <span style={{fontSize:11,fontWeight:700}}>{pa.equipo_b}</span>
+                    </div>
+                    <div style={{fontSize:10,color:"var(--gray-mid)"}}>{pa.fecha} {pa.hora} · G{pa.grupo}</div>
+                    {done&&<div style={{fontSize:11,color:"var(--gold)",fontFamily:"Barlow Condensed",fontWeight:700}}>✓ {pa.goles_a}–{pa.goles_b}</div>}
+                  </td>
+                  {partFiltrados.map(pt=>{
+                    const pr=prons.find(x=>x.participante_id===pt.id&&x.partido_id===pa.id);
+                    if(!pr)return<td key={pt.id}><span style={{color:"var(--gray-mid)"}}>—</span></td>;
+                    const pts=done?calcPts(pr.pred_a,pr.pred_b,pa.goles_a,pa.goles_b):null;
+                    const c=pts===5?"c5":pts===4?"c4":pts===3?"c3":pts===0?"c0":"cn";
+                    return(
+                      <td key={pt.id}>
+                        <span className={`pc ${c}`}>{pr.pred_a}–{pr.pred_b}</span>
+                        {pts!==null&&<div style={{fontSize:9,fontWeight:700,color:pts===5?"var(--gold)":pts===4?"#4ADB8A":pts===3?"#6496FF":"#FF6666"}}>{pts>0?`+${pts}`:"✗"}</div>}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}</tbody>
           </table>
         </div>
       </div>
@@ -548,127 +576,111 @@ function TabPronosticos({partidos,pronosticos,participantes}){
   );
 }
 
-// ── TAB ADMIN ─────────────────────────────────────────────
-function TabAdmin({partidos,participantes,pronosticos,onRefresh}){
+function TabAdmin({partidos,parts,prons,onRefresh}){
   const[authed,setAuthed]=useState(false);
   const[pass,setPass]=useState("");
   const[passErr,setPassErr]=useState(false);
   const[msg,setMsg]=useState(null);
-  const[adminTab,setAdminTab]=useState("resultados");
-  // resultado
-  const[selPartido,setSelPartido]=useState("");
-  const[golesA,setGolesA]=useState("");
-  const[golesB,setGolesB]=useState("");
-  // editar resultado existente
+  const[atab,setAtab]=useState("resultados");
+  const[selP,setSelP]=useState("");
+  const[gA,setGA]=useState("");
+  const[gB,setGB]=useState("");
   const[editId,setEditId]=useState(null);
   const[editA,setEditA]=useState("");
   const[editB,setEditB]=useState("");
-  // participante nuevo
-  const[newNombre,setNewNombre]=useState("");
-  // csv
-  const[csvText,setCsvText]=useState("");
-  const[csvMsg,setCsvMsg]=useState("");
+  const[newN,setNewN]=useState("");
+  const[csv,setCsv]=useState("");
+  const[csvInfo,setCsvInfo]=useState("");
+  const[copied,setCopied]=useState(false);
 
-  const showMsg=(t,type="success")=>{setMsg({t,type});setTimeout(()=>setMsg(null),4500);};
+  const msg2=(t,type="success")=>{setMsg({t,type});setTimeout(()=>setMsg(null),4500);};
 
-  async function guardarResultado(){
-    if(!selPartido||golesA===""|golesB===""){showMsg("Completa todos los campos","error");return;}
-    const ga=parseInt(golesA),gb=parseInt(golesB);
-    if(isNaN(ga)||isNaN(gb)||ga<0||gb<0){showMsg("Goles inválidos","error");return;}
-    try{
-      await sb(`partidos?id=eq.${selPartido}`,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({goles_a:ga,goles_b:gb,finalizado:true})});
-      await recalcPuntos(parseInt(selPartido),ga,gb);
-      showMsg("✓ Resultado guardado y puntos actualizados");
-      setGolesA("");setGolesB("");setSelPartido("");
-      onRefresh();
-    }catch(e){showMsg("Error: "+e.message,"error");}
-  }
-
-  async function recalcPuntos(partidoId,ga,gb){
-    const preds=pronosticos.filter(pr=>pr.partido_id===partidoId);
-    for(const pr of preds){
-      const pts=calcPuntos(pr.pred_a,pr.pred_b,ga,gb);
+  async function recalc(pid,ra,rb){
+    const ps=prons.filter(pr=>pr.partido_id===pid);
+    for(const pr of ps){
+      const pts=calcPts(pr.pred_a,pr.pred_b,ra,rb);
       await sb(`pronosticos?id=eq.${pr.id}`,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({puntos:pts})});
     }
   }
-
-  async function guardarEdicion(partidoId){
-    const ga=parseInt(editA),gb=parseInt(editB);
-    if(isNaN(ga)||isNaN(gb)||ga<0||gb<0){showMsg("Valores inválidos","error");return;}
+  async function guardar(){
+    if(!selP||gA===""||gB===""){msg2("Completa todos los campos","error");return;}
+    const ra=parseInt(gA),rb=parseInt(gB);
+    if(isNaN(ra)||isNaN(rb)||ra<0||rb<0){msg2("Goles inválidos","error");return;}
     try{
-      await sb(`partidos?id=eq.${partidoId}`,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({goles_a:ga,goles_b:gb,finalizado:true})});
-      await recalcPuntos(partidoId,ga,gb);
-      setEditId(null);showMsg("✓ Resultado actualizado");onRefresh();
-    }catch(e){showMsg("Error: "+e.message,"error");}
+      await sb(`partidos?id=eq.${selP}`,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({goles_a:ra,goles_b:rb,finalizado:true})});
+      await recalc(parseInt(selP),ra,rb);
+      msg2("✓ Resultado guardado y puntos recalculados");
+      setGA("");setGB("");setSelP("");onRefresh();
+    }catch(e){msg2("Error: "+e.message,"error");}
   }
-
-  async function anularResultado(partidoId){
+  async function guardarEdit(pid){
+    const ra=parseInt(editA),rb=parseInt(editB);
+    if(isNaN(ra)||isNaN(rb)||ra<0||rb<0){msg2("Valores inválidos","error");return;}
     try{
-      await sb(`partidos?id=eq.${partidoId}`,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({goles_a:null,goles_b:null,finalizado:false})});
-      const preds=pronosticos.filter(pr=>pr.partido_id===partidoId);
-      for(const pr of preds)await sb(`pronosticos?id=eq.${pr.id}`,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({puntos:0})});
-      showMsg("✓ Resultado anulado");onRefresh();
-    }catch(e){showMsg("Error: "+e.message,"error");}
+      await sb(`partidos?id=eq.${pid}`,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({goles_a:ra,goles_b:rb,finalizado:true})});
+      await recalc(pid,ra,rb);
+      setEditId(null);msg2("✓ Resultado actualizado");onRefresh();
+    }catch(e){msg2("Error: "+e.message,"error");}
   }
-
-  async function agregarParticipante(){
-    if(!newNombre.trim()){showMsg("Ingresa un nombre","error");return;}
+  async function anular(pid){
     try{
-      await sb("participantes",{method:"POST",body:JSON.stringify({nombre:newNombre.trim()})});
-      showMsg(`✓ ${newNombre.trim()} agregado`);setNewNombre("");onRefresh();
-    }catch(e){showMsg("Error: "+e.message,"error");}
+      await sb(`partidos?id=eq.${pid}`,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({goles_a:null,goles_b:null,finalizado:false})});
+      const ps=prons.filter(pr=>pr.partido_id===pid);
+      for(const pr of ps)await sb(`pronosticos?id=eq.${pr.id}`,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({puntos:0})});
+      msg2("✓ Resultado anulado");onRefresh();
+    }catch(e){msg2("Error: "+e.message,"error");}
   }
-
-  async function normalizarCSV(){
-    if(!csvText.trim()){setCsvMsg("Pega los datos primero");return;}
-    // El formato del Excel es: N pronósticos separados por coma, formato X-Y
-    // Intentar detectar si es el formato del Excel (ordenado por fecha = IDs 1..72)
-    const lines=csvText.trim().split("\n").filter(l=>l.trim());
-    let output=[];
-    for(const line of lines){
-      const parts=line.split(",").map(s=>s.trim());
+  async function addPart(){
+    if(!newN.trim()){msg2("Ingresa un nombre","error");return;}
+    try{
+      await sb("participantes",{method:"POST",body:JSON.stringify({nombre:newN.trim()})});
+      msg2("✓ "+newN.trim()+" agregado");setNewN("");onRefresh();
+    }catch(e){msg2("Error: "+e.message,"error");}
+  }
+  function normalizar(){
+    if(!csv.trim()){setCsvInfo("Pega los datos primero");return;}
+    const lines=csv.trim().split("\n").filter(l=>l.trim());
+    let out=[];
+    for(const l of lines){
+      const parts=l.split(",").map(s=>s.trim());
       if(parts.length<2)continue;
       const nombre=parts[0];
-      const preds=parts.slice(1).filter(p=>p.match(/^\d+-\d+$/));
-      output.push(`${nombre},${preds.join(",")}`);
+      const preds=parts.slice(1).filter(p=>/^\d+-\d+$/.test(p));
+      if(preds.length>0)out.push(nombre+","+preds.join(","));
     }
-    setCsvText(output.join("\n"));
-    setCsvMsg(`✓ ${output.length} filas normalizadas`);
+    setCsv(out.join("\n"));
+    setCsvInfo("✓ "+out.length+" filas normalizadas, listas para importar");
   }
-
-  async function importarCSV(){
-    if(!csvText.trim()){showMsg("Pega el CSV primero","error");return;}
-    const lines=csvText.trim().split("\n").filter(l=>l.trim());
-    let ok=0,errores=0;
+  async function importar(){
+    if(!csv.trim()){msg2("Pega el CSV primero","error");return;}
+    const lines=csv.trim().split("\n").filter(l=>l.trim());
+    let ok=0,err=0;
     for(const line of lines){
-      const parts=line.split(",").map(s=>s.trim());
-      if(parts.length<2)continue;
-      const nombre=parts[0];
-      let part=participantes.find(p=>p.nombre.toLowerCase()===nombre.toLowerCase());
-      if(!part){
-        try{
-          const res=await sb("participantes",{method:"POST",body:JSON.stringify({nombre})});
-          part=Array.isArray(res)?res[0]:res;
-        }catch(e){errores++;continue;}
+      const cols=line.split(",").map(s=>s.trim());
+      if(cols.length<2)continue;
+      const nombre=cols[0];
+      let pt=parts.find(p=>p.nombre.toLowerCase()===nombre.toLowerCase());
+      if(!pt){
+        try{const r=await sb("participantes",{method:"POST",body:JSON.stringify({nombre})});pt=Array.isArray(r)?r[0]:r;}
+        catch{err++;continue;}
       }
-      const preds=parts.slice(1);
-      for(let i=0;i<preds.length&&i<72;i++){
-        const sc=preds[i].split("-");
+      for(let i=1;i<cols.length&&i<=72;i++){
+        const sc=cols[i].split("-");
         if(sc.length!==2)continue;
         const pa=parseInt(sc[0]),pb=parseInt(sc[1]);
         if(isNaN(pa)||isNaN(pb))continue;
-        const partidoId=CSV_ORDEN[i];
-        const exists=pronosticos.find(pr=>pr.participante_id===part.id&&pr.partido_id===partidoId);
+        const exists=prons.find(pr=>pr.participante_id===pt.id&&pr.partido_id===i);
         if(!exists){
-          try{
-            await sb("pronosticos",{method:"POST",body:JSON.stringify({participante_id:part.id,partido_id:partidoId,pred_a:pa,pred_b:pb,puntos:0})});
-            ok++;
-          }catch{errores++;}
+          try{await sb("pronosticos",{method:"POST",prefer:"return=minimal",body:JSON.stringify({participante_id:pt.id,partido_id:i,pred_a:pa,pred_b:pb,puntos:0})});ok++;}
+          catch{err++;}
         }
       }
     }
-    showMsg(`✓ Importación completa: ${ok} pronósticos cargados${errores>0?` (${errores} errores)`:""}`);
+    msg2(`✓ Importación completa: ${ok} pronósticos${err>0?` (${err} errores)`:""}`);
     onRefresh();
+  }
+  function copyPrompt(){
+    navigator.clipboard.writeText(CSV_PROMPT).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2500);});
   }
 
   if(!authed) return(
@@ -676,7 +688,7 @@ function TabAdmin({partidos,participantes,pronosticos,onRefresh}){
       <div className="login-box">
         <div style={{fontSize:32,marginBottom:10}}>🔐</div>
         <h2>Panel Admin</h2>
-        <p>Acceso restringido al administrador</p>
+        <p>Acceso restringido</p>
         {passErr&&<div className="alert alert-error">Contraseña incorrecta</div>}
         <input className="form-input" type="password" placeholder="Contraseña"
           value={pass} onChange={e=>{setPass(e.target.value);setPassErr(false);}}
@@ -692,201 +704,163 @@ function TabAdmin({partidos,participantes,pronosticos,onRefresh}){
 
   const terminados=partidos.filter(p=>p.finalizado&&p.goles_a!==null).sort((a,b)=>b.fecha.localeCompare(a.fecha)||b.hora.localeCompare(a.hora));
   const pendientes=partidos.filter(p=>!p.finalizado).sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.hora.localeCompare(b.hora));
-
-  const ADMIN_TABS=[
-    {id:"resultados",label:"📊 Resultados"},
-    {id:"historial",label:"📋 Historial"},
-    {id:"participantes",label:"👥 Participantes"},
-    {id:"csv",label:"📁 Importar CSV"},
-  ];
+  const selPartido=partidos.find(p=>p.id===parseInt(selP));
 
   return(
     <div>
       {msg&&<div className={`alert alert-${msg.type}`}>{msg.t}</div>}
-      <div style={{display:"flex",gap:4,marginBottom:16,flexWrap:"wrap"}}>
-        {ADMIN_TABS.map(t=>(
-          <button key={t.id} onClick={()=>setAdminTab(t.id)}
-            className={`btn ${adminTab===t.id?"btn-primary":"btn-secondary"} btn-sm`}>
-            {t.label}
-          </button>
+      <div className="admin-tabs">
+        {[["resultados","📊 Registrar"],["historial","📋 Historial ("+terminados.length+")"],["participantes","👥 Participantes"],["csv","📁 CSV"]].map(([id,lbl])=>(
+          <button key={id} className={`btn btn-sm ${atab===id?"btn-primary":"btn-secondary"}`} onClick={()=>setAtab(id)}>{lbl}</button>
         ))}
       </div>
 
-      {/* ── CARGAR RESULTADO NUEVO ── */}
-      {adminTab==="resultados"&&(
-        <div className="card admin-section">
-          <div className="admin-title">📊 Registrar Resultado</div>
-          <div className="form-row">
-            <div className="form-group" style={{flex:3}}>
-              <label className="form-label">Selecciona el partido</label>
-              <select className="form-input" value={selPartido} onChange={e=>setSelPartido(e.target.value)}>
-                <option value="">— Elige un partido pendiente —</option>
-                {pendientes.map(p=>(
-                  <option key={p.id} value={p.id}>
-                    [{p.fecha} {p.hora}] Grupo {p.grupo}: {p.equipo_a} vs {p.equipo_b}
-                  </option>
-                ))}
-              </select>
-            </div>
+      {atab==="resultados"&&(
+        <div className="card">
+          <div style={{fontFamily:"Barlow Condensed",fontSize:15,fontWeight:700,color:"var(--gold)",marginBottom:12,letterSpacing:1,textTransform:"uppercase"}}>📊 Registrar Resultado</div>
+          <div className="form-group" style={{marginBottom:12}}>
+            <label className="form-label">Selecciona el partido</label>
+            <select className="form-input" value={selP} onChange={e=>setSelP(e.target.value)}>
+              <option value="">— Elige un partido pendiente —</option>
+              {pendientes.map(p=>(
+                <option key={p.id} value={p.id}>[{p.fecha} {p.hora}] G{p.grupo}: {p.equipo_a} vs {p.equipo_b}</option>
+              ))}
+            </select>
           </div>
-          {selPartido&&(()=>{
-            const pa=partidos.find(p=>p.id===parseInt(selPartido));
-            return pa?(
-              <div style={{background:"rgba(0,0,0,0.2)",borderRadius:8,padding:"12px 14px",marginBottom:12}}>
-                <div style={{fontFamily:"Barlow Condensed",fontSize:13,color:"var(--gray-mid)",marginBottom:10,letterSpacing:1}}>PARTIDO SELECCIONADO</div>
-                <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-                  <span style={{fontFamily:"Barlow Condensed",fontSize:16,fontWeight:700,flex:1,textAlign:"right"}}>{pa.equipo_a}</span>
-                  <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                    <input className="edit-input" type="number" min="0" max="20" placeholder="0"
-                      value={golesA} onChange={e=>setGolesA(e.target.value)} style={{width:50}}/>
-                    <span style={{color:"var(--gray-mid)",fontSize:18}}>–</span>
-                    <input className="edit-input" type="number" min="0" max="20" placeholder="0"
-                      value={golesB} onChange={e=>setGolesB(e.target.value)} style={{width:50}}/>
-                  </div>
-                  <span style={{fontFamily:"Barlow Condensed",fontSize:16,fontWeight:700,flex:1}}>{pa.equipo_b}</span>
+          {selPartido&&(
+            <div style={{background:"rgba(0,0,0,.25)",borderRadius:8,padding:"14px",marginBottom:10}}>
+              <div style={{fontFamily:"Barlow Condensed",fontSize:11,color:"var(--gray-mid)",marginBottom:10,letterSpacing:1}}>INGRESA EL RESULTADO FINAL</div>
+              <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",justifyContent:"center"}}>
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,flex:1}}>
+                  <span style={{fontSize:22}}>{F(selPartido.equipo_a)}</span>
+                  <span style={{fontFamily:"Barlow Condensed",fontSize:14,fontWeight:700}}>{selPartido.equipo_a}</span>
+                  <input className="edit-input" type="number" min="0" max="20" placeholder="0" value={gA} onChange={e=>setGA(e.target.value)} style={{width:60,fontSize:22,padding:"6px"}}/>
                 </div>
-                <button className="btn btn-primary" style={{marginTop:10,width:"100%"}} onClick={guardarResultado}>
-                  ✓ GUARDAR RESULTADO
-                </button>
+                <span style={{color:"var(--gray-mid)",fontSize:22,fontWeight:300}}>–</span>
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,flex:1}}>
+                  <span style={{fontSize:22}}>{F(selPartido.equipo_b)}</span>
+                  <span style={{fontFamily:"Barlow Condensed",fontSize:14,fontWeight:700}}>{selPartido.equipo_b}</span>
+                  <input className="edit-input" type="number" min="0" max="20" placeholder="0" value={gB} onChange={e=>setGB(e.target.value)} style={{width:60,fontSize:22,padding:"6px"}}/>
+                </div>
               </div>
-            ):null;
-          })()}
-          <div style={{fontSize:11,color:"var(--gray-mid)",marginTop:6}}>
-            Solo aparecen partidos sin resultado. Para editar un resultado ya registrado, ve a <strong>Historial</strong>.
-          </div>
-        </div>
-      )}
-
-      {/* ── HISTORIAL CON EDICIÓN ── */}
-      {adminTab==="historial"&&(
-        <div className="card admin-section">
-          <div className="admin-title">📋 Historial de Resultados ({terminados.length} partidos)</div>
-          {terminados.length===0?<div className="empty-state" style={{padding:20}}>Ningún resultado registrado aún.</div>:(
-            <div style={{overflowX:"auto"}}>
-              <table className="results-table">
-                <thead><tr>
-                  <th>Fecha / Hora</th>
-                  <th>Grp</th>
-                  <th style={{minWidth:280}}>Partido</th>
-                  <th style={{textAlign:"center"}}>Resultado</th>
-                  <th style={{textAlign:"center",minWidth:160}}>Acciones</th>
-                </tr></thead>
-                <tbody>
-                  {terminados.map(p=>(
-                    <tr key={p.id}>
-                      <td style={{color:"var(--gray-mid)",whiteSpace:"nowrap"}}>
-                        {p.fecha}<br/>
-                        <span style={{color:"var(--gold)",fontFamily:"Barlow Condensed",fontSize:12}}>{p.hora} (IQ)</span>
-                      </td>
-                      <td><span className="match-group">G{p.grupo}</span></td>
-                      <td>
-                        <span style={{fontWeight:700,fontSize:13}}>{p.equipo_a}</span>
-                        <span style={{color:"var(--gray-mid)",margin:"0 6px",fontSize:11}}>vs</span>
-                        <span style={{fontWeight:700,fontSize:13}}>{p.equipo_b}</span>
-                      </td>
-                      <td style={{textAlign:"center"}}>
-                        {editId===p.id?(
-                          <div className="edit-score-row" style={{justifyContent:"center"}}>
-                            <input className="edit-input" type="number" min="0" max="20"
-                              value={editA} onChange={e=>setEditA(e.target.value)} style={{width:44}}/>
-                            <span style={{color:"var(--gray-mid)"}}>–</span>
-                            <input className="edit-input" type="number" min="0" max="20"
-                              value={editB} onChange={e=>setEditB(e.target.value)} style={{width:44}}/>
-                          </div>
-                        ):(
-                          <span className="score-pill">{p.goles_a} – {p.goles_b}</span>
-                        )}
-                      </td>
-                      <td style={{textAlign:"center"}}>
-                        {editId===p.id?(
-                          <div style={{display:"flex",gap:4,justifyContent:"center"}}>
-                            <button className="btn btn-primary btn-xs" onClick={()=>guardarEdicion(p.id)}>✓</button>
-                            <button className="btn btn-secondary btn-xs" onClick={()=>setEditId(null)}>✕</button>
-                          </div>
-                        ):(
-                          <div style={{display:"flex",gap:4,justifyContent:"center"}}>
-                            <button className="btn btn-warning btn-xs" onClick={()=>{setEditId(p.id);setEditA(String(p.goles_a));setEditB(String(p.goles_b));}}>✏️ Editar</button>
-                            <button className="btn btn-danger btn-xs" onClick={()=>anularResultado(p.id)}>🗑 Anular</button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <button className="btn btn-primary" style={{width:"100%",marginTop:14}} onClick={guardar}>✓ GUARDAR Y CALCULAR PUNTOS</button>
             </div>
           )}
         </div>
       )}
 
-      {/* ── PARTICIPANTES ── */}
-      {adminTab==="participantes"&&(
-        <div className="card admin-section">
-          <div className="admin-title">👥 Participantes ({participantes.length})</div>
+      {atab==="historial"&&(
+        <div className="card">
+          <div style={{fontFamily:"Barlow Condensed",fontSize:15,fontWeight:700,color:"var(--gold)",marginBottom:12,letterSpacing:1,textTransform:"uppercase"}}>📋 Historial — {terminados.length} Resultados</div>
+          {terminados.length===0
+            ?<div className="empty-state" style={{padding:20}}>Ningún resultado registrado aún.</div>
+            :<div style={{overflowX:"auto"}}>
+              <table className="results-table">
+                <thead><tr>
+                  <th style={{minWidth:100}}>Fecha</th>
+                  <th>Grp</th>
+                  <th style={{minWidth:260}}>Local</th>
+                  <th style={{textAlign:"center",minWidth:90}}>Resultado</th>
+                  <th style={{minWidth:260}}>Visitante</th>
+                  <th style={{textAlign:"center",minWidth:150}}>Acciones</th>
+                </tr></thead>
+                <tbody>{terminados.map(p=>(
+                  <tr key={p.id}>
+                    <td style={{color:"var(--gray-mid)",fontSize:11}}>
+                      {p.fecha}<br/>
+                      <span style={{color:"var(--gold)",fontFamily:"Barlow Condensed"}}>{p.hora} IQ</span>
+                    </td>
+                    <td><span className="match-group-badge">G{p.grupo}</span></td>
+                    <td>
+                      <div style={{display:"flex",alignItems:"center",gap:6}}>
+                        <span style={{fontSize:18}}>{F(p.equipo_a)}</span>
+                        <span style={{fontWeight:700,fontSize:13}}>{p.equipo_a}</span>
+                      </div>
+                    </td>
+                    <td style={{textAlign:"center"}}>
+                      {editId===p.id
+                        ?<div style={{display:"flex",gap:5,alignItems:"center",justifyContent:"center"}}>
+                          <input className="edit-input" type="number" min="0" max="20" value={editA} onChange={e=>setEditA(e.target.value)}/>
+                          <span style={{color:"var(--gray-mid)"}}>–</span>
+                          <input className="edit-input" type="number" min="0" max="20" value={editB} onChange={e=>setEditB(e.target.value)}/>
+                        </div>
+                        :<span className="score-pill">{p.goles_a} – {p.goles_b}</span>
+                      }
+                    </td>
+                    <td>
+                      <div style={{display:"flex",alignItems:"center",gap:6}}>
+                        <span style={{fontSize:18}}>{F(p.equipo_b)}</span>
+                        <span style={{fontWeight:700,fontSize:13}}>{p.equipo_b}</span>
+                      </div>
+                    </td>
+                    <td style={{textAlign:"center"}}>
+                      {editId===p.id
+                        ?<div style={{display:"flex",gap:4,justifyContent:"center"}}>
+                          <button className="btn btn-primary btn-xs" onClick={()=>guardarEdit(p.id)}>✓ Guardar</button>
+                          <button className="btn btn-secondary btn-xs" onClick={()=>setEditId(null)}>✕</button>
+                        </div>
+                        :<div style={{display:"flex",gap:4,justifyContent:"center"}}>
+                          <button className="btn btn-warning btn-xs" onClick={()=>{setEditId(p.id);setEditA(String(p.goles_a));setEditB(String(p.goles_b));}}>✏️ Editar</button>
+                          <button className="btn btn-danger btn-xs" onClick={()=>anular(p.id)}>🗑 Anular</button>
+                        </div>
+                      }
+                    </td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          }
+        </div>
+      )}
+
+      {atab==="participantes"&&(
+        <div className="card">
+          <div style={{fontFamily:"Barlow Condensed",fontSize:15,fontWeight:700,color:"var(--gold)",marginBottom:12,letterSpacing:1,textTransform:"uppercase"}}>👥 Participantes ({parts.length})</div>
           <div className="form-row" style={{marginBottom:14}}>
             <div className="form-group">
-              <label className="form-label">Nombre completo del nuevo participante</label>
-              <input className="form-input" type="text" placeholder="Ej. Pedro García"
-                value={newNombre} onChange={e=>setNewNombre(e.target.value)}
-                onKeyDown={e=>e.key==="Enter"&&agregarParticipante()}/>
+              <label className="form-label">Nombre completo</label>
+              <input className="form-input" type="text" placeholder="Ej. Pedro García" value={newN} onChange={e=>setNewN(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addPart()}/>
             </div>
             <div className="form-group" style={{justifyContent:"flex-end",flex:"0 0 auto"}}>
               <label className="form-label">&nbsp;</label>
-              <button className="btn btn-primary" onClick={agregarParticipante}>+ AGREGAR</button>
+              <button className="btn btn-primary" onClick={addPart}>+ AGREGAR</button>
             </div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:6}}>
-            {participantes.map((p,i)=>(
-              <div key={p.id} style={{background:"rgba(255,255,255,0.04)",borderRadius:6,padding:"7px 10px",display:"flex",alignItems:"center",gap:8}}>
+            {parts.map((p,i)=>(
+              <div key={p.id} style={{background:"rgba(255,255,255,.04)",borderRadius:6,padding:"7px 10px",display:"flex",alignItems:"center",gap:8}}>
                 <span style={{fontFamily:"Barlow Condensed",fontSize:13,color:"var(--gold)",fontWeight:700,minWidth:20}}>{i+1}.</span>
                 <span style={{fontSize:13,fontWeight:500}}>{p.nombre}</span>
               </div>
             ))}
           </div>
-          {participantes.length<12&&(
-            <div className="alert alert-info" style={{marginTop:12}}>
-              💡 Puedes agregar nuevos participantes en cualquier momento. Sus pronósticos se cargan después via CSV.
-            </div>
-          )}
         </div>
       )}
 
-      {/* ── CSV IMPORT ── */}
-      {adminTab==="csv"&&(
-        <div className="card admin-section">
-          <div className="admin-title">📁 Importar Pronósticos CSV</div>
-          <div className="csv-prompt-box">
-            <div className="csv-prompt-label">Instrucciones de formato</div>
-            <div className="csv-prompt-text">
-              El archivo de pronósticos <strong style={{color:"var(--white)"}}>ordenado por fecha</strong> tiene los partidos en este orden (IDs 1–72).<br/><br/>
-              <strong style={{color:"var(--gold)"}}>Formato requerido por fila:</strong><br/>
-              <code style={{color:"#4ADB8A"}}>Nombre Apellido,G1A-G1B,G2A-G2B,...,G72A-G72B</code><br/><br/>
-              <strong style={{color:"var(--gold)"}}>Ejemplo (primeros 5 partidos):</strong><br/>
-              <code style={{color:"var(--white)"}}>Pedro García,2-1,1-0,3-1,2-0,0-2,...</code><br/><br/>
-              <span style={{color:"var(--gray-mid)"}}>• Un pronóstico por partido en formato Goles_Local–Goles_Visitante<br/>
-              • 72 pronósticos por fila, separados por coma<br/>
-              • El nombre es la primera columna<br/>
-              • Puedes pegar múltiples participantes (una fila cada uno)</span>
-            </div>
+      {atab==="csv"&&(
+        <div className="card">
+          <div style={{fontFamily:"Barlow Condensed",fontSize:15,fontWeight:700,color:"var(--gold)",marginBottom:12,letterSpacing:1,textTransform:"uppercase"}}>📁 Importar Pronósticos CSV</div>
+          <div className="prompt-box">
+            <div className="prompt-label">Prompt para normalizar con IA (ChatGPT / Claude)</div>
+            <button className="prompt-copy-btn" onClick={copyPrompt}>{copied?"✓ COPIADO":"COPIAR"}</button>
+            <div className="prompt-text">{CSV_PROMPT}</div>
           </div>
-          <div style={{marginBottom:10}}>
-            <div className="form-label" style={{marginBottom:6}}>Pega los datos del CSV aquí:</div>
-            <textarea className="form-input" rows={6}
-              placeholder={"Nombre,2-1,1-0,3-1,2-0,...(72 pronósticos)\nOtro Nombre,1-1,2-0,..."}
-              value={csvText} onChange={e=>setCsvText(e.target.value)}
-              style={{resize:"vertical",fontFamily:"monospace",fontSize:12}}/>
+          <div style={{fontSize:11,color:"var(--gray-mid)",marginBottom:12,lineHeight:1.8}}>
+            <strong style={{color:"var(--gold)"}}>Flujo recomendado:</strong><br/>
+            1. Copia el prompt de arriba → pégalo en ChatGPT o Claude<br/>
+            2. Pega los datos de tu Excel al final del prompt<br/>
+            3. Copia el CSV que genera la IA<br/>
+            4. Pégalo abajo → Normalizar → Importar
           </div>
-          {csvMsg&&<div className="alert alert-info" style={{marginBottom:10}}>{csvMsg}</div>}
+          <label className="form-label" style={{marginBottom:6,display:"block"}}>CSV a importar:</label>
+          <textarea className="form-input" rows={6}
+            placeholder={"Pedro García,2-1,1-0,3-1,...\nAna Torres,1-1,2-0,..."}
+            value={csv} onChange={e=>setCsv(e.target.value)}
+            style={{resize:"vertical",fontFamily:"monospace",fontSize:12,marginBottom:8}}/>
+          {csvInfo&&<div className="alert alert-info" style={{marginBottom:8}}>{csvInfo}</div>}
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-            <button className="btn btn-secondary" onClick={normalizarCSV}>
-              🔧 NORMALIZAR FORMATO
-            </button>
-            <button className="btn btn-primary" onClick={importarCSV}>
-              ⬆️ IMPORTAR A BASE DE DATOS
-            </button>
-          </div>
-          <div style={{marginTop:10,fontSize:11,color:"var(--gray-mid)"}}>
-            <strong style={{color:"var(--gold)"}}>Normalizar</strong> limpia el texto antes de importar (elimina espacios, caracteres raros). Úsalo primero si el CSV viene de Excel.
+            <button className="btn btn-secondary" onClick={normalizar}>🔧 NORMALIZAR</button>
+            <button className="btn btn-primary" onClick={importar}>⬆️ IMPORTAR</button>
           </div>
         </div>
       )}
@@ -894,78 +868,64 @@ function TabAdmin({partidos,participantes,pronosticos,onRefresh}){
   );
 }
 
-// ── APP ROOT ──────────────────────────────────────────────
 function App(){
   const[tab,setTab]=useState("hoy");
   const[partidos,setPartidos]=useState([]);
-  const[participantes,setParticipantes]=useState([]);
-  const[pronosticos,setPronosticos]=useState([]);
+  const[parts,setParts]=useState([]);
+  const[prons,setProns]=useState([]);
   const[loading,setLoading]=useState(true);
   const[error,setError]=useState(null);
   const seedDone=useRef(false);
 
   const fetchAll=useCallback(async()=>{
     try{
-      const[parts,partic,prons]=await Promise.all([
+      const[pa,pt,pr]=await Promise.all([
         sb("partidos?select=*&order=fecha,hora"),
         sb("participantes?select=*&order=created_at"),
         sb("pronosticos?select=*"),
       ]);
-      setPartidos(parts);
-      setParticipantes(partic);
-      setPronosticos(prons);
-      setError(null);
-    }catch(e){
-      setError("Error conectando con la base de datos: "+e.message);
-    }
+      setPartidos(pa);setParts(pt);setProns(pr);setError(null);
+    }catch(e){setError(e.message);}
     setLoading(false);
   },[]);
 
-  async function seedData(){
+  async function seed(){
     if(seedDone.current)return;
     seedDone.current=true;
     try{
-      const existing=await sb("partidos?select=id&limit=1");
-      if(existing.length>0){await fetchAll();return;}
-      // Insertar partidos en lotes de 20
-      for(let i=0;i<PARTIDOS_SEED.length;i+=20){
-        await sb("partidos",{method:"POST",prefer:"return=minimal",body:JSON.stringify(PARTIDOS_SEED.slice(i,i+20))});
+      const ex=await sb("partidos?select=id&limit=1");
+      if(ex.length>0){await fetchAll();return;}
+      // Partidos en lotes de 12
+      for(let i=0;i<PARTIDOS_SEED.length;i+=12)
+        await sb("partidos",{method:"POST",prefer:"return=minimal",body:JSON.stringify(PARTIDOS_SEED.slice(i,i+12))});
+      // Participantes uno a uno para obtener IDs
+      const inserted=[];
+      for(const nombre of Object.keys(CSV_PRONOSTICOS)){
+        const r=await sb("participantes",{method:"POST",body:JSON.stringify({nombre})});
+        inserted.push(Array.isArray(r)?r[0]:r);
       }
-      // Insertar participantes
-      const nombresCSV=Object.keys(CSV_PRONOSTICOS);
-      const insertedPartics=[];
-      for(const nombre of nombresCSV){
-        const res=await sb("participantes",{method:"POST",body:JSON.stringify({nombre})});
-        insertedPartics.push(Array.isArray(res)?res[0]:res);
-      }
-      // Insertar pronósticos en lotes de 100
-      const allProns=[];
-      insertedPartics.forEach(p=>{
+      // Pronósticos en lotes de 72
+      const all=[];
+      inserted.forEach(p=>{
         const preds=CSV_PRONOSTICOS[p.nombre];
         if(!preds)return;
-        preds.forEach((pred,idx)=>{
-          allProns.push({participante_id:p.id,partido_id:CSV_ORDEN[idx],pred_a:pred[0],pred_b:pred[1],puntos:0});
-        });
+        preds.forEach((pr,idx)=>all.push({participante_id:p.id,partido_id:idx+1,pred_a:pr[0],pred_b:pr[1],puntos:0}));
       });
-      for(let i=0;i<allProns.length;i+=100){
-        await sb("pronosticos",{method:"POST",prefer:"return=minimal",body:JSON.stringify(allProns.slice(i,i+100))});
-      }
-    }catch(e){
-      console.error("Error en seed:",e);
-      setError("Error cargando datos iniciales: "+e.message);
-    }
+      for(let i=0;i<all.length;i+=72)
+        await sb("pronosticos",{method:"POST",prefer:"return=minimal",body:JSON.stringify(all.slice(i,i+72))});
+    }catch(e){setError("Error cargando datos iniciales: "+e.message);setLoading(false);return;}
     await fetchAll();
   }
 
-  useEffect(()=>{seedData();},[]);
+  useEffect(()=>{seed();},[]);
 
   const TABS=[
-    {id:"hoy",label:"⚽ Hoy"},
-    {id:"calendario",label:"📅 Calendario"},
-    {id:"posiciones",label:"🏆 Posiciones"},
-    {id:"grupos",label:"🌍 Grupos"},
-    {id:"pronosticos",label:"📊 Pronósticos"},
-    {id:"admin",label:"⚙️ Admin"},
+    {id:"hoy",l:"⚽ Hoy"},
+    {id:"calendario",l:"📅 Calendario"},
+    {id:"posiciones",l:"🏆 Posiciones"},
+    {id:"grupos",l:"🌍 Grupos"},
+    {id:"pronosticos",l:"📊 Pronósticos"},
+    {id:"admin",l:"⚙️ Admin"},
   ];
 
   return(
@@ -982,32 +942,27 @@ function App(){
           <div className="prize-pill">Inscripción $10</div>
         </div>
         <nav className="nav-tabs">
-          {TABS.map(t=>(
-            <button key={t.id} className={`tab-btn ${tab===t.id?"active":""}`} onClick={()=>setTab(t.id)}>{t.label}</button>
-          ))}
+          {TABS.map(t=><button key={t.id} className={`tab-btn ${tab===t.id?"active":""}`} onClick={()=>setTab(t.id)}>{t.l}</button>)}
         </nav>
       </header>
       <main className="main">
         {loading?(
-          <div className="loading">
-            <div className="spinner"/>
-            <span style={{fontFamily:"Barlow Condensed",letterSpacing:2,fontSize:14}}>CARGANDO DATOS...</span>
-          </div>
+          <div className="loading"><div className="spinner"/><span style={{fontFamily:"Barlow Condensed",letterSpacing:2,fontSize:14}}>CARGANDO...</span></div>
         ):error?(
           <div className="card" style={{textAlign:"center",padding:30}}>
             <div style={{fontSize:32,marginBottom:10}}>⚠️</div>
             <div style={{color:"#FF6666",fontWeight:600,marginBottom:8}}>Error de conexión</div>
-            <div style={{fontSize:12,color:"var(--gray-mid)",marginBottom:14}}>{error}</div>
-            <button className="btn btn-primary" onClick={()=>{setLoading(true);fetchAll();}}>Reintentar</button>
+            <div style={{fontSize:12,color:"var(--gray-mid)",marginBottom:14,wordBreak:"break-all"}}>{error}</div>
+            <button className="btn btn-primary" onClick={()=>{setLoading(true);setError(null);seed();}}>Reintentar</button>
           </div>
         ):(
           <>
-            {tab==="hoy"&&<TabHoy partidos={partidos} pronosticos={pronosticos} participantes={participantes}/>}
-            {tab==="calendario"&&<TabCalendario partidos={partidos} pronosticos={pronosticos} participantes={participantes}/>}
-            {tab==="posiciones"&&<TabPosiciones partidos={partidos} pronosticos={pronosticos} participantes={participantes}/>}
+            {tab==="hoy"&&<TabHoy partidos={partidos} prons={prons} parts={parts}/>}
+            {tab==="calendario"&&<TabCalendario partidos={partidos} prons={prons} parts={parts}/>}
+            {tab==="posiciones"&&<TabPosiciones partidos={partidos} prons={prons} parts={parts}/>}
             {tab==="grupos"&&<TabGrupos partidos={partidos}/>}
-            {tab==="pronosticos"&&<TabPronosticos partidos={partidos} pronosticos={pronosticos} participantes={participantes}/>}
-            {tab==="admin"&&<TabAdmin partidos={partidos} participantes={participantes} pronosticos={pronosticos} onRefresh={fetchAll}/>}
+            {tab==="pronosticos"&&<TabPronosticos partidos={partidos} prons={prons} parts={parts}/>}
+            {tab==="admin"&&<TabAdmin partidos={partidos} parts={parts} prons={prons} onRefresh={fetchAll}/>}
           </>
         )}
       </main>
