@@ -335,32 +335,35 @@ const CSV_PRONS = {
 
 const CSV_PROMPT = `Eres un asistente que convierte pronósticos de fútbol a formato CSV.
 
-Tengo un archivo Excel con los pronósticos del Mundial 2026 de un participante.
-El archivo tiene este formato exacto:
+PASO 1: Antes de procesar cualquier dato, PREGÚNTAME:
+"¿Cuál es el nombre completo del participante?"
+Espera mi respuesta antes de continuar.
+
+PASO 2: Una vez que me des el nombre, procesaré el Excel con este formato exacto:
 - Columna A: número del partido (1 al 72)
 - Columna B: nombre del equipo local
 - Columna C: goles del equipo local (número)
-- Columna D: goles del equipo visitante (número)  
+- Columna D: goles del equipo visitante (número)
 - Columna E: nombre del equipo visitante
-- La primera fila es encabezado (EQUIPO 1, vs, EQUIPO 2)
+- La primera fila es encabezado (se ignora)
 
-Los partidos están en orden del 1 al 72 (ordenados por fecha, del 11 de junio al 27 de junio 2026).
+Los 72 partidos están ordenados por fecha (11 de junio al 27 de junio 2026).
 
-TAREA: Convierte los datos al siguiente formato CSV de una sola línea:
+PASO 3: Devuelve UNA SOLA LÍNEA con este formato exacto:
 NombreParticipante,GolesA-GolesB,GolesA-GolesB,...(72 pronósticos)
 
-REGLAS IMPORTANTES:
-- El nombre del participante va PRIMERO, separado por coma
-- Cada pronóstico tiene formato: GolesLocal-GolesVisitante
-- Son exactamente 72 pronósticos separados por coma
-- Sin espacios adicionales, sin encabezados, sin texto extra
-- Solo devuelve la línea CSV, nada más
+REGLAS:
+- El nombre que me diste va PRIMERO
+- Formato de cada pronóstico: GolesLocal-GolesVisitante (sin espacios)
+- Exactamente 72 pronósticos separados por coma
+- Sin texto adicional, sin explicaciones, solo la línea CSV
 
-EJEMPLO de salida esperada:
-Pedro García,2-1,1-0,3-1,0-2,1-1,2-0,...(hasta completar 72)
+EJEMPLO de salida:
+Pedro García,2-1,1-0,3-1,0-2,1-1,2-0,4-1,...(hasta 72)
 
-DATOS DEL EXCEL A CONVERTIR:
-(pega aquí el contenido de tu Excel, puede ser texto copiado directamente)`;
+---
+DATOS DEL EXCEL (cópialos directamente desde tu hoja de cálculo con Ctrl+A, Ctrl+C):
+[PEGA AQUÍ EL CONTENIDO DE TU EXCEL]`;
 
 function calcPts(pA,pB,rA,rB){
   if(rA===null||rB===null)return null;
@@ -644,7 +647,8 @@ function TabAdmin({partidos,parts,prons,onRefresh}){
   const[passErr,setPassErr]=useState(false);
   const[msg,setMsg]=useState(null);
   const[atab,setAtab]=useState("cargar");
-  // cargar resultado
+  // cargar resultado: step 0=lista, 1=detalle
+  const[step,setStep]=useState(0);
   const[selId,setSelId]=useState(null);
   const[gA,setGA]=useState("");
   const[gB,setGB]=useState("");
@@ -659,6 +663,8 @@ function TabAdmin({partidos,parts,prons,onRefresh}){
   const[csv,setCsv]=useState("");
   const[csvInfo,setCsvInfo]=useState("");
   const[copied,setCopied]=useState(false);
+  // confirmación importación
+  const[confirm2,setConfirm2]=useState(null); // {nombre, encontrado, preds, csvLine}
 
   const showMsg=(t,type="success")=>{setMsg({t,type});setTimeout(()=>setMsg(null),4500);};
 
@@ -676,7 +682,7 @@ function TabAdmin({partidos,parts,prons,onRefresh}){
       await sb(`partidos?id=eq.${selId}`,{method:"PATCH",prefer:"return=minimal",body:JSON.stringify({goles_a:ra,goles_b:rb,finalizado:true})});
       await recalc(selId,ra,rb);
       showMsg("✓ Resultado guardado y puntos actualizados");
-      setSelId(null);setGA("");setGB("");onRefresh();
+      setSelId(null);setGA("");setGB("");setStep(0);onRefresh();
     }catch(e){showMsg("Error: "+e.message,"error");}
   }
   async function guardarEdit(pid){
@@ -718,32 +724,45 @@ function TabAdmin({partidos,parts,prons,onRefresh}){
     setCsv(out.join("\n"));
     setCsvInfo("✓ "+out.length+" filas normalizadas");
   }
-  async function importar(){
-    if(!csv.trim()){showMsg("Pega el CSV primero","error");return;}
+  function previsualizarCSV(){
+    if(!csv.trim()){setCsvInfo("Pega los datos primero");return;}
     const lines=csv.trim().split("\n").filter(l=>l.trim());
-    let ok=0,err=0;
+    const previews=[];
     for(const line of lines){
       const cols=line.split(",").map(s=>s.trim());
       if(cols.length<2)continue;
       const nombre=cols[0];
-      let pt=parts.find(p=>p.nombre.toLowerCase()===nombre.toLowerCase());
+      const preds=cols.slice(1).filter(p=>/^\d+-\d+$/.test(p));
+      if(preds.length<1)continue;
+      const encontrado=parts.find(p=>p.nombre.toLowerCase()===nombre.toLowerCase());
+      previews.push({nombre, encontrado: encontrado||null, preds, csvLine:line});
+    }
+    if(previews.length===0){setCsvInfo("No se encontraron filas válidas");return;}
+    setConfirm2(previews);
+  }
+  async function importarConfirmado(){
+    if(!confirm2)return;
+    let ok=0,err=0;
+    for(const item of confirm2){
+      let pt=item.encontrado;
       if(!pt){
-        try{const r=await sb("participantes",{method:"POST",body:JSON.stringify({nombre})});pt=Array.isArray(r)?r[0]:r;}
+        try{const r=await sb("participantes",{method:"POST",body:JSON.stringify({nombre:item.nombre})});pt=Array.isArray(r)?r[0]:r;}
         catch{err++;continue;}
       }
-      for(let i=1;i<cols.length&&i<=72;i++){
-        const sc=cols[i].split("-");
+      for(let i=0;i<item.preds.length&&i<72;i++){
+        const sc=item.preds[i].split("-");
         if(sc.length!==2)continue;
         const pa=parseInt(sc[0]),pb=parseInt(sc[1]);
         if(isNaN(pa)||isNaN(pb))continue;
-        const exists=prons.find(pr=>pr.participante_id===pt.id&&pr.partido_id===i);
+        const exists=prons.find(pr=>pr.participante_id===pt.id&&pr.partido_id===i+1);
         if(!exists){
-          try{await sb("pronosticos",{method:"POST",prefer:"return=minimal",body:JSON.stringify({participante_id:pt.id,partido_id:i,pred_a:pa,pred_b:pb,puntos:0})});ok++;}
+          try{await sb("pronosticos",{method:"POST",prefer:"return=minimal",body:JSON.stringify({participante_id:pt.id,partido_id:i+1,pred_a:pa,pred_b:pb,puntos:0})});ok++;}
           catch{err++;}
         }
       }
     }
     showMsg(`✓ ${ok} pronósticos importados${err>0?` (${err} errores)`:""}`);
+    setConfirm2(null);setCsv("");setCsvInfo("");
     onRefresh();
   }
 
@@ -785,64 +804,75 @@ function TabAdmin({partidos,parts,prons,onRefresh}){
       {/* ─── CARGAR RESULTADO ─── */}
       {atab==="cargar"&&(
         <div className="card">
-          <div style={{fontFamily:"Barlow Condensed",fontSize:15,fontWeight:700,color:"var(--gold)",marginBottom:14,letterSpacing:1,textTransform:"uppercase"}}>⚽ Selecciona el Partido</div>
-
-          {/* Filtro por fecha */}
-          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
-            <button className={`btn btn-sm ${filtroFecha==="HOY"?"btn-p":"btn-s"}`} onClick={()=>{setFiltroFecha("HOY");setSelId(null);}}>Hoy</button>
-            <button className={`btn btn-sm ${filtroFecha==="TODOS"?"btn-p":"btn-s"}`} onClick={()=>{setFiltroFecha("TODOS");setSelId(null);}}>Todos</button>
-            {fechasPend.filter(f=>f!==today).map(f=>(
-              <button key={f} className={`btn btn-sm ${filtroFecha===f?"btn-p":"btn-s"}`}
-                onClick={()=>{setFiltroFecha(f);setSelId(null);}}>
-                {f.slice(5).replace("-","/")}
-              </button>
-            ))}
-          </div>
-
-          {pendFiltrados.length===0
-            ?<div className="empty" style={{padding:20}}>No hay partidos pendientes{filtroFecha==="HOY"?" hoy":""}.{filtroFecha==="HOY"&&" Cambia el filtro a 'Todos'."}</div>
-            :<>
-              <div className="match-picker-grid">
-                {pendFiltrados.map(p=>(
-                  <div key={p.id} className={`picker-card ${selId===p.id?"selected":""}`} onClick={()=>{setSelId(p.id);setGA("");setGB("");}}>
-                    <div className="picker-meta">{p.fecha} {p.hora} IQ &nbsp;·&nbsp; GRUPO {p.grupo}</div>
-                    <div className="picker-teams">
-                      <div className="picker-team">
-                        <div style={{display:"flex",justifyContent:"center"}}><Flag name={p.equipo_a} size={22}/></div>
-                        <span className="picker-name">{p.equipo_a}</span>
-                      </div>
-                      <span style={{color:"var(--gm)",fontFamily:"Barlow Condensed",fontSize:13}}>VS</span>
-                      <div className="picker-team">
-                        <div style={{display:"flex",justifyContent:"center"}}><Flag name={p.equipo_b} size={22}/></div>
-                        <span className="picker-name">{p.equipo_b}</span>
-                      </div>
-                    </div>
-                  </div>
+          {step===0?(
+            <>
+              <div style={{fontFamily:"Barlow Condensed",fontSize:15,fontWeight:700,color:"var(--gold)",marginBottom:12,letterSpacing:1,textTransform:"uppercase"}}>⚽ Selecciona el Partido</div>
+              {/* Filtros fecha */}
+              <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
+                <button className={`btn btn-sm ${filtroFecha==="HOY"?"btn-p":"btn-s"}`} onClick={()=>setFiltroFecha("HOY")}>📅 Hoy</button>
+                <button className={`btn btn-sm ${filtroFecha==="TODOS"?"btn-p":"btn-s"}`} onClick={()=>setFiltroFecha("TODOS")}>Todos</button>
+                {fechasPend.filter(f=>f!==today).map(f=>(
+                  <button key={f} className={`btn btn-sm ${filtroFecha===f?"btn-p":"btn-s"}`} onClick={()=>setFiltroFecha(f)}>
+                    {f.slice(5).replace("-","/")}
+                  </button>
                 ))}
               </div>
-
-              {selPartido&&(
-                <div style={{background:"rgba(0,0,0,.3)",borderRadius:10,padding:16,borderTop:"2px solid var(--gold)"}}>
-                  <div style={{fontFamily:"Barlow Condensed",fontSize:11,color:"var(--gold)",letterSpacing:1.5,marginBottom:12,textAlign:"center"}}>INGRESA EL RESULTADO FINAL</div>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16,flexWrap:"wrap"}}>
-                    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
-                      <Flag name={selPartido.equipo_a} size={32}/>
-                      <span style={{fontFamily:"Barlow Condensed",fontSize:14,fontWeight:700,textAlign:"center"}}>{selPartido.equipo_a}</span>
-                      <input className="e-inp" type="number" min="0" max="20" placeholder="0" value={gA} onChange={e=>setGA(e.target.value)} style={{fontSize:24,width:64,padding:8}}/>
-                    </div>
-                    <span style={{color:"var(--gm)",fontSize:24}}>–</span>
-                    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
-                      <Flag name={selPartido.equipo_b} size={32}/>
-                      <span style={{fontFamily:"Barlow Condensed",fontSize:14,fontWeight:700,textAlign:"center"}}>{selPartido.equipo_b}</span>
-                      <input className="e-inp" type="number" min="0" max="20" placeholder="0" value={gB} onChange={e=>setGB(e.target.value)} style={{fontSize:24,width:64,padding:8}}/>
-                    </div>
+              {pendFiltrados.length===0
+                ?<div className="empty" style={{padding:20}}>
+                    No hay partidos pendientes{filtroFecha==="HOY"?" para hoy":""}.
+                    {filtroFecha==="HOY"&&<><br/><button className="btn btn-s btn-sm" style={{marginTop:8}} onClick={()=>setFiltroFecha("TODOS")}>Ver todos los pendientes</button></>}
                   </div>
-                  <button className="btn btn-p" style={{width:"100%",marginTop:14}} onClick={guardar}>✓ GUARDAR Y CALCULAR PUNTOS</button>
-                  <button className="btn btn-s" style={{width:"100%",marginTop:6,fontSize:11}} onClick={()=>setSelId(null)}>← Cambiar partido</button>
+                :<div className="match-picker-grid">
+                  {pendFiltrados.map(p=>(
+                    <div key={p.id} className="picker-card" onClick={()=>{setSelId(p.id);setGA("");setGB("");setStep(1);}}>
+                      <div className="picker-meta">{p.fecha} {p.hora} IQ &nbsp;·&nbsp; GRUPO {p.grupo}</div>
+                      <div className="picker-teams">
+                        <div className="picker-team">
+                          <div style={{display:"flex",justifyContent:"center"}}><Flag name={p.equipo_a} size={22}/></div>
+                          <span className="picker-name">{p.equipo_a}</span>
+                        </div>
+                        <span style={{color:"var(--gm)",fontFamily:"Barlow Condensed",fontSize:13,fontWeight:700}}>VS</span>
+                        <div className="picker-team">
+                          <div style={{display:"flex",justifyContent:"center"}}><Flag name={p.equipo_b} size={22}/></div>
+                          <span className="picker-name">{p.equipo_b}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
+              }
             </>
-          }
+          ):(
+            /* STEP 1: detalle del partido seleccionado */
+            selPartido&&(
+              <>
+                <button className="btn btn-s btn-sm" style={{marginBottom:14}} onClick={()=>{setStep(0);setSelId(null);setGA("");setGB("");}}>← Volver a la lista</button>
+                <div style={{fontFamily:"Barlow Condensed",fontSize:11,color:"var(--gold)",letterSpacing:1.5,marginBottom:4,textAlign:"center"}}>GRUPO {selPartido.grupo} · {selPartido.fecha} · {selPartido.hora} (Irak)</div>
+                <div style={{fontFamily:"Barlow Condensed",fontSize:11,color:"var(--gm)",letterSpacing:1,marginBottom:16,textAlign:"center"}}>INGRESA EL RESULTADO FINAL</div>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:20,flexWrap:"wrap",marginBottom:20}}>
+                  <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+                    <Flag name={selPartido.equipo_a} size={44}/>
+                    <span style={{fontFamily:"Barlow Condensed",fontSize:16,fontWeight:700,textAlign:"center",maxWidth:120}}>{selPartido.equipo_a}</span>
+                    <input className="e-inp" type="number" min="0" max="20" placeholder="0" value={gA}
+                      onChange={e=>setGA(e.target.value)} style={{fontSize:28,width:72,padding:10,textAlign:"center"}}/>
+                  </div>
+                  <span style={{color:"var(--gm)",fontSize:32,fontWeight:300,paddingTop:40}}>–</span>
+                  <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+                    <Flag name={selPartido.equipo_b} size={44}/>
+                    <span style={{fontFamily:"Barlow Condensed",fontSize:16,fontWeight:700,textAlign:"center",maxWidth:120}}>{selPartido.equipo_b}</span>
+                    <input className="e-inp" type="number" min="0" max="20" placeholder="0" value={gB}
+                      onChange={e=>setGB(e.target.value)} style={{fontSize:28,width:72,padding:10,textAlign:"center"}}/>
+                  </div>
+                </div>
+                {gA!==""&&gB!==""&&(
+                  <div style={{background:"rgba(245,166,35,.08)",border:"1px solid rgba(245,166,35,.3)",borderRadius:8,padding:"10px 14px",marginBottom:12,textAlign:"center",fontFamily:"Barlow Condensed",fontSize:14}}>
+                    Resultado a guardar: <strong style={{color:"var(--gold)",fontSize:18}}>{selPartido.equipo_a} {gA} – {gB} {selPartido.equipo_b}</strong>
+                  </div>
+                )}
+                <button className="btn btn-p" style={{width:"100%",fontSize:14,padding:12}} onClick={guardar}>✓ GUARDAR Y CALCULAR PUNTOS</button>
+              </>
+            )
+          )}
         </div>
       )}
 
@@ -966,7 +996,39 @@ function TabAdmin({partidos,parts,prons,onRefresh}){
           {csvInfo&&<div className="alert al-inf" style={{marginBottom:8}}>{csvInfo}</div>}
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
             <button className="btn btn-s" onClick={normalizar}>🔧 NORMALIZAR</button>
-            <button className="btn btn-p" onClick={importar}>⬆️ IMPORTAR</button>
+            <button className="btn btn-p" onClick={previsualizarCSV}>🔍 PREVISUALIZAR E IMPORTAR</button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL CONFIRMACIÓN CSV ─── */}
+      {confirm2&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.75)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+          <div style={{background:"#0d1e52",border:"1px solid rgba(245,166,35,.4)",borderRadius:14,padding:24,maxWidth:500,width:"100%",maxHeight:"80vh",overflowY:"auto"}}>
+            <div style={{fontFamily:"Barlow Condensed",fontSize:16,fontWeight:800,color:"var(--gold)",marginBottom:4,letterSpacing:1}}>CONFIRMAR IMPORTACIÓN</div>
+            <div style={{fontSize:12,color:"var(--gm)",marginBottom:16}}>Revisa la información antes de confirmar. Esta acción cargará los pronósticos en la base de datos.</div>
+            {confirm2.map((item,i)=>(
+              <div key={i} style={{background:"rgba(255,255,255,.04)",borderRadius:8,padding:"12px 14px",marginBottom:10,border:`1px solid ${item.encontrado?"rgba(74,219,138,.3)":"rgba(245,166,35,.4)"}`}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                  <span style={{fontSize:18}}>{item.encontrado?"✅":"⚠️"}</span>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:14}}>{item.nombre}</div>
+                    <div style={{fontSize:11,color:item.encontrado?"#4ADB8A":"var(--gold)"}}>
+                      {item.encontrado
+                        ?"Participante encontrado en la base de datos"
+                        :"Participante nuevo — se creará automáticamente"}
+                    </div>
+                  </div>
+                </div>
+                <div style={{fontSize:11,color:"var(--gm)"}}>
+                  {item.preds.length} pronósticos detectados · Primeros 5: <strong style={{color:"var(--white)",fontFamily:"Barlow Condensed"}}>{item.preds.slice(0,5).join(" · ")}</strong>
+                </div>
+              </div>
+            ))}
+            <div style={{display:"flex",gap:8,marginTop:16}}>
+              <button className="btn btn-p" style={{flex:1}} onClick={importarConfirmado}>✓ CONFIRMAR E IMPORTAR</button>
+              <button className="btn btn-s" style={{flex:1}} onClick={()=>setConfirm2(null)}>✕ CANCELAR</button>
+            </div>
           </div>
         </div>
       )}
