@@ -170,6 +170,31 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--white);min
 .grp-card-live{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 12px;margin-bottom:6px;}
 .grp-card-live.completo{border-color:rgba(74,219,138,.2);}
 .ko-pill{background:rgba(100,150,255,.15);color:#AAC0FF;padding:2px 8px;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;}
+
+/* ── BRACKET VISUAL ──────────────────────────────────────── */
+.bracket-scroll{overflow-x:auto;overflow-y:visible;padding-bottom:16px;-webkit-overflow-scrolling:touch;}
+.bracket-tree{display:flex;align-items:center;gap:0;min-width:1180px;padding:8px 4px 20px;}
+.bcol{display:flex;flex-direction:column;flex-shrink:0;}
+.bcol-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:800;letter-spacing:2px;text-align:center;color:var(--gm);text-transform:uppercase;padding:4px 0 8px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:6px;}
+.bcol-matches{display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:6px;}
+.bcol-slot{display:flex;align-items:center;justify-content:center;}
+.bcol-16{width:128px;}.bcol-8{width:124px;}.bcol-4{width:122px;}.bcol-semi{width:122px;}
+.bcol-center{width:148px;align-self:stretch;display:flex;flex-direction:column;}
+.bm{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:7px 8px;position:relative;}
+.bm-prov{border-color:rgba(245,166,35,.25);opacity:.75;}
+.bm-pending{opacity:.5;}
+.bm-empty{height:56px;}
+.bm-num{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:1px;color:var(--gt);margin-bottom:4px;}
+.bm-team{display:flex;align-items:center;gap:5px;padding:2px 0;border-radius:3px;}
+.bm-tname{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--white);}
+.bm-sep{height:1px;background:rgba(255,255,255,.07);margin:3px 0;}
+.bm-prov-tag{font-size:7px;color:var(--gold);font-family:'Barlow Condensed';font-weight:700;letter-spacing:.5px;flex-shrink:0;}
+.bc-col{display:flex;flex-direction:column;justify-content:space-around;flex-shrink:0;width:16px;align-self:stretch;padding:28px 0 6px;}
+.bc-line{flex:1;border-top:1px solid rgba(245,166,35,.2);border-bottom:1px solid rgba(245,166,35,.2);margin:3px 0;}
+.bc-left .bc-line{border-right:1px solid rgba(245,166,35,.2);border-left:none;margin-right:0;}
+.bc-right .bc-line{border-left:1px solid rgba(245,166,35,.2);border-right:none;margin-left:0;}
+.bm-final{width:100%;background:linear-gradient(135deg,rgba(10,31,92,.9),rgba(18,38,128,.6));border:2px solid rgba(245,166,35,.4);border-radius:10px;padding:10px;}
+.bm-final-title{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:2px;color:var(--gold);text-align:center;margin-bottom:7px;text-transform:uppercase;}
 </style>
 </head>
 <body>
@@ -1158,146 +1183,209 @@ function TabTerceros({partidos}){
   );
 }
 
-// ── BRACKET KO LIVE (vista provisional desde grupos) ─────────
+// ── BRACKET KO LIVE (árbol visual desde grupos) ──────────────
 function TabBracketLive({partidos}){
-  // Calcular standings en vivo
   const standings=useMemo(()=>{
     const g={};
     partidos.forEach(p=>{
       if(!g[p.grupo])g[p.grupo]={};
-      [p.equipo_a,p.equipo_b].forEach(eq=>{
-        if(!g[p.grupo][eq])g[p.grupo][eq]={pts:0,j:0,gf:0,gc:0};
-      });
+      [p.equipo_a,p.equipo_b].forEach(eq=>{if(!g[p.grupo][eq])g[p.grupo][eq]={pts:0,j:0,gf:0,gc:0};});
       if(!p.finalizado||p.goles_a===null)return;
       const a=g[p.grupo][p.equipo_a],b=g[p.grupo][p.equipo_b];
       a.j++;b.j++;a.gf+=p.goles_a;a.gc+=p.goles_b;b.gf+=p.goles_b;b.gc+=p.goles_a;
-      if(p.goles_a>p.goles_b)a.pts+=3;
-      else if(p.goles_b>p.goles_a)b.pts+=3;
-      else{a.pts++;b.pts++;}
+      if(p.goles_a>p.goles_b)a.pts+=3;else if(p.goles_b>p.goles_a)b.pts+=3;else{a.pts++;b.pts++;}
     });
     const r={};
     Object.keys(g).sort().forEach(grupo=>{
-      r[grupo]=Object.entries(g[grupo])
-        .map(([n,s])=>({n,...s,dg:s.gf-s.gc}))
+      r[grupo]=Object.entries(g[grupo]).map(([n,s])=>({n,...s,dg:s.gf-s.gc}))
         .sort((a,b)=>b.pts-a.pts||(b.dg-a.dg)||b.gf-a.gf);
       r[grupo].completo=r[grupo].every(e=>e.j===3);
     });
     return r;
   },[partidos]);
 
-  // Top 8 terceros
-  const terceros=useMemo(()=>{
-    return Object.keys(standings).sort()
-      .filter(g=>standings[g].length>=3)
-      .map(g=>({grupo:g,...standings[g][2]}))
-      .sort((a,b)=>b.pts-a.pts||(b.dg-a.dg)||b.gf-a.gf);
-  },[standings]);
-  // top8 now computed inside asignacionTerceros
+  const terceros=useMemo(()=>Object.keys(standings).sort()
+    .filter(g=>standings[g].length>=3)
+    .map(g=>({grupo:g,...standings[g][2]}))
+    .sort((a,b)=>b.pts-a.pts||(b.dg-a.dg)||b.gf-a.gf)
+  ,[standings]);
+
+  const asig3=useMemo(()=>{
+    const SLOTS={'P74':['A','B','C','D','F'],'P77':['C','D','F','G','H'],
+      'P79':['C','E','F','H','I'],'P80':['E','H','I','J','K'],
+      'P81':['B','E','F','I','J'],'P82':['A','E','H','I','J'],
+      'P85':['E','F','G','I','J'],'P87':['D','E','I','J','L']};
+    const t8=new Set(terceros.slice(0,8).map(t=>t.grupo));
+    const res={};const usados=new Set();
+    const ord=Object.entries(SLOTS).sort((a,b)=>a[1].length-b[1].length).map(([s])=>s);
+    for(const slot of ord){
+      const c=terceros.find(t=>SLOTS[slot].includes(t.grupo)&&t8.has(t.grupo)&&!usados.has(t.grupo));
+      if(c){res[slot]={equipo:c.n,prov:!standings[c.grupo]?.completo};usados.add(c.grupo);}
+    }
+    return res;
+  },[terceros,standings]);
 
   function getEq(grupo,pos){
     const t=standings[grupo];
     if(!t||t.length<=pos)return null;
     return{equipo:t[pos].n,prov:!t.completo};
   }
-  // Asignación única de terceros a slots (sin duplicados)
-  const asignacionTerceros=React.useMemo(()=>{
-    const SLOTS={'P74':['A','B','C','D','F'],'P77':['C','D','F','G','H'],
-      'P79':['C','E','F','H','I'],'P80':['E','H','I','J','K'],
-      'P81':['B','E','F','I','J'],'P82':['A','E','H','I','J'],
-      'P85':['E','F','G','I','J'],'P87':['D','E','I','J','L']};
-    const t8=new Set(terceros.slice(0,8).map(t=>t.grupo));
-    const result={};
-    const usados=new Set();
-    // Slots más restrictivos primero
-    const ord=Object.entries(SLOTS).sort((a,b)=>a[1].length-b[1].length).map(([s])=>s);
-    for(const slot of ord){
-      const cand=terceros.find(t=>SLOTS[slot].includes(t.grupo)&&t8.has(t.grupo)&&!usados.has(t.grupo));
-      if(cand){result[slot]={equipo:cand.n,prov:!standings[cand.grupo]?.completo};usados.add(cand.grupo);}
-    }
-    return result;
-  },[terceros,standings]);
+  function get3(slot){return asig3[slot]||null;}
 
-  function getBest3(slot){
-    return asignacionTerceros[slot]||null;
-  }
+  // Datos de los 16 cruces
+  const cruces={
+    P73:{a:getEq("A",1),la:"2°A",b:getEq("B",1),lb:"2°B"},
+    P74:{a:getEq("E",0),la:"1°E",b:get3("P74"),lb:"3°ABCDF"},
+    P75:{a:getEq("F",0),la:"1°F",b:getEq("C",1),lb:"2°C"},
+    P76:{a:getEq("C",0),la:"1°C",b:getEq("F",1),lb:"2°F"},
+    P77:{a:getEq("I",0),la:"1°I",b:get3("P77"),lb:"3°CDFGH"},
+    P78:{a:getEq("E",1),la:"2°E",b:getEq("I",1),lb:"2°I"},
+    P79:{a:getEq("A",0),la:"1°A",b:get3("P79"),lb:"3°CEFHI"},
+    P80:{a:getEq("L",0),la:"1°L",b:get3("P80"),lb:"3°EHIJK"},
+    P81:{a:getEq("D",0),la:"1°D",b:get3("P81"),lb:"3°BEFIJ"},
+    P82:{a:getEq("G",0),la:"1°G",b:get3("P82"),lb:"3°AEHIJ"},
+    P83:{a:getEq("K",1),la:"2°K",b:getEq("L",1),lb:"2°L"},
+    P84:{a:getEq("H",0),la:"1°H",b:getEq("J",1),lb:"2°J"},
+    P85:{a:getEq("B",0),la:"1°B",b:get3("P85"),lb:"3°EFGIJ"},
+    P86:{a:getEq("J",0),la:"1°J",b:getEq("H",1),lb:"2°H"},
+    P87:{a:getEq("K",0),la:"1°K",b:get3("P87"),lb:"3°DEIJL"},
+    P88:{a:getEq("D",1),la:"2°D",b:getEq("G",1),lb:"2°G"},
+    // 8vos en adelante: placeholders (se resuelven en portal KO)
+    P89:null,P90:null,P91:null,P92:null,P93:null,P94:null,P95:null,P96:null,
+    P97:null,P98:null,P99:null,P100:null,P101:null,P102:null,
+  };
 
-  // Definición de los 16 partidos KO
-  const p16=[
-    {num:"P73",la:"2°A",a:getEq("A",1),lb:"2°B",b:getEq("B",1)},
-    {num:"P74",la:"1°E",a:getEq("E",0),lb:"3°A/B/C/D/F",b:getBest3("P74")},
-    {num:"P75",la:"1°F",a:getEq("F",0),lb:"2°C",b:getEq("C",1)},
-    {num:"P76",la:"1°C",a:getEq("C",0),lb:"2°F",b:getEq("F",1)},
-    {num:"P77",la:"1°I",a:getEq("I",0),lb:"3°C/D/F/G/H",b:getBest3("P77")},
-    {num:"P78",la:"2°E",a:getEq("E",1),lb:"2°I",b:getEq("I",1)},
-    {num:"P79",la:"1°A",a:getEq("A",0),lb:"3°C/E/F/H/I",b:getBest3("P79")},
-    {num:"P80",la:"1°L",a:getEq("L",0),lb:"3°E/H/I/J/K",b:getBest3("P80")},
-    {num:"P81",la:"1°D",a:getEq("D",0),lb:"3°B/E/F/I/J",b:getBest3("P81")},
-    {num:"P82",la:"1°G",a:getEq("G",0),lb:"3°A/E/H/I/J",b:getBest3("P82")},
-    {num:"P83",la:"2°K",a:getEq("K",1),lb:"2°L",b:getEq("L",1)},
-    {num:"P84",la:"1°H",a:getEq("H",0),lb:"2°J",b:getEq("J",1)},
-    {num:"P85",la:"1°B",a:getEq("B",0),lb:"3°E/F/G/I/J",b:getBest3("P85")},
-    {num:"P86",la:"1°J",a:getEq("J",0),lb:"2°H",b:getEq("H",1)},
-    {num:"P87",la:"1°K",a:getEq("K",0),lb:"3°D/E/I/J/L",b:getBest3("P87")},
-    {num:"P88",la:"2°D",a:getEq("D",1),lb:"2°G",b:getEq("G",1)},
-  ];
+  // Cuenta grupos completos para indicador global
+  const totalGrupos=Object.keys(standings).length;
+  const gruposCompletos=Object.values(standings).filter(g=>g.completo).length;
 
-  function EqRow({eq,label}){
-    if(!eq)return(
-      <div style={{display:"flex",alignItems:"center",gap:5,padding:"3px 0"}}>
-        <div style={{width:18,height:13,background:"rgba(255,255,255,.08)",borderRadius:2,flexShrink:0}}/>
-        <span style={{fontFamily:"Barlow Condensed",fontSize:11,color:"var(--gt)",fontStyle:"italic"}}>{label}</span>
+  // ── Sub-componentes ─────────────────────────────────────
+  function TeamRow({eq, label}){
+    if(!eq) return(
+      <div className="bm-team">
+        <div style={{width:16,height:11,background:"rgba(255,255,255,.07)",borderRadius:2,flexShrink:0}}/>
+        <span className="bm-tname" style={{color:"var(--gt)",fontStyle:"italic",fontSize:10}}>{label}</span>
       </div>
     );
     return(
-      <div style={{display:"flex",alignItems:"center",gap:5,padding:"3px 0"}}>
+      <div className="bm-team">
         <Flag name={eq.equipo} size={13}/>
-        <span style={{fontFamily:"Barlow Condensed",fontSize:12,fontWeight:700,flex:1,
-          color:eq.prov?"rgba(255,255,255,.55)":"var(--white)"}}>{eq.equipo}</span>
-        {eq.prov&&<span style={{fontSize:8,color:"var(--gold)",fontFamily:"Barlow Condensed",fontWeight:700,letterSpacing:.5}}>PROV</span>}
+        <span className="bm-tname" style={{color:eq.prov?"rgba(255,255,255,.6)":undefined}}>{eq.equipo}</span>
+        {eq.prov&&<span className="bm-prov-tag">P</span>}
       </div>
     );
   }
 
-  // Agrupar por fecha España (referencia)
-  const fechas=[
-    {label:"Dom 28 Jun",nums:["P73"]},
-    {label:"Lun 29 Jun",nums:["P74","P75","P76"]},
-    {label:"Mar 30 Jun",nums:["P77","P78","P79"]},
-    {label:"Mié 1 Jul",nums:["P80","P81","P82"]},
-    {label:"Jue 2 Jul",nums:["P83","P84","P85"]},
-    {label:"Vie 3 Jul",nums:["P86","P87","P88"]},
-  ];
+  function BMatch({num}){
+    const c=cruces[num];
+    // Rondas posteriores a 16avos: mostrar tarjeta pendiente
+    if(c===null) return(
+      <div className="bm" style={{opacity:.35,minHeight:52}}>
+        <div className="bm-num">{num}</div>
+        <div style={{fontSize:9,color:'var(--gt)',fontFamily:'Barlow Condensed',
+          textAlign:'center',padding:'6px 0',lineHeight:1.5}}>
+          Gan. anterior
+        </div>
+      </div>
+    );
+    if(!c) return <div className="bm-empty"/>;
+    const tieneA=!!c.a, tieneB=!!c.b;
+    const ambos=tieneA&&tieneB;
+    const alguno=tieneA||tieneB;
+    const prov=(c.a?.prov||c.b?.prov);
+    return(
+      <div className={`bm ${prov&&ambos?'bm-prov':''} ${!alguno?'bm-pending':''}`}>
+        <div className="bm-num">{num}</div>
+        <TeamRow eq={c.a} label={c.la}/>
+        <div className="bm-sep"/>
+        <TeamRow eq={c.b} label={c.lb}/>
+      </div>
+    );
+  }
+
+  function BCol({numeros,label,colClass=''}){
+    return(
+      <div className={`bcol ${colClass}`}>
+        <div className="bcol-label">{label}</div>
+        <div className="bcol-matches">
+          {numeros.map(n=><div key={n} className="bcol-slot"><BMatch num={n}/></div>)}
+        </div>
+      </div>
+    );
+  }
+
+  function Connector({rows,side='left'}){
+    return(
+      <div className={`bc-col bc-${side}`}>
+        {Array.from({length:rows}).map((_,i)=><div key={i} className="bc-line"/>)}
+      </div>
+    );
+  }
+
+  // Centro: placeholder para la final (aún no se juega en fase grupos)
+  function BCenter(){
+    return(
+      <div className="bcol bcol-center">
+        <div className="bcol-label" style={{color:'var(--gold)'}}>FINAL</div>
+        <div className="bcol-matches" style={{justifyContent:'center',alignItems:'center',padding:'8px 0'}}>
+          <div className="bm-final" style={{opacity:.5}}>
+            <div className="bm-final-title">🏆 GRAN FINAL</div>
+            <div style={{fontSize:10,color:'var(--gm)',textAlign:'center',lineHeight:1.6}}>
+              19 Jul 2026<br/>
+              <span style={{fontSize:9,color:'var(--gt)'}}>equipos se definen<br/>en fase KO</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return(
     <div>
-      <div style={{background:"rgba(100,150,255,.08)",border:"1px solid rgba(100,150,255,.25)",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:11,color:"var(--gm)",lineHeight:1.8}}>
-        <strong style={{color:"#AAC0FF"}}>Vista provisional del bracket KO</strong> — se actualiza automáticamente con los resultados de grupos.
-        <span style={{color:"var(--gold)"}}> PROV</span> = grupo aún no terminó (puede cambiar).{" "}
-        <a href="./ko.html" style={{color:"var(--gold)",fontWeight:700}}>Ver portal KO completo →</a>
+      {/* Banner info */}
+      <div style={{background:"rgba(100,150,255,.08)",border:"1px solid rgba(100,150,255,.25)",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:11,color:"var(--gm)",lineHeight:1.8,display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
+        <span>
+          <strong style={{color:"#AAC0FF"}}>Bracket provisional KO</strong> — se actualiza con los resultados.{' '}
+          <span style={{color:'var(--gold)'}}>P</span> = grupo no terminó (puede cambiar).
+        </span>
+        <span style={{fontFamily:'Barlow Condensed',fontSize:13,fontWeight:700,color:gruposCompletos===12?'#4ADB8A':'var(--gold)'}}>
+          {gruposCompletos}/12 grupos cerrados
+        </span>
       </div>
 
-      {fechas.map(({label,nums})=>(
-        <div key={label}>
-          <div className="cal-hdr" style={{marginTop:16}}>{label} — 16avos de Final</div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(230px,1fr))",gap:8,marginBottom:8}}>
-            {nums.map(num=>{
-              const p=p16.find(x=>x.num===num);
-              if(!p)return null;
-              return(
-                <div key={num} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.09)",borderRadius:8,padding:"9px 10px"}}>
-                  <div style={{fontFamily:"Barlow Condensed",fontSize:9,color:"var(--gt)",letterSpacing:1,marginBottom:5}}>{num}</div>
-                  <EqRow eq={p.a} label={p.la}/>
-                  <div style={{borderTop:"1px solid rgba(255,255,255,.07)",margin:"3px 0"}}/>
-                  <EqRow eq={p.b} label={p.lb}/>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+      {/* Árbol visual */}
+      <div className="bracket-scroll">
+        <div className="bracket-tree">
+          {/* IZQ: 16avos (8 partidos) → conectores → 8vos placeholder */}
+          <BCol numeros={['P73','P74','P75','P76','P77','P78','P79','P80']} label="16AVOS" colClass="bcol-16"/>
+          <Connector rows={4} side="left"/>
+          <BCol numeros={['P90','P89','P91','P92']} label="8VOS" colClass="bcol-8"/>
+          <Connector rows={2} side="left"/>
+          <BCol numeros={['P97','P99']} label="4TOS" colClass="bcol-4"/>
+          <Connector rows={1} side="left"/>
+          <BCol numeros={['P101']} label="SEMIS" colClass="bcol-semi"/>
+          <Connector rows={1} side="left"/>
 
-      <div style={{marginTop:16,padding:"10px 14px",background:"rgba(0,0,0,.2)",borderRadius:8,fontSize:11,color:"var(--gm)"}}>
-        Cruces KO confirmados por FIFA. Los equipos definitivos se conocen al terminar todos los grupos (27 junio).
+          {/* CENTRO */}
+          <BCenter/>
+
+          {/* DER: semis → 4tos → 8vos → 16avos */}
+          <Connector rows={1} side="right"/>
+          <BCol numeros={['P102']} label="SEMIS" colClass="bcol-semi"/>
+          <Connector rows={1} side="right"/>
+          <BCol numeros={['P98','P100']} label="4TOS" colClass="bcol-4"/>
+          <Connector rows={2} side="right"/>
+          <BCol numeros={['P93','P94','P95','P96']} label="8VOS" colClass="bcol-8"/>
+          <Connector rows={4} side="right"/>
+          <BCol numeros={['P83','P84','P81','P82','P85','P86','P87','P88']} label="16AVOS" colClass="bcol-16"/>
+        </div>
+      </div>
+
+      {/* Leyenda */}
+      <div style={{marginTop:10,padding:"8px 12px",background:"rgba(0,0,0,.2)",borderRadius:8,fontSize:10,color:"var(--gm)",display:'flex',flexWrap:'wrap',gap:12,alignItems:'center'}}>
+        <span><span style={{color:'var(--gold)',fontWeight:700}}>P</span> = Provisional (grupo no terminó)</span>
+        <span>Cruces 8vos/4tos/Semis/Final: se completan en el portal KO</span>
+        <a href="./ko.html" style={{color:'var(--gold)',fontWeight:700,fontFamily:'Barlow Condensed',fontSize:11,letterSpacing:.5}}>Ver portal KO completo →</a>
       </div>
     </div>
   );
