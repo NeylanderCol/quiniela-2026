@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Quiniela Destin — KO FIFA 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy:#0A1F5C;--navy-mid:#122680;--red:#CC0000;--red-l:#e60000;
+  --gold:#F5A623;--gold-l:#FFB940;--white:#FFF;--gm:#B0BBDD;--gt:#6B7BAA;--bg:#060F33;
+  --green:#4ADB8A;--blue:#6496FF;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 60%,var(--red) 100%);padding:14px 18px 0;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.5);}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.logo-area{display:flex;align-items:center;gap:10px;}
+.logo-ball{width:40px;height:40px;background:radial-gradient(circle at 35% 35%,#fff 0%,#ddd 60%,#aaa 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,.4);flex-shrink:0;}
+.logo-text{font-family:'Barlow Condensed',sans-serif;}
+.logo-title{font-size:20px;font-weight:800;letter-spacing:1px;line-height:1;}
+.logo-sub{font-size:10px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;}
+.ko-badge{background:linear-gradient(135deg,var(--gold),var(--red));color:#fff;padding:4px 10px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;white-space:nowrap;}
+.nav-tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.tab-btn{background:none;border:none;cursor:pointer;padding:9px 12px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:.5px;color:var(--gm);border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;}
+.tab-btn:hover{color:var(--white);}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+/* LAYOUT */
+.main{max-width:960px;margin:0 auto;padding:18px 14px 60px;}
+.card{background:var(--navy);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:18px;margin-bottom:14px;}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--gold);margin-bottom:14px;letter-spacing:1px;text-transform:uppercase;}
+
+/* FORMS */
+.form-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.form-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px;}
+.lbl{font-size:10px;font-weight:600;color:var(--gm);letter-spacing:1px;text-transform:uppercase;}
+.inp{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:8px 10px;color:#fff;font-family:'Barlow',sans-serif;font-size:13px;transition:border-color .2s;width:100%;}
+.inp:focus{outline:none;border-color:var(--gold);}
+.inp option{background:#0A1F5C;}
+.btn{padding:9px 18px;border:none;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s;text-transform:uppercase;}
+.btn-p{background:var(--gold);color:var(--navy);}
+.btn-p:hover{background:var(--gold-l);}
+.btn-d{background:var(--red);color:#fff;}
+.btn-d:hover{background:var(--red-l);}
+.btn-s{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);}
+.btn-s:hover{background:rgba(255,255,255,.15);}
+.btn-g{background:rgba(74,219,138,.15);color:var(--green);border:1px solid rgba(74,219,138,.3);}
+.btn-g:hover{background:rgba(74,219,138,.25);}
+.btn-sm{padding:5px 12px;font-size:11px;}
+.btn-xs{padding:3px 8px;font-size:10px;}
+
+/* ALERTS */
+.alert{padding:10px 14px;border-radius:6px;font-size:12px;margin-bottom:12px;line-height:1.5;}
+.al-ok{background:rgba(74,219,138,.15);border:1px solid var(--green);color:var(--green);}
+.al-err{background:rgba(204,0,0,.2);border:1px solid var(--red);color:#FF6666;}
+.al-inf{background:rgba(100,150,255,.15);border:1px solid var(--blue);color:#AAC0FF;}
+.al-warn{background:rgba(245,166,35,.1);border:1px solid var(--gold);color:var(--gold);}
+
+/* LOADING */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;color:var(--gm);gap:14px;}
+.spinner{width:36px;height:36px;border:3px solid rgba(245,166,35,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* LOGIN */
+.login-wrap{min-height:70vh;display:flex;align-items:center;justify-content:center;}
+.login-box{background:var(--navy);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:36px;width:100%;max-width:340px;text-align:center;}
+.login-box h2{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px;}
+.login-box p{font-size:12px;color:var(--gm);margin-bottom:20px;}
+
+/* ADMIN TABS */
+.adm-tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap;}
+
+/* GRUPOS GRID */
+.grupos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin-bottom:16px;}
+.grupo-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;}
+.grupo-card.confirmado{border-color:rgba(74,219,138,.4);background:rgba(74,219,138,.04);}
+.grupo-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.grupo-label{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;letter-spacing:2px;background:var(--red);padding:3px 10px;border-radius:4px;}
+.grupo-ok{font-size:11px;color:var(--green);font-weight:600;}
+.grupo-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.grupo-pos{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--gold);min-width:20px;}
+
+/* TERCEROS */
+.terceros-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-bottom:16px;}
+.tercero-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s;}
+.tercero-item:hover{border-color:rgba(245,166,35,.4);}
+.tercero-item.sel{border-color:var(--gold);background:rgba(245,166,35,.08);}
+.tercero-item.invalid{border-color:rgba(255,100,100,.4);background:rgba(255,100,100,.05);}
+.checkbox-ko{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.checkbox-ko.checked{background:var(--gold);border-color:var(--gold);}
+
+/* PARTIDOS KO TABLE */
+.r-table{width:100%;border-collapse:collapse;font-size:12px;}
+.r-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);text-align:left;padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.12);text-transform:uppercase;background:rgba(0,0,0,.2);}
+.r-table td{padding:8px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle;}
+.r-table tr:hover td{background:rgba(255,255,255,.03);}
+.sc-pill{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;background:rgba(0,0,0,.3);padding:3px 10px;border-radius:5px;color:var(--gold);}
+.e-inp{background:rgba(255,255,255,.08);border:1px solid rgba(245,166,35,.4);border-radius:4px;padding:5px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;width:52px;text-align:center;}
+.e-inp:focus{outline:none;border-color:var(--gold);}
+.etapa-badge{padding:2px 8px;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;}
+.eb-16{background:rgba(100,150,255,.2);color:var(--blue);}
+.eb-8{background:rgba(245,166,35,.2);color:var(--gold);}
+.eb-4{background:rgba(74,219,138,.2);color:var(--green);}
+.eb-S{background:rgba(204,0,0,.2);color:#FF6666;}
+.eb-3{background:rgba(176,187,221,.15);color:var(--gm);}
+.eb-F{background:linear-gradient(135deg,rgba(245,166,35,.3),rgba(204,0,0,.3));color:#fff;}
+.st-done{background:rgba(74,219,138,.15);color:var(--green);padding:2px 7px;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;}
+.st-pend{background:rgba(176,187,221,.1);color:var(--gm);padding:2px 7px;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;}
+.toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.toggle-lbl{font-size:12px;color:var(--gm);}
+.toggle{width:36px;height:20px;border-radius:10px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+.toggle.on{background:var(--green);}
+.toggle.off{background:rgba(255,255,255,.2);}
+.toggle::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:3px;transition:left .2s;}
+.toggle.on::after{left:19px;}
+.toggle.off::after{left:3px;}
+
+/* PARTICIPANTES ADMIN */
+.part-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;}
+.part-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;}
+.part-card.aprobado{border-color:rgba(74,219,138,.3);}
+.part-card.pendiente{border-color:rgba(245,166,35,.3);}
+.part-name{font-weight:700;font-size:14px;margin-bottom:4px;}
+.part-meta{font-size:11px;color:var(--gm);margin-bottom:8px;}
+.pin-display{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--gold);letter-spacing:3px;}
+
+/* HOY TAB */
+.empty{text-align:center;padding:40px;color:var(--gm);font-size:13px;}
+.match-ko-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px;margin-bottom:10px;}
+.match-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:4px;}
+.match-time{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--gold);font-weight:600;}
+.match-teams{display:flex;align-items:center;gap:8px;}
+.team-blk{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px;}
+.team-name{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;text-align:center;line-height:1.2;}
+.score-box{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.35);padding:6px 14px;border-radius:8px;min-width:84px;justify-content:center;flex-shrink:0;}
+.score-n{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;line-height:1;}
+.score-sep{font-size:20px;color:var(--gm);font-weight:300;}
+.score-vs{font-size:13px;color:var(--gm);font-style:italic;}
+.countdown-box{background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.2);border-radius:8px;padding:10px;text-align:center;margin-top:8px;}
+.countdown-num{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--gold);}
+.countdown-lbl{font-size:10px;color:var(--gm);letter-spacing:1px;text-transform:uppercase;}
+
+/* POSICIONES */
+.st-table{width:100%;border-collapse:collapse;}
+.st-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-align:left;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.1);text-transform:uppercase;}
+.st-table td{padding:9px 10px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.05);}
+.st-table tr:hover td{background:rgba(255,255,255,.03);}
+.pos-b{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;}
+.p1{background:var(--gold);color:var(--navy);}
+.p2{background:var(--gm);color:var(--navy);}
+.p3{background:#CD7F32;color:#fff;}
+.px{background:rgba(255,255,255,.1);color:#fff;}
+.pts-big{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--gold);}
+
+/* BRACKET */
+.bracket-wrap{overflow-x:auto;padding-bottom:10px;}
+.bracket-cols{display:flex;gap:0;min-width:900px;}
+.bracket-col{flex:1;min-width:140px;}
+.bracket-col-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;letter-spacing:2px;text-align:center;padding:6px;background:rgba(255,255,255,.05);border-bottom:2px solid rgba(245,166,35,.3);color:var(--gold);margin-bottom:8px;text-transform:uppercase;}
+.b-match{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;margin:4px 6px;padding:8px;position:relative;}
+.b-match.done{border-color:rgba(74,219,138,.3);}
+.b-team{display:flex;align-items:center;gap:6px;padding:3px 0;}
+.b-team-name{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.b-team-score{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:var(--gold);min-width:16px;text-align:right;}
+.b-num{font-size:9px;color:var(--gt);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;margin-bottom:4px;}
+.b-sep{border-top:1px solid rgba(255,255,255,.08);margin:3px 0;}
+.b-info{font-size:9px;color:var(--gm);margin-top:4px;}
+.clasificado-tag{font-size:9px;color:var(--green);font-weight:700;}
+
+/* SCROLL */
+.scroll-top{position:fixed;bottom:20px;right:16px;background:var(--gold);color:var(--navy);width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.4);transition:transform .2s;}
+.scroll-top:hover{transform:scale(1.1);}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .header{padding:10px 12px 0;}
+  .main{padding:12px 8px 60px;}
+  .grupos-grid{grid-template-columns:1fr;}
+  .terceros-list{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState, useEffect, useCallback, useRef, useMemo} = React;
+
+// ── CONFIG ───────────────────────────────────────────────
+const SB_URL = "https://zccpukcvzrzgmaluemuq.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjY3B1a2N2enJ6Z21hbHVlbXVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMDgzNzksImV4cCI6MjA5NjY4NDM3OX0.ln2MWHiFQbMjEwyNGSuP_hhgzSv3JGYFQY-q9IzLiZM";
+const ADMIN_PASS = "destin2026";
+
+const EQUIPOS_GRUPOS = {
+  A:['México','Corea del Sur','Chequia','Sudáfrica'],
+  B:['Canadá','Catar','Suiza','Bosnia y Herzegovina'],
+  C:['Brasil','Marruecos','Haití','Escocia'],
+  D:['Estados Unidos','Australia','Turquía','Paraguay'],
+  E:['Alemania','Costa de Marfil','Ecuador','Curazao'],
+  F:['Países Bajos','Japón','Suecia','Túnez'],
+  G:['Bélgica','Irán','Nueva Zelanda','Egipto'],
+  H:['España','Arabia Saudita','Uruguay','Cabo Verde'],
+  I:['Francia','Noruega','Senegal','Irak'],
+  J:['Argentina','Austria','Argelia','Jordania'],
+  K:['Portugal','Colombia','Uzbekistán','Congo'],
+  L:['Inglaterra','Croacia','Ghana','Panamá'],
+};
+
+// Restricciones FIFA: qué grupos pueden asignarse a cada slot de tercero
+const SLOTS_TERCEROS = {
+  P74: ['A','B','C','D','F'],
+  P77: ['C','D','F','G','H'],
+  P79: ['C','E','F','H','I'],
+  P80: ['E','H','I','J','K'],
+  P81: ['B','E','F','I','J'],
+  P82: ['A','E','H','I','J'],
+  P85: ['E','F','G','I','J'],
+  P87: ['D','E','I','J','L'],
+};
+
+const TODOS_EQUIPOS = Object.values(EQUIPOS_GRUPOS).flat().sort();
+
+const FLAG_URLS = {
+  "México":"https://flagcdn.com/32x24/mx.png","Sudáfrica":"https://flagcdn.com/32x24/za.png",
+  "Corea del Sur":"https://flagcdn.com/32x24/kr.png","Chequia":"https://flagcdn.com/32x24/cz.png",
+  "Canadá":"https://flagcdn.com/32x24/ca.png","Bosnia y Herzegovina":"https://flagcdn.com/32x24/ba.png",
+  "Estados Unidos":"https://flagcdn.com/32x24/us.png","Paraguay":"https://flagcdn.com/32x24/py.png",
+  "Catar":"https://flagcdn.com/32x24/qa.png","Suiza":"https://flagcdn.com/32x24/ch.png",
+  "Brasil":"https://flagcdn.com/32x24/br.png","Marruecos":"https://flagcdn.com/32x24/ma.png",
+  "Haití":"https://flagcdn.com/32x24/ht.png","Escocia":"https://flagcdn.com/32x24/gb-sct.png",
+  "Australia":"https://flagcdn.com/32x24/au.png","Turquía":"https://flagcdn.com/32x24/tr.png",
+  "Alemania":"https://flagcdn.com/32x24/de.png","Curazao":"https://flagcdn.com/32x24/cw.png",
+  "Países Bajos":"https://flagcdn.com/32x24/nl.png","Japón":"https://flagcdn.com/32x24/jp.png",
+  "Costa de Marfil":"https://flagcdn.com/32x24/ci.png","Ecuador":"https://flagcdn.com/32x24/ec.png",
+  "Suecia":"https://flagcdn.com/32x24/se.png","Túnez":"https://flagcdn.com/32x24/tn.png",
+  "España":"https://flagcdn.com/32x24/es.png","Cabo Verde":"https://flagcdn.com/32x24/cv.png",
+  "Bélgica":"https://flagcdn.com/32x24/be.png","Egipto":"https://flagcdn.com/32x24/eg.png",
+  "Arabia Saudita":"https://flagcdn.com/32x24/sa.png","Uruguay":"https://flagcdn.com/32x24/uy.png",
+  "Irán":"https://flagcdn.com/32x24/ir.png","Nueva Zelanda":"https://flagcdn.com/32x24/nz.png",
+  "Francia":"https://flagcdn.com/32x24/fr.png","Senegal":"https://flagcdn.com/32x24/sn.png",
+  "Irak":"https://flagcdn.com/32x24/iq.png","Noruega":"https://flagcdn.com/32x24/no.png",
+  "Argentina":"https://flagcdn.com/32x24/ar.png","Argelia":"https://flagcdn.com/32x24/dz.png",
+  "Austria":"https://flagcdn.com/32x24/at.png","Jordania":"https://flagcdn.com/32x24/jo.png",
+  "Portugal":"https://flagcdn.com/32x24/pt.png","Congo":"https://flagcdn.com/32x24/cd.png",
+  "Inglaterra":"https://flagcdn.com/32x24/gb-eng.png","Croacia":"https://flagcdn.com/32x24/hr.png",
+  "Ghana":"https://flagcdn.com/32x24/gh.png","Panamá":"https://flagcdn.com/32x24/pa.png",
+  "Uzbekistán":"https://flagcdn.com/32x24/uz.png","Colombia":"https://flagcdn.com/32x24/co.png",
+};
+
+// ── HELPERS ──────────────────────────────────────────────
+function nowIQ() {
+  const n = new Date();
+  return new Date(n.getTime() + n.getTimezoneOffset()*60000 + 10800000);
+}
+function todayIQ() {
+  const iq = nowIQ();
+  return `${iq.getFullYear()}-${String(iq.getMonth()+1).padStart(2,'0')}-${String(iq.getDate()).padStart(2,'0')}`;
+}
+function tomorrowIQ() {
+  const iq = nowIQ();
+  iq.setDate(iq.getDate()+1);
+  return `${iq.getFullYear()}-${String(iq.getMonth()+1).padStart(2,'0')}-${String(iq.getDate()).padStart(2,'0')}`;
+}
+function formatCountdown(ms) {
+  if (ms <= 0) return '🔒 Cerrado';
+  const h = Math.floor(ms/3600000), m = Math.floor((ms%3600000)/60000), s = Math.floor((ms%60000)/1000);
+  return `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+}
+function cierreEtapa(fecha, hora) {
+  return new Date(`${fecha}T${hora}:00+03:00`);
+}
+function calcPtsKO(pa, pb, ra, rb) {
+  if (pa===ra && pb===rb) return 5;
+  const pGanA=pa>pb, pGanB=pb>pa, pEmp=pa===pb;
+  const rGanA=ra>rb, rGanB=rb>ra, rEmp=ra===rb;
+  if (!((pGanA&&rGanA)||(pGanB&&rGanB)||(pEmp&&rEmp))) return 0;
+  return (pa-pb)===(ra-rb) ? 4 : 3;
+}
+function clasificadoImplicito(pa, pb, equipoA, equipoB) {
+  if (pa>pb) return equipoA;
+  if (pb>pa) return equipoB;
+  return null;
+}
+function etapaLabel(nombre) {
+  const m={'16avos':'16avos','8vos':'8vos','4tos':'4tos','Semis':'Semis','3er Puesto':'3er P.','Final':'Final'};
+  return m[nombre]||nombre;
+}
+function etapaBadgeClass(nombre) {
+  const m={'16avos':'eb-16','8vos':'eb-8','4tos':'eb-4','Semis':'eb-S','3er Puesto':'eb-3','Final':'eb-F'};
+  return m[nombre]||'eb-16';
+}
+const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+function fLarga(f){const[y,m,d]=f.split('-').map(Number);const dt=new Date(y,m-1,d);return`${DIAS[dt.getDay()]}, ${d} de ${MESES[m-1]}`;}
+
+async function sb(path, opts={}) {
+  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
+    method: opts.method||'GET',
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':opts.prefer||'return=representation'},
+    body: opts.body,
+  });
+  if (!r.ok){const t=await r.text();throw new Error(r.status+': '+t);}
+  const t = await r.text();
+  return t ? JSON.parse(t) : [];
+}
+
+// ── COMPONENTS ───────────────────────────────────────────
+function Flag({name, size=24}) {
+  const url = FLAG_URLS[name];
+  if (!url) return <span style={{width:size*1.33,height:size,background:'rgba(255,255,255,.1)',borderRadius:2,display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:10,color:'var(--gm)',flexShrink:0}}>?</span>;
+  return <img src={url} alt={name} style={{width:size*1.33,height:size,objectFit:'cover',borderRadius:2,display:'block',flexShrink:0}} loading="lazy"/>;
+}
+
+function Toggle({on, onToggle, label}) {
+  return (
+    <div className="toggle-row">
+      <button className={`toggle ${on?'on':'off'}`} onClick={onToggle}/>
+      <span className="toggle-lbl">{label}</span>
+    </div>
+  );
+}
+
+function useCountdown(targetDate) {
+  const [ms, setMs] = useState(() => targetDate ? targetDate - Date.now() : 0);
+  useEffect(() => {
+    if (!targetDate) return;
+    const id = setInterval(() => setMs(targetDate - Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [targetDate]);
+  return ms;
+}
+
+// ── TAB HOY ──────────────────────────────────────────────
+function TabHoy({partidos, etapas}) {
+  const today = todayIQ(), tomorrow = tomorrowIQ();
+  const [tick, setTick] = useState(Date.now());
+  useEffect(() => { const id = setInterval(()=>setTick(Date.now()), 1000); return ()=>clearInterval(id); }, []);
+
+  const etapaMap = useMemo(() => {
+    const m={}; etapas.forEach(e=>m[e.id]=e); return m;
+  }, [etapas]);
+
+  const relevantes = partidos.filter(p => p.fecha===today || p.fecha===tomorrow)
+    .sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.hora.localeCompare(b.hora));
+
+  if (relevantes.length === 0) {
+    const prox = partidos.filter(p=>p.fecha>today&&!p.finalizado).sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.hora.localeCompare(b.hora))[0];
+    return (
+      <div>
+        <div className="empty">
+          <div style={{fontSize:40,marginBottom:12}}>🏆</div>
+          <div style={{fontFamily:'Barlow Condensed',fontSize:18,fontWeight:700,marginBottom:8}}>Sin partidos hoy ni mañana</div>
+          {prox && <div style={{fontSize:12,color:'var(--gm)'}}>
+            Próximo: <strong style={{color:'var(--gold)'}}>{prox.equipo_a||prox.slot_a} vs {prox.equipo_b||prox.slot_b}</strong><br/>
+            {fLarga(prox.fecha)} — {prox.hora} (Irak)
+          </div>}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {relevantes.map(p => {
+        const etapa = etapaMap[p.etapa_id];
+        const done = p.finalizado && p.goles_a !== null;
+        const kickoffUTC = new Date(`${p.fecha}T${p.hora}:00+03:00`);
+        const msLeft = kickoffUTC - tick;
+        const eqA = p.equipo_a || p.slot_a || '?';
+        const eqB = p.equipo_b || p.slot_b || '?';
+        return (
+          <div key={p.id} className="match-ko-card">
+            <div className="match-meta">
+              {etapa && <span className={`etapa-badge ${etapaBadgeClass(etapa.nombre)}`}>{etapa.nombre.toUpperCase()}</span>}
+              <span style={{fontFamily:'Barlow Condensed',fontSize:11,color:'var(--gm)',letterSpacing:1}}>{p.numero}</span>
+              <span className="match-time">⏰ {p.hora} (Irak)</span>
+              <span style={{fontSize:9,color:p.fecha===today?'var(--gold)':'var(--gm)',fontFamily:'Barlow Condensed',fontWeight:700,letterSpacing:1}}>
+                {p.fecha===today?'HOY':'MAÑANA'}
+              </span>
+              <span className={done?'st-done':'st-pend'}>{done?'✓ FINALIZADO':'PENDIENTE'}</span>
+            </div>
+            <div className="match-teams">
+              <div className="team-blk">
+                <Flag name={p.equipo_a} size={26}/>
+                <span className="team-name">{eqA}</span>
+              </div>
+              <div className="score-box">
+                {done
+                  ? <><span className="score-n">{p.goles_a}</span><span className="score-sep">–</span><span className="score-n">{p.goles_b}</span></>
+                  : <span className="score-vs">vs</span>}
+              </div>
+              <div className="team-blk">
+                <Flag name={p.equipo_b} size={26}/>
+                <span className="team-name">{eqB}</span>
+              </div>
+            </div>
+            {done && p.clasificado && (
+              <div style={{textAlign:'center',marginTop:8,fontSize:11}}>
+                <span style={{color:'var(--green)',fontWeight:700}}>✓ Clasifica: {p.clasificado}</span>
+                {p.hubo_penales && <span style={{marginLeft:8,color:'var(--gm)'}}>⚡ Penales</span>}
+                {p.hubo_prorroga && !p.hubo_penales && <span style={{marginLeft:8,color:'var(--gm)'}}>⏱ Prórroga</span>}
+              </div>
+            )}
+            {!done && msLeft > 0 && (
+              <div className="countdown-box">
+                <div className="countdown-num">{formatCountdown(msLeft)}</div>
+                <div className="countdown-lbl">para el inicio del partido</div>
+              </div>
+            )}
+            {!done && msLeft <= 0 && (
+              <div className="countdown-box" style={{background:'rgba(204,0,0,.08)',borderColor:'rgba(204,0,0,.3)'}}>
+                <div style={{fontSize:12,color:'#FF6666',fontWeight:700}}>⚽ En juego / Esperando resultado</div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── TAB BRACKET ──────────────────────────────────────────
+function TabBracket({partidos, etapas}) {
+  const etapaMap = useMemo(() => { const m={}; etapas.forEach(e=>m[e.id]=e); return m; }, [etapas]);
+
+  const etapasOrden = [...etapas].sort((a,b)=>a.orden-b.orden);
+  const etapaIds = etapasOrden.map(e=>e.id);
+
+  // Partidos agrupados por etapa
+  const porEtapa = useMemo(() => {
+    const m={};
+    etapas.forEach(e=>m[e.id]=[]);
+    partidos.forEach(p => { if (m[p.etapa_id]) m[p.etapa_id].push(p); });
+    Object.values(m).forEach(arr=>arr.sort((a,b)=>a.numero.localeCompare(b.numero)));
+    return m;
+  }, [partidos, etapas]);
+
+  // Etapa activa: primera no finalizada con al menos un partido
+  const etapaActiva = etapasOrden.find(e => porEtapa[e.id]?.some(p=>!p.finalizado));
+
+  return (
+    <div>
+      {etapaActiva && (() => {
+        const primerP = porEtapa[etapaActiva.id]?.filter(p=>!p.finalizado).sort((a,b)=>a.fecha?.localeCompare(b.fecha)||a.hora?.localeCompare(b.hora))[0];
+        if (!primerP || !primerP.fecha || !primerP.hora) return null;
+        const cierre = cierreEtapa(primerP.fecha, primerP.hora);
+        const ms = cierre - Date.now();
+        if (ms > 0) return (
+          <div style={{background:'rgba(245,166,35,.08)',border:'1px solid rgba(245,166,35,.3)',borderRadius:10,padding:'12px 16px',marginBottom:16,display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+            <span style={{fontFamily:'Barlow Condensed',fontSize:13,fontWeight:800,color:'var(--gold)',letterSpacing:1}}>🟢 PRONÓSTICOS ABIERTOS — {etapaActiva.nombre.toUpperCase()}</span>
+            <span style={{fontFamily:'Barlow Condensed',fontSize:18,fontWeight:800,color:'#fff'}}>{formatCountdown(ms)}</span>
+            <span style={{fontSize:11,color:'var(--gm)'}}>hasta {fLarga(primerP.fecha)} {primerP.hora} IQ</span>
+          </div>
+        );
+        return null;
+      })()}
+
+      <div className="bracket-wrap">
+        <div className="bracket-cols">
+          {etapasOrden.map(etapa => {
+            const ps = porEtapa[etapa.id] || [];
+            return (
+              <div key={etapa.id} className="bracket-col">
+                <div className="bracket-col-title">{etapa.nombre}</div>
+                {ps.map(p => {
+                  const done = p.finalizado && p.goles_a !== null;
+                  const eqA = p.equipo_a || p.slot_a || '?';
+                  const eqB = p.equipo_b || p.slot_b || '?';
+                  return (
+                    <div key={p.id} className={`b-match ${done?'done':''}`}>
+                      <div className="b-num">{p.numero} · {p.fecha||'—'} {p.hora}</div>
+                      <div className="b-team">
+                        <Flag name={p.equipo_a} size={14}/>
+                        <span className="b-team-name" title={eqA}>{eqA}</span>
+                        {done && <span className="b-team-score">{p.goles_a}</span>}
+                      </div>
+                      <div className="b-sep"/>
+                      <div className="b-team">
+                        <Flag name={p.equipo_b} size={14}/>
+                        <span className="b-team-name" title={eqB}>{eqB}</span>
+                        {done && <span className="b-team-score">{p.goles_b}</span>}
+                      </div>
+                      {done && p.clasificado && (
+                        <div className="b-info">
+                          <span className="clasificado-tag">✓ {p.clasificado}</span>
+                          {p.hubo_penales && <span style={{color:'var(--gm)',marginLeft:4}}>⚡</span>}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── TAB POSICIONES ───────────────────────────────────────
+function TabPosiciones({participantes, pronosticos, partidos, podios, etapas}) {
+  const [vista, setVista] = useState('general');
+
+  // Calcular puntos por participante
+  function calcularPuntos(filtroEtapaId=null) {
+    return participantes.filter(p=>p.aprobado).map(part => {
+      let ptsMarcador=0, ptsClasificado=0, ptsPodio=0, pend=0;
+
+      pronosticos.filter(pr=>pr.participante_ko_id===part.id).forEach(pr=>{
+        const pa = partidos.find(x=>x.id===pr.partido_ko_id);
+        if (!pa) return;
+        if (filtroEtapaId && pa.etapa_id !== filtroEtapaId) return;
+        if (!pa.finalizado || pa.goles_a===null) { pend++; return; }
+        ptsMarcador += pr.puntos_marcador||0;
+        ptsClasificado += pr.puntos_clasificado||0;
+      });
+
+      if (!filtroEtapaId) {
+        const pod = podios.find(p=>p.participante_ko_id===part.id);
+        if (pod) ptsPodio = (pod.pts_campeon||0)+(pod.pts_subcampeon||0)+(pod.pts_tercero||0);
+      }
+
+      return {...part, ptsMarcador, ptsClasificado, ptsPodio, pend, total:ptsMarcador+ptsClasificado+ptsPodio};
+    }).sort((a,b)=>b.total-a.total||b.ptsMarcador-a.ptsMarcador);
+  }
+
+  const etapasOrden = [...etapas].sort((a,b)=>a.orden-b.orden);
+
+  function TablaPos({rows, showPodio=false}) {
+    return (
+      <div style={{overflowX:'auto'}}>
+        <table className="st-table">
+          <thead><tr>
+            <th>#</th><th>Participante</th>
+            <th style={{textAlign:'center'}}>Total</th>
+            <th style={{textAlign:'center'}}>⚽<br/><span style={{fontSize:9,fontWeight:400,color:'var(--gm)'}}>Marcador</span></th>
+            <th style={{textAlign:'center'}}>✓<br/><span style={{fontSize:9,fontWeight:400,color:'var(--gm)'}}>Clasif.</span></th>
+            {showPodio && <th style={{textAlign:'center'}}>🏅<br/><span style={{fontSize:9,fontWeight:400,color:'var(--gm)'}}>Podio</span></th>}
+            <th style={{textAlign:'center'}}>⏳</th>
+          </tr></thead>
+          <tbody>{rows.map((p,i)=>(
+            <tr key={p.id}>
+              <td><div className={`pos-b ${i===0?'p1':i===1?'p2':i===2?'p3':'px'}`}>{i+1}</div></td>
+              <td style={{fontWeight:600}}>{p.nombre}</td>
+              <td style={{textAlign:'center'}}><span className="pts-big">{p.total}</span></td>
+              <td style={{textAlign:'center',color:'var(--gold)',fontWeight:700}}>{p.ptsMarcador}</td>
+              <td style={{textAlign:'center',color:'var(--green)',fontWeight:700}}>{p.ptsClasificado}</td>
+              {showPodio && <td style={{textAlign:'center',color:'#FFD700',fontWeight:700}}>{p.ptsPodio}</td>}
+              <td style={{textAlign:'center',color:'var(--gm)'}}>{p.pend}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    );
+  }
+
+  if (participantes.filter(p=>p.aprobado).length === 0) {
+    return <div className="card"><div className="empty" style={{padding:20}}>Sin participantes aprobados aún.</div></div>;
+  }
+
+  return (
+    <div>
+      <div className="adm-tabs">
+        <button className={`btn btn-sm ${vista==='general'?'btn-p':'btn-s'}`} onClick={()=>setVista('general')}>🏆 KO General</button>
+        {etapasOrden.map(e=>(
+          <button key={e.id} className={`btn btn-sm ${vista===String(e.id)?'btn-p':'btn-s'}`} onClick={()=>setVista(String(e.id))}>{e.nombre}</button>
+        ))}
+      </div>
+      <div className="card">
+        {vista==='general' && <>
+          <div className="card-title">🏆 Tabla KO General (marcador + clasificado + podio)</div>
+          <TablaPos rows={calcularPuntos(null)} showPodio={true}/>
+          <div style={{marginTop:12,padding:'10px 12px',background:'rgba(0,0,0,.2)',borderRadius:8,fontSize:11,color:'var(--gm)',lineHeight:1.9}}>
+            <strong style={{color:'var(--gold)'}}>Puntuación KO:</strong> ⭐ Exacto = 5pts · 🎯 Ganador+dif = 4pts · ✓ Ganador/empate = 3pts · Clasifica correcto +2pts<br/>
+            <strong style={{color:'var(--gold)'}}>Podio:</strong> Campeón +5 · Subcampeón +5 · 3er lugar +5
+          </div>
+        </>}
+        {etapasOrden.map(e => vista===String(e.id) && (
+          <div key={e.id}>
+            <div className="card-title">{e.nombre} — Puntos de esta etapa</div>
+            <TablaPos rows={calcularPuntos(e.id)} showPodio={false}/>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── TAB ADMIN ────────────────────────────────────────────
+function TabAdmin({partidos, etapas, participantes, pronosticos, podios, onRefresh}) {
+  const [authed, setAuthed] = useState(false);
+  const [pass, setPass] = useState('');
+  const [passErr, setPassErr] = useState(false);
+  const [atab, setAtab] = useState('grupos');
+  const [msg, setMsg] = useState(null);
+
+  const showMsg = (t, type='success') => { setMsg({t,type}); setTimeout(()=>setMsg(null), 5000); };
+
+  if (!authed) return (
+    <div className="login-wrap">
+      <div className="login-box">
+        <div style={{fontSize:34,marginBottom:10}}>🔐</div>
+        <h2>Panel Admin KO</h2>
+        <p>Acceso restringido</p>
+        {passErr && <div className="alert al-err">Contraseña incorrecta</div>}
+        <input className="inp" type="password" placeholder="Contraseña" value={pass}
+          onChange={e=>{setPass(e.target.value);setPassErr(false);}}
+          onKeyDown={e=>{if(e.key==='Enter'){if(pass===ADMIN_PASS)setAuthed(true);else setPassErr(true);}}}
+          style={{marginBottom:10}}/>
+        <button className="btn btn-p" style={{width:'100%',marginTop:6}}
+          onClick={()=>{if(pass===ADMIN_PASS)setAuthed(true);else setPassErr(true);}}>ENTRAR</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      {msg && <div className={`alert al-${msg.type==='success'?'ok':msg.type==='error'?'err':msg.type==='warn'?'warn':'inf'}`}>{msg.t}</div>}
+      <div className="adm-tabs">
+        {[['grupos','🌍 Grupos'],['terceros','3° Lugar'],['resultados',`⚽ Resultados`],['participantes_adm','👥 Participantes'],['etapas_adm','⏱ Etapas']].map(([id,lbl])=>(
+          <button key={id} className={`btn btn-sm ${atab===id?'btn-p':'btn-s'}`} onClick={()=>setAtab(id)}>{lbl}</button>
+        ))}
+      </div>
+
+      {atab==='grupos' && <AdminGrupos partidos={partidos} etapas={etapas} showMsg={showMsg} onRefresh={onRefresh}/>}
+      {atab==='terceros' && <AdminTerceros partidos={partidos} etapas={etapas} showMsg={showMsg} onRefresh={onRefresh}/>}
+      {atab==='resultados' && <AdminResultados partidos={partidos} etapas={etapas} pronosticos={pronosticos} showMsg={showMsg} onRefresh={onRefresh}/>}
+      {atab==='participantes_adm' && <AdminParticipantes participantes={participantes} podios={podios} showMsg={showMsg} onRefresh={onRefresh}/>}
+      {atab==='etapas_adm' && <AdminEtapas etapas={etapas} partidos={partidos} showMsg={showMsg} onRefresh={onRefresh}/>}
+    </div>
+  );
+}
+
+// ── ADMIN: GRUPOS ─────────────────────────────────────────
+function AdminGrupos({showMsg, onRefresh}) {
+  const [bgData, setBgData] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(null);
+
+  useEffect(()=>{
+    sb('bracket_grupos?select=*&order=grupo').then(rows=>{
+      const m={};
+      rows.forEach(r=>m[r.grupo]=r);
+      setBgData(m);
+      setLoading(false);
+    }).catch(e=>{showMsg('Error cargando grupos: '+e.message,'error');setLoading(false);});
+  },[]);
+
+  function setPos(grupo, pos, equipo) {
+    setBgData(prev=>({...prev,[grupo]:{...prev[grupo],[pos]:equipo}}));
+  }
+
+  function equiposDisponibles(grupo, posActual) {
+    const equipos = EQUIPOS_GRUPOS[grupo]||[];
+    const datos = bgData[grupo]||{};
+    const usados = ['primero','segundo','tercero','cuarto'].filter(p=>p!==posActual).map(p=>datos[p]).filter(Boolean);
+    return equipos.filter(e=>!usados.includes(e));
+  }
+
+  async function guardarGrupo(grupo) {
+    const d = bgData[grupo];
+    if (!d?.primero||!d?.segundo||!d?.tercero) { showMsg('Completa los 3 primeros puestos para el Grupo '+grupo,'error'); return; }
+    // 4to es el que queda
+    const equipos = EQUIPOS_GRUPOS[grupo]||[];
+    const cuarto = equipos.find(e=>![d.primero,d.segundo,d.tercero].includes(e));
+    setSaving(grupo);
+    try {
+      const row = bgData[grupo];
+      await sb(`bracket_grupos?grupo=eq.${grupo}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({primero:d.primero,segundo:d.segundo,tercero:d.tercero,cuarto,confirmado:true})});
+      showMsg(`✓ Grupo ${grupo} confirmado`);
+      onRefresh();
+    } catch(e){showMsg('Error: '+e.message,'error');}
+    setSaving(null);
+  }
+
+  if (loading) return <div className="loading"><div className="spinner"/></div>;
+
+  const posLabels = [{k:'primero',l:'1°'},{k:'segundo',l:'2°'},{k:'tercero',l:'3°'}];
+
+  return (
+    <div className="card">
+      <div className="card-title">🌍 Confirmar Tabla de Grupos</div>
+      <div className="alert al-inf" style={{marginBottom:16}}>
+        Ingresa los resultados finales de cada grupo. El 4° puesto se calcula automáticamente.
+        Una vez confirmados, se habilitará la asignación de mejores terceros.
+      </div>
+      <div className="grupos-grid">
+        {Object.keys(EQUIPOS_GRUPOS).sort().map(grupo=>{
+          const d = bgData[grupo]||{};
+          const confirmado = d.confirmado;
+          return (
+            <div key={grupo} className={`grupo-card ${confirmado?'confirmado':''}`}>
+              <div className="grupo-header">
+                <span className="grupo-label">GRUPO {grupo}</span>
+                {confirmado && <span className="grupo-ok">✓ Confirmado</span>}
+              </div>
+              {posLabels.map(({k,l})=>(
+                <div key={k} className="grupo-row">
+                  <span className="grupo-pos">{l}</span>
+                  <select className="inp" value={d[k]||''} disabled={confirmado}
+                    onChange={e=>setPos(grupo,k,e.target.value)} style={{fontSize:12,padding:'5px 8px'}}>
+                    <option value="">— Selecciona —</option>
+                    {equiposDisponibles(grupo,k).map(eq=>(
+                      <option key={eq} value={eq}>{eq}</option>
+                    ))}
+                    {d[k] && <option value={d[k]}>{d[k]}</option>}
+                  </select>
+                </div>
+              ))}
+              {d.cuarto && <div style={{fontSize:11,color:'var(--gm)',marginTop:4,paddingLeft:24}}>4°: {d.cuarto}</div>}
+              {!confirmado && (
+                <button className="btn btn-p btn-sm" style={{width:'100%',marginTop:10}}
+                  onClick={()=>guardarGrupo(grupo)} disabled={saving===grupo}>
+                  {saving===grupo?'Guardando...':'✓ CONFIRMAR GRUPO '+grupo}
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── ADMIN: TERCEROS ───────────────────────────────────────
+function AdminTerceros({showMsg, onRefresh}) {
+  const [bgData, setBgData] = useState({});
+  const [partidos, setPartidos] = useState([]);
+  const [seleccionados, setSeleccionados] = useState({}); // grupo -> slot (P74, etc.)
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(()=>{
+    Promise.all([
+      sb('bracket_grupos?select=*&order=grupo'),
+      sb('partidos_ko?select=*&order=numero'),
+    ]).then(([bg,pk])=>{
+      const m={};
+      bg.forEach(r=>m[r.grupo]=r);
+      setBgData(m);
+      setPartidos(pk);
+      setLoading(false);
+    }).catch(e=>{showMsg('Error: '+e.message,'error');setLoading(false);});
+  },[]);
+
+  const gruposConfirmados = Object.values(bgData).filter(d=>d.confirmado);
+  const terceros = gruposConfirmados.map(d=>({grupo:d.grupo, equipo:d.tercero})).filter(d=>d.equipo);
+
+  function toggleSlot(grupo, slot) {
+    setSeleccionados(prev=>{
+      const nuevo={...prev};
+      if (nuevo[grupo]===slot) { delete nuevo[grupo]; }
+      else { nuevo[grupo]=slot; }
+      return nuevo;
+    });
+  }
+
+  // Slots disponibles para un grupo (según restricciones FIFA)
+  function slotsDisponibles(grupo) {
+    return Object.entries(SLOTS_TERCEROS)
+      .filter(([slot,grupos])=>grupos.includes(grupo))
+      .map(([slot])=>slot);
+  }
+
+  // Verificar conflictos: dos grupos asignados al mismo slot
+  const slotCount = {};
+  Object.values(seleccionados).forEach(slot=>{ slotCount[slot]=(slotCount[slot]||0)+1; });
+  const hayConflicto = Object.values(slotCount).some(c=>c>1);
+  const totalSel = Object.keys(seleccionados).length;
+
+  async function confirmarTerceros() {
+    if (totalSel !== 8) { showMsg('Debes seleccionar exactamente 8 terceros','error'); return; }
+    if (hayConflicto) { showMsg('Hay conflicto: dos equipos asignados al mismo slot','error'); return; }
+    setSaving(true);
+    try {
+      // Por cada tercero seleccionado, actualizar el slot_b del partido KO correspondiente
+      for (const [grupo, slot] of Object.entries(seleccionados)) {
+        const tercero = bgData[grupo]?.tercero;
+        if (!tercero) continue;
+        await sb(`partidos_ko?numero=eq.${slot}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({equipo_b:tercero})});
+      }
+      showMsg('✓ 8 terceros asignados correctamente a sus slots');
+      onRefresh();
+    } catch(e){showMsg('Error: '+e.message,'error');}
+    setSaving(false);
+  }
+
+  if (loading) return <div className="loading"><div className="spinner"/></div>;
+
+  if (gruposConfirmados.length < 12) return (
+    <div className="card">
+      <div className="card-title">🥉 Mejores Terceros</div>
+      <div className="alert al-warn">
+        Primero debes confirmar todos los grupos ({gruposConfirmados.length}/12 listos). Ve a la pestaña "Grupos".
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="card">
+      <div className="card-title">🥉 Asignar 8 Mejores Terceros</div>
+      <div className="alert al-inf" style={{marginBottom:16}}>
+        Selecciona los 8 terceros que clasificaron y asígnales su slot. Cada tercero tiene slots válidos según las restricciones FIFA.
+        Total seleccionados: <strong style={{color:'var(--gold)'}}>{totalSel}/8</strong>
+        {hayConflicto && <span style={{color:'#FF6666',marginLeft:8}}>⚠️ Conflicto de slots</span>}
+      </div>
+
+      {terceros.map(({grupo, equipo})=>{
+        const slots = slotsDisponibles(grupo);
+        const slotSel = seleccionados[grupo];
+        const esConflicto = slotSel && slotCount[slotSel]>1;
+        return (
+          <div key={grupo} style={{marginBottom:12,padding:'12px 14px',background:'rgba(255,255,255,.03)',borderRadius:8,border:`1px solid ${esConflicto?'rgba(255,100,100,.4)':slotSel?'rgba(245,166,35,.3)':'rgba(255,255,255,.08)'}`}}>
+            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+              <span className="grupo-label" style={{fontSize:11}}>G{grupo}</span>
+              <Flag name={equipo} size={18}/>
+              <span style={{fontWeight:700,fontSize:14}}>{equipo}</span>
+              {esConflicto && <span style={{fontSize:11,color:'#FF6666'}}>⚠️ Slot duplicado</span>}
+            </div>
+            <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+              {slots.map(slot=>(
+                <button key={slot}
+                  className={`btn btn-xs ${slotSel===slot?'btn-p':slotCount[slot]>1&&slotSel===slot?'btn-d':'btn-s'}`}
+                  onClick={()=>toggleSlot(grupo,slot)}>
+                  {slot}
+                </button>
+              ))}
+              {slotSel && <span style={{fontSize:11,color:'var(--gm)',alignSelf:'center'}}>→ asignado a {slotSel}</span>}
+              {!slotSel && <span style={{fontSize:11,color:'var(--gm)',alignSelf:'center',fontStyle:'italic'}}>sin asignar</span>}
+            </div>
+          </div>
+        );
+      })}
+
+      <button className="btn btn-p" style={{width:'100%',marginTop:8,padding:12,fontSize:14}}
+        onClick={confirmarTerceros} disabled={saving||totalSel!==8||hayConflicto}>
+        {saving?'Guardando...':'✓ CONFIRMAR Y ASIGNAR 8 TERCEROS'}
+      </button>
+    </div>
+  );
+}
+
+// ── ADMIN: RESULTADOS KO ──────────────────────────────────
+function AdminResultados({partidos, etapas, pronosticos, showMsg, onRefresh}) {
+  const [step, setStep] = useState(0);
+  const [selId, setSelId] = useState(null);
+  const [gA, setGA] = useState('');
+  const [gB, setGB] = useState('');
+  const [prorroga, setProrroga] = useState(false);
+  const [penales, setPenales] = useState(false);
+  const [clasificado, setClasificado] = useState('');
+  const [filtroEtapa, setFiltroEtapa] = useState('TODOS');
+  const [editId, setEditId] = useState(null);
+  const [editA, setEditA] = useState('');
+  const [editB, setEditB] = useState('');
+  const [editProrroga, setEditProrroga] = useState(false);
+  const [editPenales, setEditPenales] = useState(false);
+  const [editClasificado, setEditClasificado] = useState('');
+
+  const etapaMap = useMemo(()=>{const m={};etapas.forEach(e=>m[e.id]=e);return m;},[etapas]);
+
+  async function propagarResultado(partido, clasificadoEquipo) {
+    // Buscar partidos que usan este partido como slot_origen
+    const numero = partido.numero;
+    const siguiente = partidos.filter(p=>p.slot_origen_a===numero||p.slot_origen_b===numero);
+    for (const sig of siguiente) {
+      const updates = {};
+      const esPerdedor = sig.slot_a?.startsWith('Per.') || sig.slot_b?.startsWith('Per.');
+      // Para P103 (3er puesto): usar perdedor
+      if (sig.numero==='P103') {
+        const perdedor = clasificadoEquipo===partido.equipo_a ? partido.equipo_b : partido.equipo_a;
+        if (sig.slot_origen_a===numero) updates.equipo_a = perdedor;
+        if (sig.slot_origen_b===numero) updates.equipo_b = perdedor;
+      } else {
+        if (sig.slot_origen_a===numero) updates.equipo_a = clasificadoEquipo;
+        if (sig.slot_origen_b===numero) updates.equipo_b = clasificadoEquipo;
+      }
+      if (Object.keys(updates).length>0) {
+        await sb(`partidos_ko?id=eq.${sig.id}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify(updates)});
+      }
+    }
+  }
+
+  async function calcularPuntosPartido(pid, ra, rb, clasificadoReal) {
+    const prons = pronosticos.filter(x=>x.partido_ko_id===pid);
+    for (const pr of prons) {
+      const ptsMarcador = calcPtsKO(pr.pred_a,pr.pred_b,ra,rb);
+      const clasPred = pr.clasificado_pred;
+      const ptsClasificado = clasPred && clasificadoReal && clasPred===clasificadoReal ? 2 : 0;
+      await sb(`pronosticos_ko?id=eq.${pr.id}`,{method:'PATCH',prefer:'return=minimal',
+        body:JSON.stringify({puntos_marcador:ptsMarcador,puntos_clasificado:ptsClasificado,puntos_total:ptsMarcador+ptsClasificado})});
+    }
+  }
+
+  async function guardar() {
+    if (!selId||gA===''||gB==='') { showMsg('Completa goles y clasificado','error'); return; }
+    const ra=parseInt(gA), rb=parseInt(gB);
+    if (isNaN(ra)||isNaN(rb)||ra<0||rb<0) { showMsg('Goles inválidos','error'); return; }
+    const partido = partidos.find(p=>p.id===selId);
+    // Inferir clasificado si no hay empate
+    let clasFinal = clasificado;
+    if (!clasFinal) {
+      if (ra>rb) clasFinal=partido.equipo_a;
+      else if (rb>ra) clasFinal=partido.equipo_b;
+      else { showMsg('Empate: debes seleccionar quién clasifica','error'); return; }
+    }
+    try {
+      await sb(`partidos_ko?id=eq.${selId}`,{method:'PATCH',prefer:'return=minimal',
+        body:JSON.stringify({goles_a:ra,goles_b:rb,hubo_prorroga:prorroga,hubo_penales:penales,clasificado:clasFinal,finalizado:true})});
+      await calcularPuntosPartido(selId,ra,rb,clasFinal);
+      await propagarResultado({...partido,goles_a:ra,goles_b:rb},clasFinal);
+      showMsg('✓ Resultado guardado, puntos calculados y bracket actualizado');
+      setStep(0);setSelId(null);setGA('');setGB('');setProrroga(false);setPenales(false);setClasificado('');
+      onRefresh();
+    } catch(e){showMsg('Error: '+e.message,'error');}
+  }
+
+  async function guardarEdit(pid) {
+    const ra=parseInt(editA), rb=parseInt(editB);
+    if (isNaN(ra)||isNaN(rb)) { showMsg('Valores inválidos','error'); return; }
+    let clasFinal=editClasificado;
+    const partido=partidos.find(p=>p.id===pid);
+    if(!clasFinal){if(ra>rb)clasFinal=partido.equipo_a;else if(rb>ra)clasFinal=partido.equipo_b;}
+    try {
+      await sb(`partidos_ko?id=eq.${pid}`,{method:'PATCH',prefer:'return=minimal',
+        body:JSON.stringify({goles_a:ra,goles_b:rb,hubo_prorroga:editProrroga,hubo_penales:editPenales,clasificado:clasFinal,finalizado:true})});
+      await calcularPuntosPartido(pid,ra,rb,clasFinal);
+      showMsg('✓ Resultado actualizado');setEditId(null);onRefresh();
+    }catch(e){showMsg('Error: '+e.message,'error');}
+  }
+
+  async function anular(pid) {
+    if(!confirm('¿Anular este resultado?')) return;
+    try {
+      await sb(`partidos_ko?id=eq.${pid}`,{method:'PATCH',prefer:'return=minimal',
+        body:JSON.stringify({goles_a:null,goles_b:null,hubo_prorroga:false,hubo_penales:false,clasificado:null,finalizado:false})});
+      for(const pr of pronosticos.filter(x=>x.partido_ko_id===pid))
+        await sb(`pronosticos_ko?id=eq.${pr.id}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({puntos_marcador:0,puntos_clasificado:0,puntos_total:0})});
+      showMsg('✓ Resultado anulado');onRefresh();
+    }catch(e){showMsg('Error: '+e.message,'error');}
+  }
+
+  const etapaMap2 = {};etapas.forEach(e=>etapaMap2[e.id]=e);
+  const pendientes = partidos.filter(p=>!p.finalizado&&p.equipo_a&&p.equipo_b).sort((a,b)=>a.fecha?.localeCompare(b.fecha)||a.hora?.localeCompare(b.hora));
+  const terminados = partidos.filter(p=>p.finalizado&&p.goles_a!==null).sort((a,b)=>b.fecha?.localeCompare(a.fecha)||b.hora?.localeCompare(a.hora));
+  const etapasFiltro=['TODOS',...[...new Set(partidos.map(p=>p.etapa_id))].map(id=>etapaMap2[id]).filter(Boolean).sort((a,b)=>a.orden-b.orden).map(e=>String(e.id))];
+  const pendFiltrados = filtroEtapa==='TODOS'?pendientes:pendientes.filter(p=>String(p.etapa_id)===filtroEtapa);
+
+  const selPartido = partidos.find(p=>p.id===selId);
+  const eqA = selPartido?.equipo_a||'';
+  const eqB = selPartido?.equipo_b||'';
+
+  return (
+    <div>
+      {/* Cargar nuevo resultado */}
+      <div className="card" style={{marginBottom:12}}>
+        <div className="card-title">⚽ Cargar Resultado</div>
+        {step===0 ? (
+          <>
+            <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:12}}>
+              {etapasFiltro.map(id=>{
+                const etapaObj=id==='TODOS'?null:etapaMap2[Number(id)];
+                return <button key={id} className={`btn btn-xs ${filtroEtapa===id?'btn-p':'btn-s'}`}
+                  onClick={()=>setFiltroEtapa(id)}>{id==='TODOS'?'Todos':etapaObj?.nombre||id}</button>;
+              })}
+            </div>
+            {pendFiltrados.length===0
+              ? <div className="empty" style={{padding:16}}>No hay partidos pendientes con equipos confirmados.</div>
+              : <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:8}}>
+                {pendFiltrados.map(p=>{
+                  const etapaObj=etapaMap2[p.etapa_id];
+                  return (
+                    <div key={p.id} style={{background:'rgba(255,255,255,.04)',border:'2px solid rgba(255,255,255,.08)',borderRadius:10,padding:12,cursor:'pointer',transition:'all .2s'}}
+                      onClick={()=>{setSelId(p.id);setGA('');setGB('');setProrroga(false);setPenales(false);setClasificado('');setStep(1);}}
+                      onMouseEnter={e=>e.currentTarget.style.borderColor='var(--gold)'}
+                      onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(255,255,255,.08)'}>
+                      <div style={{fontSize:10,color:'var(--gm)',fontFamily:'Barlow Condensed',letterSpacing:1,marginBottom:6}}>
+                        {p.numero} · {etapaObj?.nombre} · {p.fecha} {p.hora} IQ
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,flex:1}}>
+                          <Flag name={p.equipo_a} size={20}/>
+                          <span style={{fontFamily:'Barlow Condensed',fontSize:12,fontWeight:700,textAlign:'center'}}>{p.equipo_a}</span>
+                        </div>
+                        <span style={{color:'var(--gm)',fontFamily:'Barlow Condensed',fontSize:12}}>VS</span>
+                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,flex:1}}>
+                          <Flag name={p.equipo_b} size={20}/>
+                          <span style={{fontFamily:'Barlow Condensed',fontSize:12,fontWeight:700,textAlign:'center'}}>{p.equipo_b}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            }
+          </>
+        ) : (
+          selPartido && (
+            <>
+              <button className="btn btn-s btn-sm" style={{marginBottom:14}} onClick={()=>{setStep(0);setSelId(null);}}>← Volver</button>
+              <div style={{textAlign:'center',fontFamily:'Barlow Condensed',fontSize:11,color:'var(--gold)',letterSpacing:1.5,marginBottom:4}}>
+                {etapaMap[selPartido.etapa_id]?.nombre?.toUpperCase()} · {selPartido.numero} · {selPartido.fecha} {selPartido.hora} IQ
+              </div>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:20,flexWrap:'wrap',margin:'16px 0'}}>
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+                  <Flag name={eqA} size={44}/>
+                  <span style={{fontFamily:'Barlow Condensed',fontSize:16,fontWeight:700,textAlign:'center',maxWidth:130}}>{eqA}</span>
+                  <input className="e-inp" type="number" min="0" max="20" placeholder="0" value={gA}
+                    onChange={e=>setGA(e.target.value)} style={{fontSize:28,width:72,padding:10}}/>
+                </div>
+                <span style={{color:'var(--gm)',fontSize:32,fontWeight:300,paddingTop:40}}>–</span>
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+                  <Flag name={eqB} size={44}/>
+                  <span style={{fontFamily:'Barlow Condensed',fontSize:16,fontWeight:700,textAlign:'center',maxWidth:130}}>{eqB}</span>
+                  <input className="e-inp" type="number" min="0" max="20" placeholder="0" value={gB}
+                    onChange={e=>setGB(e.target.value)} style={{fontSize:28,width:72,padding:10}}/>
+                </div>
+              </div>
+
+              <div style={{background:'rgba(0,0,0,.2)',borderRadius:8,padding:'12px 14px',marginBottom:12}}>
+                <Toggle on={prorroga} onToggle={()=>{setProrroga(!prorroga);if(prorroga)setPenales(false);}} label="¿Hubo prórroga?"/>
+                {prorroga && <Toggle on={penales} onToggle={()=>setPenales(!penales)} label="¿Hubo penales?"/>}
+              </div>
+
+              {(gA!==''&&gB!==''&&parseInt(gA)===parseInt(gB)||penales) && (
+                <div className="form-group" style={{marginBottom:12}}>
+                  <label className="lbl">Equipo clasificado (obligatorio en empate/penales)</label>
+                  <select className="inp" value={clasificado} onChange={e=>setClasificado(e.target.value)}>
+                    <option value="">— Selecciona —</option>
+                    {eqA&&<option value={eqA}>{eqA}</option>}
+                    {eqB&&<option value={eqB}>{eqB}</option>}
+                  </select>
+                </div>
+              )}
+
+              {gA!==''&&gB!==''&&(
+                <div style={{background:'rgba(245,166,35,.08)',border:'1px solid rgba(245,166,35,.3)',borderRadius:8,padding:'10px 14px',marginBottom:12,textAlign:'center',fontFamily:'Barlow Condensed',fontSize:14}}>
+                  Resultado a guardar: <strong style={{color:'var(--gold)',fontSize:18}}>{eqA} {gA} – {gB} {eqB}</strong>
+                  {prorroga&&<span style={{marginLeft:8,color:'var(--gm)'}}>⏱ Prórroga{penales?' + ⚡ Penales':''}</span>}
+                </div>
+              )}
+              <button className="btn btn-p" style={{width:'100%',fontSize:14,padding:12}} onClick={guardar}>✓ GUARDAR Y CALCULAR PUNTOS</button>
+            </>
+          )
+        )}
+      </div>
+
+      {/* Historial */}
+      <div className="card">
+        <div className="card-title">📋 {terminados.length} Resultados Registrados</div>
+        {terminados.length===0
+          ? <div className="empty" style={{padding:16}}>Ningún resultado registrado aún.</div>
+          : <div style={{overflowX:'auto'}}>
+            <table className="r-table">
+              <thead><tr>
+                <th>Partido</th><th>Local</th><th style={{textAlign:'center'}}>Resultado</th><th>Visitante</th><th>Clasifica</th><th style={{textAlign:'center'}}>Acciones</th>
+              </tr></thead>
+              <tbody>{terminados.map(p=>{
+                const etapaObj=etapaMap2[p.etapa_id];
+                return (
+                  <tr key={p.id}>
+                    <td>
+                      <span style={{fontFamily:'Barlow Condensed',fontSize:11,color:'var(--gold)',fontWeight:700}}>{p.numero}</span>
+                      <br/><span className={`etapa-badge ${etapaBadgeClass(etapaObj?.nombre||'')}`} style={{fontSize:9}}>{etapaObj?.nombre}</span>
+                      <br/><span style={{fontSize:10,color:'var(--gm)'}}>{p.fecha} {p.hora}</span>
+                    </td>
+                    <td><div style={{display:'flex',alignItems:'center',gap:5}}><Flag name={p.equipo_a} size={14}/><span style={{fontWeight:700,fontSize:12}}>{p.equipo_a}</span></div></td>
+                    <td style={{textAlign:'center'}}>
+                      {editId===p.id
+                        ? <div style={{display:'flex',gap:4,alignItems:'center',justifyContent:'center'}}>
+                            <input className="e-inp" type="number" min="0" max="20" value={editA} onChange={e=>setEditA(e.target.value)}/>
+                            <span>–</span>
+                            <input className="e-inp" type="number" min="0" max="20" value={editB} onChange={e=>setEditB(e.target.value)}/>
+                          </div>
+                        : <span className="sc-pill">{p.goles_a} – {p.goles_b}</span>
+                      }
+                      {editId===p.id && (
+                        <div style={{marginTop:6}}>
+                          <Toggle on={editProrroga} onToggle={()=>setEditProrroga(!editProrroga)} label="Prórroga"/>
+                          {editProrroga && <Toggle on={editPenales} onToggle={()=>setEditPenales(!editPenales)} label="Penales"/>}
+                          <select className="inp" value={editClasificado} onChange={e=>setEditClasificado(e.target.value)} style={{marginTop:4,fontSize:11}}>
+                            <option value="">Clasifica: auto</option>
+                            <option value={p.equipo_a}>{p.equipo_a}</option>
+                            <option value={p.equipo_b}>{p.equipo_b}</option>
+                          </select>
+                        </div>
+                      )}
+                    </td>
+                    <td><div style={{display:'flex',alignItems:'center',gap:5}}><Flag name={p.equipo_b} size={14}/><span style={{fontWeight:700,fontSize:12}}>{p.equipo_b}</span></div></td>
+                    <td>
+                      {p.clasificado && <div style={{display:'flex',alignItems:'center',gap:4}}><Flag name={p.clasificado} size={14}/><span style={{fontSize:11,color:'var(--green)',fontWeight:700}}>{p.clasificado}</span></div>}
+                      {p.hubo_penales&&<div style={{fontSize:9,color:'var(--gm)'}}>⚡ Pen.</div>}
+                      {p.hubo_prorroga&&!p.hubo_penales&&<div style={{fontSize:9,color:'var(--gm)'}}>⏱ Prórr.</div>}
+                    </td>
+                    <td style={{textAlign:'center'}}>
+                      {editId===p.id
+                        ? <div style={{display:'flex',gap:4,justifyContent:'center'}}>
+                            <button className="btn btn-p btn-xs" onClick={()=>guardarEdit(p.id)}>✓</button>
+                            <button className="btn btn-s btn-xs" onClick={()=>setEditId(null)}>✕</button>
+                          </div>
+                        : <div style={{display:'flex',gap:4,justifyContent:'center'}}>
+                            <button className="btn btn-w btn-xs" style={{background:'rgba(245,166,35,.2)',color:'var(--gold)',border:'1px solid rgba(245,166,35,.3)'}}
+                              onClick={()=>{setEditId(p.id);setEditA(String(p.goles_a));setEditB(String(p.goles_b));setEditProrroga(p.hubo_prorroga);setEditPenales(p.hubo_penales);setEditClasificado(p.clasificado||'');}}>✏️</button>
+                            <button className="btn btn-d btn-xs" onClick={()=>anular(p.id)}>🗑</button>
+                          </div>
+                      }
+                    </td>
+                  </tr>
+                );
+              })}</tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  );
+}
+
+// ── ADMIN: PARTICIPANTES ──────────────────────────────────
+function AdminParticipantes({participantes, podios, showMsg, onRefresh}) {
+  const [editPin, setEditPin] = useState(null);
+  const [nuevoPin, setNuevoPin] = useState('');
+
+  const podioMap = useMemo(()=>{const m={};podios.forEach(p=>m[p.participante_ko_id]=p);return m;},[podios]);
+
+  async function aprobar(id) {
+    try {
+      await sb(`participantes_ko?id=eq.${id}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({aprobado:true})});
+      showMsg('✓ Participante aprobado');onRefresh();
+    }catch(e){showMsg('Error: '+e.message,'error');}
+  }
+  async function rechazar(id) {
+    if(!confirm('¿Rechazar este participante?')) return;
+    try {
+      await sb(`participantes_ko?id=eq.${id}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({aprobado:false})});
+      showMsg('Participante rechazado');onRefresh();
+    }catch(e){showMsg('Error: '+e.message,'error');}
+  }
+  async function cambiarPin(id) {
+    if(!nuevoPin||nuevoPin.length<4) { showMsg('PIN debe tener al menos 4 caracteres','error'); return; }
+    try {
+      await sb(`participantes_ko?id=eq.${id}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({pin:nuevoPin})});
+      showMsg('✓ PIN actualizado');setEditPin(null);setNuevoPin('');onRefresh();
+    }catch(e){showMsg('Error: '+e.message,'error');}
+  }
+
+  const aprobados = participantes.filter(p=>p.aprobado);
+  const pendientes = participantes.filter(p=>!p.aprobado);
+
+  // Primer partido de 16avos para validar timestamp
+  // Usamos fecha dura del spec: 2026-06-28 23:00 IQ
+  const cierreRegistro = new Date('2026-06-28T23:00:00+03:00');
+
+  function timestampOk(created_at) {
+    return new Date(created_at) < cierreRegistro;
+  }
+
+  return (
+    <div>
+      {pendientes.length>0 && (
+        <div className="card" style={{marginBottom:12}}>
+          <div className="card-title">⏳ Pendientes de Aprobación ({pendientes.length})</div>
+          <div className="part-list">
+            {pendientes.map(p=>{
+              const pod=podioMap[p.id];
+              const tsOk=timestampOk(p.created_at);
+              return (
+                <div key={p.id} className="part-card pendiente">
+                  <div className="part-name">{p.nombre}</div>
+                  <div className="part-meta">
+                    Registrado: {new Date(p.created_at).toLocaleString('es-VE',{timeZone:'Asia/Baghdad'})}<br/>
+                    <span style={{color:tsOk?'var(--green)':'#FF6666',fontWeight:700}}>
+                      {tsOk?'✅ A tiempo':'⛔ Fuera de tiempo — 0 pts en 16avos'}
+                    </span>
+                  </div>
+                  {pod && (
+                    <div style={{background:'rgba(0,0,0,.2)',borderRadius:6,padding:'6px 8px',marginBottom:8,fontSize:11}}>
+                      <div style={{color:'var(--gm)',marginBottom:2}}>Pronóstico podio:</div>
+                      <div>🥇 {pod.pred_campeon||'—'}</div>
+                      <div>🥈 {pod.pred_subcampeon||'—'}</div>
+                      <div>🥉 {pod.pred_tercero||'—'}</div>
+                    </div>
+                  )}
+                  <div style={{display:'flex',gap:6}}>
+                    <button className="btn btn-g btn-sm" onClick={()=>aprobar(p.id)}>✓ Aprobar</button>
+                    <button className="btn btn-d btn-sm" onClick={()=>rechazar(p.id)}>✕ Rechazar</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="card">
+        <div className="card-title">👥 Participantes Aprobados ({aprobados.length})</div>
+        {aprobados.length===0
+          ? <div className="empty" style={{padding:16}}>Sin participantes aprobados.</div>
+          : <div className="part-list">
+            {aprobados.map(p=>(
+              <div key={p.id} className="part-card aprobado">
+                <div className="part-name">{p.nombre}</div>
+                <div className="part-meta">PIN actual: <span className="pin-display">{p.pin}</span></div>
+                {editPin===p.id
+                  ? <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                      <input className="inp" style={{width:100,fontFamily:'Barlow Condensed',fontSize:16,textAlign:'center',letterSpacing:3}}
+                        placeholder="Nuevo PIN" value={nuevoPin} maxLength={10}
+                        onChange={e=>setNuevoPin(e.target.value)}/>
+                      <button className="btn btn-p btn-xs" onClick={()=>cambiarPin(p.id)}>✓</button>
+                      <button className="btn btn-s btn-xs" onClick={()=>{setEditPin(null);setNuevoPin('');}}>✕</button>
+                    </div>
+                  : <button className="btn btn-s btn-xs" onClick={()=>{setEditPin(p.id);setNuevoPin('');}}>🔑 Cambiar PIN</button>
+                }
+              </div>
+            ))}
+          </div>
+        }
+      </div>
+    </div>
+  );
+}
+
+// ── ADMIN: ETAPAS ─────────────────────────────────────────
+function AdminEtapas({etapas, partidos, showMsg, onRefresh}) {
+  async function toggleEtapa(etapa) {
+    try {
+      await sb(`etapas_ko?id=eq.${etapa.id}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({abierta:!etapa.abierta})});
+      showMsg(`✓ Etapa ${etapa.nombre} ${!etapa.abierta?'abierta':'cerrada'}`);onRefresh();
+    }catch(e){showMsg('Error: '+e.message,'error');}
+  }
+
+  const etapasOrden = [...etapas].sort((a,b)=>a.orden-b.orden);
+
+  return (
+    <div className="card">
+      <div className="card-title">⏱ Estado de Etapas</div>
+      <div className="alert al-inf" style={{marginBottom:14}}>
+        Controla qué etapas tienen pronósticos abiertos. Los pronósticos se cierran automáticamente cuando comienza el primer partido de cada etapa.
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:8}}>
+        {etapasOrden.map(e=>{
+          const psEtapa=partidos.filter(p=>p.etapa_id===e.id);
+          const prox=psEtapa.filter(p=>p.fecha&&!p.finalizado).sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.hora.localeCompare(b.hora))[0];
+          const cierreMs = prox?.fecha&&prox?.hora ? cierreEtapa(prox.fecha,prox.hora)-Date.now() : null;
+          return (
+            <div key={e.id} style={{background:'rgba(255,255,255,.04)',border:`1px solid ${e.abierta?'rgba(74,219,138,.4)':'rgba(255,255,255,.1)'}`,borderRadius:8,padding:'12px 14px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
+              <div>
+                <span style={{fontFamily:'Barlow Condensed',fontSize:15,fontWeight:700}}>{e.nombre}</span>
+                {prox && <div style={{fontSize:10,color:'var(--gm)',marginTop:2}}>
+                  Primer partido: {prox.fecha} {prox.hora} IQ
+                  {cierreMs!==null&&cierreMs>0&&<span style={{color:'var(--gold)',marginLeft:6}}>({formatCountdown(cierreMs)})</span>}
+                  {cierreMs!==null&&cierreMs<=0&&<span style={{color:'#FF6666',marginLeft:6}}>🔒 Cierre vencido</span>}
+                </div>}
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <span style={{fontSize:12,color:e.abierta?'var(--green)':'var(--gm)',fontWeight:700}}>
+                  {e.abierta?'🟢 Abierta':'🔒 Cerrada'}
+                </span>
+                <button className={`btn btn-sm ${e.abierta?'btn-d':'btn-g'}`} onClick={()=>toggleEtapa(e)}>
+                  {e.abierta?'Cerrar':'Abrir'}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── APP ROOT ─────────────────────────────────────────────
+function App() {
+  const [tab, setTab] = useState('hoy');
+  const [partidos, setPartidos] = useState([]);
+  const [etapas, setEtapas] = useState([]);
+  const [participantes, setParticipantes] = useState([]);
+  const [pronosticos, setPronosticos] = useState([]);
+  const [podios, setPodios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchAll = useCallback(async () => {
+    try {
+      const [pk,et,pa,pr,pod] = await Promise.all([
+        sb('partidos_ko?select=*&order=numero'),
+        sb('etapas_ko?select=*&order=orden'),
+        sb('participantes_ko?select=*&order=created_at'),
+        sb('pronosticos_ko?select=*'),
+        sb('pronostico_podio?select=*'),
+      ]);
+      setPartidos(pk); setEtapas(et); setParticipantes(pa); setPronosticos(pr); setPodios(pod);
+      setError(null);
+    } catch(e) { setError(e.message); }
+    setLoading(false);
+  }, []);
+
+  useEffect(()=>{ fetchAll(); }, []);
+
+  const TABS = [
+    {id:'hoy',l:'⚽ Hoy/Mañana'},
+    {id:'bracket',l:'🏆 Bracket'},
+    {id:'posiciones',l:'📊 Posiciones'},
+    {id:'admin',l:'⚙️ Admin'},
+  ];
+
+  return (
+    <>
+      <header className="header">
+        <div className="header-top">
+          <div className="logo-area">
+            <div className="logo-ball">⚽</div>
+            <div className="logo-text">
+              <div className="logo-title">QUINIELA DESTIN</div>
+              <div className="logo-sub">Fase Eliminatoria 2026</div>
+            </div>
+          </div>
+          <div className="ko-badge">FASE KO</div>
+        </div>
+        <nav className="nav-tabs">
+          {TABS.map(t=><button key={t.id} className={`tab-btn ${tab===t.id?'active':''}`} onClick={()=>setTab(t.id)}>{t.l}</button>)}
+        </nav>
+      </header>
+      <main className="main">
+        {loading ? (
+          <div className="loading"><div className="spinner"/><span style={{fontFamily:'Barlow Condensed',letterSpacing:2,fontSize:14}}>CARGANDO...</span></div>
+        ) : error ? (
+          <div className="card" style={{textAlign:'center',padding:30}}>
+            <div style={{fontSize:32,marginBottom:10}}>⚠️</div>
+            <div style={{color:'#FF6666',fontWeight:600,marginBottom:8}}>Error de conexión</div>
+            <div style={{fontSize:11,color:'var(--gm)',marginBottom:14,wordBreak:'break-all'}}>{error}</div>
+            <button className="btn btn-p" onClick={()=>{setLoading(true);setError(null);fetchAll();}}>Reintentar</button>
+          </div>
+        ) : (
+          <>
+            {tab==='hoy' && <TabHoy partidos={partidos} etapas={etapas}/>}
+            {tab==='bracket' && <TabBracket partidos={partidos} etapas={etapas}/>}
+            {tab==='posiciones' && <TabPosiciones participantes={participantes} pronosticos={pronosticos} partidos={partidos} podios={podios} etapas={etapas}/>}
+            {tab==='admin' && <TabAdmin partidos={partidos} etapas={etapas} participantes={participantes} pronosticos={pronosticos} podios={podios} onRefresh={fetchAll}/>}
+          </>
+        )}
+      </main>
+      <button className="scroll-top" onClick={()=>window.scrollTo({top:0,behavior:'smooth'})}>↑</button>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
