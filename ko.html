@@ -453,7 +453,115 @@ function useCountdown(targetDate) {
 }
 
 // ── TAB HOY ──────────────────────────────────────────────
-function TabHoy({partidos, etapas}) {
+// ── PANEL PRONÓSTICOS (reutilizable en Hoy, Calendario y Bracket) ──
+function PanelPronosticos({partido, pronosticos, participantes, userKO, pronsCerradosEtapa, forceOpen=false}) {
+  const [open, setOpen] = React.useState(false);
+  const isOpen = forceOpen || open;
+  const done = partido.finalizado && partido.goles_a !== null;
+
+  // Visibilidad: si el partido finalizó → siempre público
+  // Si pronósticos de la etapa están cerrados (primer partido ya arrancó) → público
+  // Si no → solo el propio si está logueado
+  const esPublico = done || pronsCerradosEtapa;
+
+  // Construir lista de pronósticos visibles
+  const items = participantes
+    .filter(pt => pt.aprobado)
+    .map(pt => {
+      const pr = pronosticos.find(x => x.participante_ko_id===pt.id && x.partido_ko_id===partido.id);
+      if (!pr) return null;
+      const esMio = userKO && pt.id === userKO.id;
+      if (!esPublico && !esMio) return null; // ocultar ajeno antes del cierre
+      const ptsMarcador = done ? (pr.puntos_marcador||0) : null;
+      const ptsClas = done ? (pr.puntos_clasificado||0) : null;
+      const total = done ? (pr.puntos_total||0) : null;
+      return { nombre: pt.nombre, pa: pr.pred_a, pb: pr.pred_b,
+               clasPred: pr.clasificado_pred, ptsMarcador, ptsClas, total, esMio };
+    }).filter(Boolean);
+
+  const hayPropios = participantes.some(pt=>pt.aprobado&&userKO&&pt.id===userKO.id&&
+    pronosticos.some(x=>x.participante_ko_id===pt.id&&x.partido_ko_id===partido.id));
+
+  if (!esPublico && !hayPropios) {
+    // No logueado y no cerrado → no mostrar toggle
+    return (
+      <div style={{marginTop:8,fontSize:10,color:'var(--gm)',textAlign:'center',fontStyle:'italic'}}>
+        🔒 Pronósticos se revelan al inicio de la etapa
+      </div>
+    );
+  }
+
+  const label = esPublico
+    ? `${items.length} pronóstico${items.length!==1?'s':''}`
+    : 'Mi pronóstico';
+
+  return (
+    <div style={{marginTop:8}}>
+      {!forceOpen && (
+        <button
+          style={{background:'none',border:'1px solid rgba(255,255,255,.15)',borderRadius:5,
+            color:'var(--gm)',fontSize:11,padding:'4px 10px',cursor:'pointer',
+            fontFamily:"Barlow Condensed",letterSpacing:.5,width:'100%',
+            transition:'all .2s'}}
+          onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--gold)';e.currentTarget.style.color='var(--gold)';}}
+          onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,.15)';e.currentTarget.style.color='var(--gm)';}}
+          onClick={()=>setOpen(!open)}>
+          {isOpen ? '▲ Ocultar' : `▼ Ver ${label}`}
+        </button>
+      )}
+      {isOpen && (
+        <div style={{marginTop:6,background:'rgba(0,0,0,.25)',borderRadius:8,padding:'8px 10px'}}>
+          {!esPublico && (
+            <div style={{fontSize:10,color:'var(--gold)',marginBottom:6,textAlign:'center',fontFamily:'Barlow Condensed',letterSpacing:1}}>
+              🔒 Solo tu pronóstico — se revelan todos al iniciar la etapa
+            </div>
+          )}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))',gap:5}}>
+            {items.map((it,i)=>{
+              const pts = it.total;
+              const cls = pts===7?'pi-7':pts===5?'pi-5':pts===4?'pi-4':pts===3?'pi-3':done&&pts===0?'pi-0':'';
+              return (
+                <div key={i} style={{
+                  background: it.esMio ? 'rgba(245,166,35,.1)' : 'rgba(255,255,255,.04)',
+                  border: it.esMio ? '1px solid rgba(245,166,35,.4)' : '1px solid rgba(255,255,255,.07)',
+                  borderRadius:6, padding:'5px 8px',
+                  display:'flex', alignItems:'center', justifyContent:'space-between', gap:6
+                }}>
+                  <span style={{fontFamily:'Barlow Condensed',fontSize:12,fontWeight:700,
+                    color: it.esMio ? 'var(--gold)' : 'var(--white)',
+                    overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:70}}>
+                    {it.nombre.split(' ')[0]}{it.esMio?' ★':''}
+                  </span>
+                  <div style={{display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
+                    <span style={{fontFamily:'Barlow Condensed',fontSize:14,fontWeight:800,
+                      color: it.esMio ? 'var(--gold)' : 'var(--white)'}}>
+                      {it.pa}–{it.pb}
+                    </span>
+                    {done && (
+                      <span style={{
+                        fontFamily:'Barlow Condensed',fontSize:11,fontWeight:800,
+                        padding:'1px 5px',borderRadius:4,
+                        background: pts>=5?'rgba(74,219,138,.2)':pts>=3?'rgba(245,166,35,.2)':'rgba(204,0,0,.15)',
+                        color: pts>=5?'var(--green)':pts>=3?'var(--gold)':'#FF6666'
+                      }}>
+                        {pts>0?`+${pts}`:'✗'}
+                      </span>
+                    )}
+                    {it.clasPred && !done && (
+                      <span style={{fontSize:9,color:'var(--gm)'}}>→{it.clasPred.split(' ')[0]}</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TabHoy({partidos, etapas, participantes, pronosticos, userKO, pronsCerradosEtapa}) {
   const today = todayIQ(), tomorrow = tomorrowIQ();
   const [tick, setTick] = useState(Date.now());
   useEffect(() => { const id = setInterval(()=>setTick(Date.now()), 1000); return ()=>clearInterval(id); }, []);
@@ -534,6 +642,13 @@ function TabHoy({partidos, etapas}) {
                 <div style={{fontSize:12,color:'#FF6666',fontWeight:700}}>⚽ En juego / Esperando resultado</div>
               </div>
             )}
+            <PanelPronosticos
+              partido={p}
+              pronosticos={pronosticos}
+              participantes={participantes}
+              userKO={userKO}
+              pronsCerradosEtapa={pronsCerradosEtapa}
+            />
           </div>
         );
       })}
@@ -543,10 +658,10 @@ function TabHoy({partidos, etapas}) {
 
 // ── TAB BRACKET VISUAL ────────────────────────────────────
 // REEMPLAZA la función TabBracket completa en ko.html
-// Busca: "function TabBracket({partidos, etapas, partidosGrupos=[]}) {"
+// Busca: "function TabBracket({partidos, etapas, partidosGrupos=[], pronosticos=[], participantes=[], userKO=null, pronsCerradosEtapa=false}) {"
 // Reemplaza todo hasta el cierre "}" que corresponde a esa función
 
-function TabBracket({partidos, etapas, partidosGrupos=[]}) {
+function TabBracket({partidos, etapas, partidosGrupos=[], pronosticos=[], participantes=[], userKO=null, pronsCerradosEtapa=false}) {
   const [tick, setTick] = React.useState(Date.now());
   React.useEffect(()=>{ const id=setInterval(()=>setTick(Date.now()),1000); return()=>clearInterval(id); },[]);
 
@@ -624,6 +739,9 @@ function TabBracket({partidos, etapas, partidosGrupos=[]}) {
     : null;
   const cierreMs = primerPendiente ? cierreEtapa(primerPendiente.fecha, primerPendiente.hora) - tick : null;
 
+  // Modal de pronósticos del bracket
+  const [modalPartido, setModalPartido] = React.useState(null);
+
   // ── MATCH CARD ─────────────────────────────────────────
   function BMatch({numero, side='left', highlight=false}) {
     const pRaw = pMap[numero];
@@ -654,6 +772,18 @@ function TabBracket({partidos, etapas, partidosGrupos=[]}) {
         </div>
         {done && (p.hubo_penales||p.hubo_prorroga) && (
           <div className="bm-extra">{p.hubo_penales?'⚡ Pen.':'⏱ Prórr.'}</div>
+        )}
+        {(eqA!=='?'||eqB!=='?') && (
+          <button
+            onClick={e=>{e.stopPropagation();setModalPartido(pRaw);}}
+            style={{width:'100%',marginTop:4,background:'rgba(245,166,35,.08)',
+              border:'1px solid rgba(245,166,35,.2)',borderRadius:4,
+              color:'var(--gold)',fontSize:9,padding:'3px 0',cursor:'pointer',
+              fontFamily:'Barlow Condensed',letterSpacing:.5,transition:'all .2s'}}
+            onMouseEnter={e=>e.currentTarget.style.background='rgba(245,166,35,.18)'}
+            onMouseLeave={e=>e.currentTarget.style.background='rgba(245,166,35,.08)'}>
+            🎯 Pronósticos
+          </button>
         )}
       </div>
     );
@@ -769,6 +899,57 @@ function TabBracket({partidos, etapas, partidosGrupos=[]}) {
         <span style={{color:'var(--gm)'}}>? = Equipo por confirmar</span>
       </div>
 
+      {/* Modal pronósticos bracket */}
+      {modalPartido && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.7)',zIndex:200,
+          display:'flex',alignItems:'center',justifyContent:'center',padding:16}}
+          onClick={()=>setModalPartido(null)}>
+          <div style={{background:'var(--navy)',border:'1px solid rgba(245,166,35,.3)',
+            borderRadius:14,padding:20,width:'100%',maxWidth:480,maxHeight:'80vh',
+            overflowY:'auto'}}
+            onClick={e=>e.stopPropagation()}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+              <div>
+                <span style={{fontFamily:'Barlow Condensed',fontSize:13,fontWeight:800,
+                  color:'var(--gold)',letterSpacing:1}}>{modalPartido.numero}</span>
+                <div style={{display:'flex',alignItems:'center',gap:10,marginTop:4}}>
+                  <div style={{display:'flex',alignItems:'center',gap:5}}>
+                    <Flag name={modalPartido.equipo_a} size={18}/>
+                    <span style={{fontFamily:'Barlow Condensed',fontSize:14,fontWeight:700}}>{modalPartido.equipo_a||modalPartido.slot_a||'?'}</span>
+                  </div>
+                  <span style={{fontFamily:'Barlow Condensed',fontSize:16,fontWeight:800,
+                    color: modalPartido.finalizado ? 'var(--gold)' : 'var(--gm)'}}>
+                    {modalPartido.finalizado && modalPartido.goles_a!==null
+                      ? `${modalPartido.goles_a} – ${modalPartido.goles_b}`
+                      : 'vs'}
+                  </span>
+                  <div style={{display:'flex',alignItems:'center',gap:5}}>
+                    <span style={{fontFamily:'Barlow Condensed',fontSize:14,fontWeight:700}}>{modalPartido.equipo_b||modalPartido.slot_b||'?'}</span>
+                    <Flag name={modalPartido.equipo_b} size={18}/>
+                  </div>
+                </div>
+                {modalPartido.finalizado && modalPartido.clasificado && (
+                  <div style={{fontSize:10,color:'var(--green)',marginTop:4}}>
+                    ✓ Clasifica: {modalPartido.clasificado}
+                  </div>
+                )}
+              </div>
+              <button onClick={()=>setModalPartido(null)}
+                style={{background:'rgba(255,255,255,.1)',border:'none',borderRadius:6,
+                  color:'#fff',fontSize:16,width:28,height:28,cursor:'pointer',flexShrink:0}}>✕</button>
+            </div>
+            <PanelPronosticos
+              partido={modalPartido}
+              pronosticos={pronosticos}
+              participantes={participantes}
+              userKO={userKO}
+              pronsCerradosEtapa={pronsCerradosEtapa}
+              forceOpen={true}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Bracket */}
       <div className="bracket-scroll">
         <div className="bracket-tree">
@@ -804,7 +985,7 @@ function TabBracket({partidos, etapas, partidosGrupos=[]}) {
 
 
 // ── TAB CALENDARIO ───────────────────────────────────────
-function TabCalendario({partidos, etapas}) {
+function TabCalendario({partidos, etapas, participantes, pronosticos, userKO, pronsCerradosEtapa}) {
   const [filtroEtapa, setFiltroEtapa] = useState('TODOS');
   const today = todayIQ();
 
@@ -882,6 +1063,16 @@ function TabCalendario({partidos, etapas}) {
                     {done&&p.clasificado&&<span style={{fontSize:10,color:'var(--green)',fontWeight:700}}>→ {p.clasificado}</span>}
                     {done&&p.hubo_penales&&<span style={{fontSize:9,color:'var(--gm)'}}>⚡ Pen.</span>}
                     {done&&p.hubo_prorroga&&!p.hubo_penales&&<span style={{fontSize:9,color:'var(--gm)'}}>⏱ Prórr.</span>}
+                  </div>
+                  {/* Pronósticos expandibles */}
+                  <div style={{width:'100%',paddingTop:2}}>
+                    <PanelPronosticos
+                      partido={p}
+                      pronosticos={pronosticos}
+                      participantes={participantes}
+                      userKO={userKO}
+                      pronsCerradosEtapa={pronsCerradosEtapa}
+                    />
                   </div>
                 </div>
               );
@@ -1637,18 +1828,24 @@ function PronLogueado({user, partidos, etapas, etapaActiva, primerPartidoActivo,
 function TabPosiciones({participantes, pronosticos, partidos, podios, etapas}) {
   const [vista, setVista] = useState('general');
 
-  // Calcular puntos por participante
+  // Calcular puntos por participante con desglose
   function calcularPuntos(filtroEtapaId=null) {
     return participantes.filter(p=>p.aprobado).map(part => {
       let ptsMarcador=0, ptsClasificado=0, ptsPodio=0, pend=0;
+      let c5=0, c4=0, c3=0, c0=0, cCls2=0, jugados=0;
 
       pronosticos.filter(pr=>pr.participante_ko_id===part.id).forEach(pr=>{
         const pa = partidos.find(x=>x.id===pr.partido_ko_id);
         if (!pa) return;
         if (filtroEtapaId && pa.etapa_id !== filtroEtapaId) return;
         if (!pa.finalizado || pa.goles_a===null) { pend++; return; }
-        ptsMarcador += pr.puntos_marcador||0;
-        ptsClasificado += pr.puntos_clasificado||0;
+        const pm = pr.puntos_marcador||0;
+        const pc = pr.puntos_clasificado||0;
+        ptsMarcador += pm;
+        ptsClasificado += pc;
+        jugados++;
+        if (pm===5) c5++; else if (pm===4) c4++; else if (pm===3) c3++; else c0++;
+        if (pc===2) cCls2++;
       });
 
       if (!filtroEtapaId) {
@@ -1656,8 +1853,10 @@ function TabPosiciones({participantes, pronosticos, partidos, podios, etapas}) {
         if (pod) ptsPodio = (pod.pts_campeon||0)+(pod.pts_subcampeon||0)+(pod.pts_tercero||0);
       }
 
-      return {...part, ptsMarcador, ptsClasificado, ptsPodio, pend, total:ptsMarcador+ptsClasificado+ptsPodio};
-    }).sort((a,b)=>b.total-a.total||b.ptsMarcador-a.ptsMarcador);
+      return {...part, ptsMarcador, ptsClasificado, ptsPodio, pend, jugados,
+        c5, c4, c3, c0, cCls2,
+        total:ptsMarcador+ptsClasificado+ptsPodio};
+    }).sort((a,b)=>b.total-a.total||b.ptsMarcador-a.ptsMarcador||b.c5-a.c5||b.c4-a.c4);
   }
 
   const etapasOrden = [...etapas].sort((a,b)=>a.orden-b.orden);
@@ -1667,21 +1866,30 @@ function TabPosiciones({participantes, pronosticos, partidos, podios, etapas}) {
       <div style={{overflowX:'auto'}}>
         <table className="st-table">
           <thead><tr>
-            <th>#</th><th>Participante</th>
+            <th>#</th>
+            <th>Participante</th>
             <th style={{textAlign:'center'}}>Total</th>
-            <th style={{textAlign:'center'}}>⚽<br/><span style={{fontSize:9,fontWeight:400,color:'var(--gm)'}}>Marcador</span></th>
-            <th style={{textAlign:'center'}}>✓<br/><span style={{fontSize:9,fontWeight:400,color:'var(--gm)'}}>Clasif.</span></th>
+            <th style={{textAlign:'center'}}>⭐<br/><span style={{fontSize:9,fontWeight:400,color:'var(--gm)'}}>5pts</span></th>
+            <th style={{textAlign:'center'}}>🎯<br/><span style={{fontSize:9,fontWeight:400,color:'var(--gm)'}}>4pts</span></th>
+            <th style={{textAlign:'center'}}>✓<br/><span style={{fontSize:9,fontWeight:400,color:'var(--gm)'}}>3pts</span></th>
+            <th style={{textAlign:'center'}}>✗<br/><span style={{fontSize:9,fontWeight:400,color:'var(--gm)'}}>0pts</span></th>
+            <th style={{textAlign:'center'}}>🏃<br/><span style={{fontSize:9,fontWeight:400,color:'var(--gm)'}}>Clasif.</span></th>
             {showPodio && <th style={{textAlign:'center'}}>🏅<br/><span style={{fontSize:9,fontWeight:400,color:'var(--gm)'}}>Podio</span></th>}
+            <th style={{textAlign:'center'}}>J</th>
             <th style={{textAlign:'center'}}>⏳</th>
           </tr></thead>
           <tbody>{rows.map((p,i)=>(
             <tr key={p.id}>
               <td><div className={`pos-b ${i===0?'p1':i===1?'p2':i===2?'p3':'px'}`}>{i+1}</div></td>
-              <td style={{fontWeight:600}}>{p.nombre}</td>
+              <td style={{fontWeight:600,whiteSpace:'nowrap'}}>{p.nombre}</td>
               <td style={{textAlign:'center'}}><span className="pts-big">{p.total}</span></td>
-              <td style={{textAlign:'center',color:'var(--gold)',fontWeight:700}}>{p.ptsMarcador}</td>
-              <td style={{textAlign:'center',color:'var(--green)',fontWeight:700}}>{p.ptsClasificado}</td>
-              {showPodio && <td style={{textAlign:'center',color:'#FFD700',fontWeight:700}}>{p.ptsPodio}</td>}
+              <td style={{textAlign:'center',color:'var(--green)',fontWeight:700}}>{p.c5||0}</td>
+              <td style={{textAlign:'center',color:'var(--gold)',fontWeight:700}}>{p.c4||0}</td>
+              <td style={{textAlign:'center',color:'var(--blue)',fontWeight:700}}>{p.c3||0}</td>
+              <td style={{textAlign:'center',color:'var(--gt)',fontWeight:700}}>{p.c0||0}</td>
+              <td style={{textAlign:'center',color:'var(--green)',fontWeight:700}}>{p.cCls2||0}</td>
+              {showPodio && <td style={{textAlign:'center',color:'#FFD700',fontWeight:700}}>{p.ptsPodio||0}</td>}
+              <td style={{textAlign:'center',color:'var(--gm)',fontSize:11}}>{p.jugados||0}</td>
               <td style={{textAlign:'center',color:'var(--gm)'}}>{p.pend}</td>
             </tr>
           ))}</tbody>
@@ -2737,6 +2945,18 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Sesión del usuario elevada a App para compartir con Hoy/Calendario/Bracket
+  const [userKO, setUserKO] = useState(null);
+  useEffect(()=>{
+    try {
+      const saved = sessionStorage.getItem('quiniela_ko_user');
+      if (saved) {
+        const u = JSON.parse(saved);
+        setUserKO(u);
+      }
+    } catch(e){}
+  }, []);
+
   const fetchAll = useCallback(async () => {
     try {
       const [pk,et,pa,pr,pod,pg] = await Promise.all([
@@ -2755,6 +2975,17 @@ function App() {
   }, []);
 
   useEffect(()=>{ fetchAll(); }, []);
+
+  // Calcular pronsCerradosEtapa a nivel App para compartir
+  const _etapasOrd = [...etapas].sort((a,b)=>a.orden-b.orden);
+  const _etapaActiva = _etapasOrd.find(e=>e.abierta&&partidos.some(p=>p.etapa_id===e.id&&!p.finalizado));
+  const _primerPart = _etapaActiva
+    ? partidos.filter(p=>p.etapa_id===_etapaActiva.id&&p.fecha&&p.hora&&!p.finalizado)
+        .sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.hora.localeCompare(b.hora))[0]
+    : null;
+  const pronsCerradosApp = _primerPart
+    ? Date.now() >= cierreEtapa(_primerPart.fecha, _primerPart.hora)
+    : true;
 
   const TABS = [
     {id:'hoy',l:'⚽ Hoy/Mañana'},
@@ -2800,9 +3031,9 @@ function App() {
           </div>
         ) : (
           <>
-            {tab==='hoy' && <TabHoy partidos={partidos} etapas={etapas}/>}
-            {tab==='calendario' && <TabCalendario partidos={partidos} etapas={etapas}/>}
-            {tab==='bracket' && <TabBracket partidos={partidos} etapas={etapas} partidosGrupos={partidosGrupos}/>}
+            {tab==='hoy' && <TabHoy partidos={partidos} etapas={etapas} participantes={participantes} pronosticos={pronosticos} userKO={userKO} pronsCerradosEtapa={pronsCerradosApp}/>}
+            {tab==='calendario' && <TabCalendario partidos={partidos} etapas={etapas} participantes={participantes} pronosticos={pronosticos} userKO={userKO} pronsCerradosEtapa={pronsCerradosApp}/>}
+            {tab==='bracket' && <TabBracket partidos={partidos} etapas={etapas} partidosGrupos={partidosGrupos} pronosticos={pronosticos} participantes={participantes} userKO={userKO} pronsCerradosEtapa={pronsCerradosApp}/>}
             {tab==='misprons' && <TabMisPron partidos={partidos} etapas={etapas} participantes={participantes} pronosticos={pronosticos} podios={podios} onRefresh={fetchAll}/>}
             {tab==='posiciones' && <TabPosiciones participantes={participantes} pronosticos={pronosticos} partidos={partidos} podios={podios} etapas={etapas}/>}
             {tab==='admin' && <TabAdmin partidos={partidos} etapas={etapas} participantes={participantes} pronosticos={pronosticos} podios={podios} partidosGrupos={partidosGrupos} onRefresh={fetchAll}/>}
