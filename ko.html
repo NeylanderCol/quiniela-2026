@@ -737,6 +737,827 @@ function TabBracket({partidos, etapas}) {
 }
 
 
+// ── TAB CALENDARIO ───────────────────────────────────────
+function TabCalendario({partidos, etapas}) {
+  const [filtroEtapa, setFiltroEtapa] = useState('TODOS');
+  const today = todayIQ();
+
+  const etapaMap = useMemo(()=>{ const m={}; etapas.forEach(e=>m[e.id]=e); return m; },[etapas]);
+  const etapasOrden = [...etapas].sort((a,b)=>a.orden-b.orden);
+
+  const filtrados = partidos
+    .filter(p => filtroEtapa==='TODOS' || String(p.etapa_id)===filtroEtapa)
+    .sort((a,b)=>a.fecha?.localeCompare(b.fecha)||a.hora?.localeCompare(b.hora));
+
+  const porFecha = {};
+  filtrados.forEach(p=>{
+    const f = p.fecha||'Sin fecha';
+    if(!porFecha[f]) porFecha[f]=[];
+    porFecha[f].push(p);
+  });
+
+  return (
+    <div>
+      {/* Filtro etapa */}
+      <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:16}}>
+        <button className={`btn btn-sm ${filtroEtapa==='TODOS'?'btn-p':'btn-s'}`} onClick={()=>setFiltroEtapa('TODOS')}>Todos</button>
+        {etapasOrden.map(e=>(
+          <button key={e.id} className={`btn btn-sm ${filtroEtapa===String(e.id)?'btn-p':'btn-s'}`}
+            onClick={()=>setFiltroEtapa(String(e.id))}>{e.nombre}</button>
+        ))}
+      </div>
+
+      {Object.keys(porFecha).sort().map(fecha=>{
+        const ps = porFecha[fecha];
+        const esHoy = fecha===today;
+        return (
+          <div key={fecha}>
+            <div style={{fontFamily:'Barlow Condensed',fontSize:15,fontWeight:700,color:'var(--gold)',padding:'8px 0 6px',borderBottom:'1px solid rgba(245,166,35,.3)',marginBottom:8,marginTop:18,display:'flex',alignItems:'center',gap:8}}>
+              <span>{fLarga(fecha)}</span>
+              {esHoy&&<span style={{background:'var(--red)',fontSize:9,padding:'2px 7px',borderRadius:3,fontFamily:'Barlow Condensed',fontWeight:700,letterSpacing:1,color:'#fff'}}>HOY</span>}
+            </div>
+            {ps.map(p=>{
+              const etapa = etapaMap[p.etapa_id];
+              const done = p.finalizado && p.goles_a!==null;
+              const eqA = p.equipo_a||p.slot_a||'Por confirmar';
+              const eqB = p.equipo_b||p.slot_b||'Por confirmar';
+              const hasTeams = !!(p.equipo_a&&p.equipo_b);
+              return (
+                <div key={p.id} style={{background:'rgba(255,255,255,.04)',border:`1px solid ${done?'rgba(74,219,138,.25)':'rgba(255,255,255,.08)'}`,borderRadius:10,padding:'11px 14px',marginBottom:7,display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+                  {/* Número y etapa */}
+                  <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,minWidth:52}}>
+                    <span style={{fontFamily:'Barlow Condensed',fontSize:13,fontWeight:800,color:'var(--gold)'}}>{p.numero}</span>
+                    {etapa&&<span className={`etapa-badge ${etapaBadgeClass(etapa.nombre)}`} style={{fontSize:9}}>{etapa.nombre}</span>}
+                  </div>
+                  {/* Hora */}
+                  <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,minWidth:44}}>
+                    <span style={{fontFamily:'Barlow Condensed',fontSize:15,fontWeight:700,color:'var(--white)'}}>{p.hora}</span>
+                    <span style={{fontSize:9,color:'var(--gm)',letterSpacing:.5}}>Irak</span>
+                  </div>
+                  {/* Equipos */}
+                  <div style={{display:'flex',alignItems:'center',gap:8,flex:1,minWidth:200}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6,flex:1,justifyContent:'flex-end'}}>
+                      <span style={{fontFamily:'Barlow Condensed',fontSize:14,fontWeight:700,textAlign:'right',opacity:hasTeams?1:.6}}>{eqA}</span>
+                      <Flag name={p.equipo_a} size={20}/>
+                    </div>
+                    <div style={{background:'rgba(0,0,0,.35)',padding:'5px 10px',borderRadius:6,minWidth:60,textAlign:'center',flexShrink:0}}>
+                      {done
+                        ? <span style={{fontFamily:'Barlow Condensed',fontSize:18,fontWeight:800,color:'var(--gold)'}}>{p.goles_a}–{p.goles_b}</span>
+                        : <span style={{fontFamily:'Barlow Condensed',fontSize:12,color:'var(--gm)'}}>vs</span>}
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:6,flex:1}}>
+                      <Flag name={p.equipo_b} size={20}/>
+                      <span style={{fontFamily:'Barlow Condensed',fontSize:14,fontWeight:700,opacity:hasTeams?1:.6}}>{eqB}</span>
+                    </div>
+                  </div>
+                  {/* Estado */}
+                  <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:3,minWidth:80}}>
+                    <span className={done?'st-done':'st-pend'}>{done?'✓ Final':'Pendiente'}</span>
+                    {done&&p.clasificado&&<span style={{fontSize:10,color:'var(--green)',fontWeight:700}}>→ {p.clasificado}</span>}
+                    {done&&p.hubo_penales&&<span style={{fontSize:9,color:'var(--gm)'}}>⚡ Pen.</span>}
+                    {done&&p.hubo_prorroga&&!p.hubo_penales&&<span style={{fontSize:9,color:'var(--gm)'}}>⏱ Prórr.</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── TAB MIS PRONÓSTICOS ───────────────────────────────────
+function TabMisPron({partidos, etapas, participantes, pronosticos, podios, onRefresh}) {
+  const [modo, setModo] = useState('inicio'); // inicio | registro | login | logueado
+  const [userKO, setUserKO] = useState(null);
+
+  // Al montar, verificar si hay sesión guardada en sessionStorage
+  useEffect(()=>{
+    try {
+      const saved = sessionStorage.getItem('quiniela_ko_user');
+      if (saved) {
+        const u = JSON.parse(saved);
+        // Verificar que sigue aprobado
+        const found = participantes.find(p=>p.id===u.id&&p.aprobado);
+        if (found) { setUserKO(found); setModo('logueado'); }
+        else sessionStorage.removeItem('quiniela_ko_user');
+      }
+    } catch(e){}
+  }, [participantes]);
+
+  function login(user) {
+    setUserKO(user);
+    setModo('logueado');
+    try { sessionStorage.setItem('quiniela_ko_user', JSON.stringify({id:user.id,nombre:user.nombre})); } catch(e){}
+  }
+  function logout() {
+    setUserKO(null);
+    setModo('inicio');
+    try { sessionStorage.removeItem('quiniela_ko_user'); } catch(e){}
+  }
+
+  // Etapa activa = primera etapa abierta con partidos pendientes
+  const etapasOrden = [...etapas].sort((a,b)=>a.orden-b.orden);
+  const etapaActiva = etapasOrden.find(e=>e.abierta&&partidos.filter(p=>p.etapa_id===e.id).some(p=>!p.finalizado));
+  const primerPartidoActivo = etapaActiva
+    ? partidos.filter(p=>p.etapa_id===etapaActiva.id&&p.fecha&&p.hora&&!p.finalizado)
+        .sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.hora.localeCompare(b.hora))[0]
+    : null;
+
+  // ¿Pronósticos cerrados? → cuando ya pasó la hora del primer partido
+  const pronsCerrados = primerPartidoActivo
+    ? Date.now() >= cierreEtapa(primerPartidoActivo.fecha, primerPartidoActivo.hora)
+    : true;
+
+  // ¿16avos? primera etapa
+  const es16avos = etapaActiva?.orden === 1;
+
+  if (modo==='inicio') return (
+    <PronInicio
+      etapaActiva={etapaActiva}
+      primerPartidoActivo={primerPartidoActivo}
+      pronsCerrados={pronsCerrados}
+      es16avos={es16avos}
+      participantes={participantes}
+      onRegistro={()=>setModo('registro')}
+      onLogin={()=>setModo('login')}
+    />
+  );
+
+  if (modo==='registro') return (
+    <PronRegistro
+      etapaActiva={etapaActiva}
+      partidos={partidos}
+      participantes={participantes}
+      pronsCerrados={pronsCerrados}
+      onBack={()=>setModo('inicio')}
+      onSuccess={()=>setModo('inicio')}
+      onRefresh={onRefresh}
+    />
+  );
+
+  if (modo==='login') return (
+    <PronLogin
+      participantes={participantes}
+      onBack={()=>setModo('inicio')}
+      onLogin={login}
+    />
+  );
+
+  if (modo==='logueado') return (
+    <PronLogueado
+      user={userKO}
+      partidos={partidos}
+      etapas={etapas}
+      etapaActiva={etapaActiva}
+      primerPartidoActivo={primerPartidoActivo}
+      pronsCerrados={pronsCerrados}
+      pronosticos={pronosticos}
+      podios={podios}
+      participantes={participantes}
+      onLogout={logout}
+      onRefresh={onRefresh}
+    />
+  );
+
+  return null;
+}
+
+// ── PANTALLA INICIO ───────────────────────────────────────
+function PronInicio({etapaActiva, primerPartidoActivo, pronsCerrados, es16avos, participantes, onRegistro, onLogin}) {
+  const [tick, setTick] = useState(Date.now());
+  useEffect(()=>{ const id=setInterval(()=>setTick(Date.now()),1000); return()=>clearInterval(id); },[]);
+  const cierreMs = primerPartidoActivo ? cierreEtapa(primerPartidoActivo.fecha, primerPartidoActivo.hora) - tick : null;
+
+  return (
+    <div style={{maxWidth:420,margin:'0 auto'}}>
+      {/* Estado etapa */}
+      {etapaActiva && (
+        <div style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.1)',borderRadius:12,padding:'16px',marginBottom:16,textAlign:'center'}}>
+          <div style={{fontFamily:'Barlow Condensed',fontSize:12,color:'var(--gm)',letterSpacing:2,marginBottom:4}}>ETAPA ACTIVA</div>
+          <div style={{fontFamily:'Barlow Condensed',fontSize:22,fontWeight:800,color:'var(--gold)',marginBottom:8}}>{etapaActiva.nombre.toUpperCase()}</div>
+          {cierreMs!==null&&cierreMs>0 ? (
+            <>
+              <div style={{fontFamily:'Barlow Condensed',fontSize:28,fontWeight:800,color:'#fff',marginBottom:4}}>{formatCountdown(cierreMs)}</div>
+              <div style={{fontSize:11,color:'var(--gm)'}}>para el cierre de pronósticos</div>
+              {primerPartidoActivo&&<div style={{fontSize:11,color:'var(--gm)',marginTop:2}}>{fLarga(primerPartidoActivo.fecha)} · {primerPartidoActivo.hora} IQ</div>}
+            </>
+          ) : (
+            <div style={{background:'rgba(204,0,0,.15)',border:'1px solid rgba(204,0,0,.3)',borderRadius:6,padding:'8px',color:'#FF6666',fontFamily:'Barlow Condensed',fontWeight:700,fontSize:13}}>
+              🔒 Pronósticos cerrados para esta etapa
+            </div>
+          )}
+        </div>
+      )}
+      {!etapaActiva && (
+        <div style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.1)',borderRadius:12,padding:'20px',marginBottom:16,textAlign:'center'}}>
+          <div style={{fontSize:32,marginBottom:8}}>⏳</div>
+          <div style={{fontFamily:'Barlow Condensed',fontSize:16,fontWeight:700,color:'var(--gm)'}}>No hay etapa activa en este momento</div>
+          <div style={{fontSize:11,color:'var(--gm)',marginTop:4}}>El admin abrirá los pronósticos cuando comience cada ronda</div>
+        </div>
+      )}
+
+      {/* Botones */}
+      <div style={{display:'flex',flexDirection:'column',gap:10}}>
+        {es16avos&&!pronsCerrados&&(
+          <button className="btn btn-p" style={{padding:'14px',fontSize:15,width:'100%'}} onClick={onRegistro}>
+            ✍️ REGISTRARME Y HACER PRONÓSTICOS
+          </button>
+        )}
+        {participantes.filter(p=>p.aprobado).length>0&&(
+          <button className="btn btn-s" style={{padding:'14px',fontSize:15,width:'100%'}} onClick={onLogin}>
+            🔑 INGRESAR CON MI PIN
+          </button>
+        )}
+      </div>
+
+      <div style={{marginTop:20,padding:'12px 14px',background:'rgba(0,0,0,.2)',borderRadius:8,fontSize:11,color:'var(--gm)',lineHeight:1.9}}>
+        <strong style={{color:'var(--gold)'}}>¿Primera vez?</strong> Regístrate antes del inicio de 16avos.<br/>
+        <strong style={{color:'var(--gold)'}}>¿Ya tienes PIN?</strong> Ingresa para ver y editar tus pronósticos.<br/>
+        <strong style={{color:'var(--gold)'}}>Puntos:</strong> Exacto 5pts · Ganador+dif 4pts · Ganador 3pts · Clasifica +2pts · Podio +5pts c/u
+      </div>
+    </div>
+  );
+}
+
+// ── REGISTRO (solo 16avos) ────────────────────────────────
+function PronRegistro({etapaActiva, partidos, participantes, pronsCerrados, onBack, onSuccess, onRefresh}) {
+  const [paso, setPaso] = useState(1); // 1=datos, 2=pronósticos, 3=podio, 4=confirmado
+  const [nombre, setNombre] = useState('');
+  const [pin, setPin] = useState('');
+  const [pinConfirm, setPinConfirm] = useState('');
+  const [preds, setPreds] = useState({}); // partido_id -> {pa, pb, clasif}
+  const [podio, setPodio] = useState({campeon:'',subcampeon:'',tercero:''});
+  const [msg, setMsg] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  const showMsg = (t,type='error')=>{ setMsg({t,type}); setTimeout(()=>setMsg(null),4000); };
+
+  const partidos16 = partidos
+    .filter(p=>p.etapa_id===etapaActiva?.id)
+    .sort((a,b)=>a.fecha?.localeCompare(b.fecha)||a.hora?.localeCompare(b.hora));
+
+  if (pronsCerrados) return (
+    <div style={{maxWidth:420,margin:'0 auto'}}>
+      <button className="btn btn-s btn-sm" style={{marginBottom:14}} onClick={onBack}>← Volver</button>
+      <div className="card" style={{textAlign:'center',padding:30}}>
+        <div style={{fontSize:32,marginBottom:10}}>🔒</div>
+        <div style={{fontFamily:'Barlow Condensed',fontSize:18,fontWeight:700,color:'#FF6666'}}>Registro cerrado</div>
+        <div style={{fontSize:12,color:'var(--gm)',marginTop:8}}>Los pronósticos de 16avos ya cerraron. Contacta al admin si tienes dudas.</div>
+      </div>
+    </div>
+  );
+
+  // Verificar que nombre no esté duplicado
+  function nombreValido() {
+    return nombre.trim().length>=3 && !participantes.find(p=>p.nombre.toLowerCase()===nombre.trim().toLowerCase());
+  }
+
+  function paso1Ok() {
+    if (!nombre.trim()||nombre.trim().length<3) { showMsg('Ingresa tu nombre completo (mínimo 3 caracteres)'); return false; }
+    if (participantes.find(p=>p.nombre.toLowerCase()===nombre.trim().toLowerCase())) { showMsg('Ese nombre ya está registrado'); return false; }
+    if (!pin||pin.length<4) { showMsg('El PIN debe tener al menos 4 dígitos'); return false; }
+    if (pin!==pinConfirm) { showMsg('Los PINs no coinciden'); return false; }
+    return true;
+  }
+
+  function paso2Ok() {
+    const faltantes = partidos16.filter(p=>{
+      const pr = preds[p.id];
+      if (!pr||pr.pa===''||pr.pb==='') return true;
+      // Si hay empate, debe elegir clasificado
+      if (parseInt(pr.pa)===parseInt(pr.pb)&&!pr.clasif) return true;
+      return false;
+    });
+    if (faltantes.length>0) { showMsg(`Faltan ${faltantes.length} pronósticos (recuerda elegir clasificado en empates)`); return false; }
+    return true;
+  }
+
+  function paso3Ok() {
+    if (!podio.campeon) { showMsg('Selecciona tu campeón'); return false; }
+    if (!podio.subcampeon) { showMsg('Selecciona tu subcampeón'); return false; }
+    if (!podio.tercero) { showMsg('Selecciona el 3er lugar'); return false; }
+    if (new Set([podio.campeon,podio.subcampeon,podio.tercero]).size<3) { showMsg('El campeón, subcampeón y 3er lugar deben ser equipos diferentes'); return false; }
+    return true;
+  }
+
+  async function enviar() {
+    if (!paso3Ok()) return;
+    setSaving(true);
+    try {
+      // 1. Crear participante
+      const res = await sb('participantes_ko',{method:'POST',body:JSON.stringify({nombre:nombre.trim(),pin,aprobado:false})});
+      const part = Array.isArray(res)?res[0]:res;
+
+      // 2. Guardar podio
+      await sb('pronostico_podio',{method:'POST',prefer:'return=minimal',
+        body:JSON.stringify({participante_ko_id:part.id,pred_campeon:podio.campeon,pred_subcampeon:podio.subcampeon,pred_tercero:podio.tercero})});
+
+      // 3. Guardar pronósticos
+      const rows = partidos16.map(p=>{
+        const pr = preds[p.id]||{};
+        const pa = parseInt(pr.pa)||0, pb = parseInt(pr.pb)||0;
+        let clasifPred = pr.clasif||null;
+        if (!clasifPred) clasifPred = clasificadoImplicito(pa,pb,p.equipo_a,p.equipo_b);
+        return {participante_ko_id:part.id,partido_ko_id:p.id,pred_a:pa,pred_b:pb,clasificado_pred:clasifPred};
+      });
+      for (let i=0;i<rows.length;i+=20)
+        await sb('pronosticos_ko',{method:'POST',prefer:'return=minimal',body:JSON.stringify(rows.slice(i,i+20))});
+
+      setPaso(4);
+      onRefresh();
+    } catch(e){ showMsg('Error al guardar: '+e.message); }
+    setSaving(false);
+  }
+
+  function setPred(pid, campo, valor) {
+    setPreds(prev=>({...prev,[pid]:{...prev[pid],[campo]:valor}}));
+  }
+
+  if (paso===4) return (
+    <div style={{maxWidth:420,margin:'0 auto'}}>
+      <div className="card" style={{textAlign:'center',padding:30}}>
+        <div style={{fontSize:44,marginBottom:14}}>✅</div>
+        <div style={{fontFamily:'Barlow Condensed',fontSize:22,fontWeight:800,color:'var(--green)',marginBottom:8}}>¡Registro enviado!</div>
+        <div style={{fontSize:13,color:'var(--gm)',lineHeight:1.8,marginBottom:16}}>
+          Tus pronósticos fueron guardados.<br/>
+          El admin los aprobará pronto.<br/>
+          Una vez aprobado, podrás ingresar con tu nombre y PIN <strong style={{color:'var(--gold)'}}>{pin}</strong>.
+        </div>
+        <div style={{background:'rgba(245,166,35,.08)',border:'1px solid rgba(245,166,35,.25)',borderRadius:8,padding:'10px 14px',marginBottom:16,fontSize:12,color:'var(--gold)'}}>
+          ⚠️ Guarda tu PIN: <strong style={{fontSize:18,letterSpacing:3}}>{pin}</strong>
+        </div>
+        <button className="btn btn-p" style={{width:'100%'}} onClick={onSuccess}>Volver al inicio</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{maxWidth:500,margin:'0 auto'}}>
+      <button className="btn btn-s btn-sm" style={{marginBottom:14}} onClick={onBack}>← Volver</button>
+
+      {/* Indicador de pasos */}
+      <div style={{display:'flex',gap:6,marginBottom:18}}>
+        {['Datos','Pronósticos','Podio'].map((l,i)=>(
+          <div key={i} style={{flex:1,textAlign:'center',padding:'6px 0',borderRadius:6,fontFamily:'Barlow Condensed',fontSize:11,fontWeight:700,letterSpacing:1,
+            background:paso===i+1?'var(--gold)':paso>i+1?'rgba(74,219,138,.2)':'rgba(255,255,255,.06)',
+            color:paso===i+1?'var(--navy)':paso>i+1?'var(--green)':'var(--gm)'}}>
+            {paso>i+1?'✓ ':''}{l.toUpperCase()}
+          </div>
+        ))}
+      </div>
+
+      {msg&&<div className={`alert al-${msg.type==='error'?'err':'ok'}`}>{msg.t}</div>}
+
+      {/* PASO 1 — Datos */}
+      {paso===1&&(
+        <div className="card">
+          <div className="card-title">✍️ Tus datos</div>
+          <div className="form-group" style={{marginBottom:12}}>
+            <label className="lbl">Nombre completo</label>
+            <input className="inp" placeholder="Ej. Pedro García" value={nombre} onChange={e=>setNombre(e.target.value)}/>
+            {nombre.length>=3&&participantes.find(p=>p.nombre.toLowerCase()===nombre.trim().toLowerCase())&&
+              <span style={{fontSize:10,color:'#FF6666',marginTop:3}}>⚠️ Ese nombre ya está registrado</span>}
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="lbl">PIN (mínimo 4 dígitos)</label>
+              <input className="inp" type="password" placeholder="••••" maxLength={10} value={pin} onChange={e=>setPin(e.target.value.replace(/\D/g,''))}
+                style={{fontFamily:'Barlow Condensed',fontSize:22,letterSpacing:4,textAlign:'center'}}/>
+            </div>
+            <div className="form-group">
+              <label className="lbl">Confirmar PIN</label>
+              <input className="inp" type="password" placeholder="••••" maxLength={10} value={pinConfirm} onChange={e=>setPinConfirm(e.target.value.replace(/\D/g,''))}
+                style={{fontFamily:'Barlow Condensed',fontSize:22,letterSpacing:4,textAlign:'center'}}/>
+            </div>
+          </div>
+          {pin&&pinConfirm&&pin!==pinConfirm&&<div style={{fontSize:10,color:'#FF6666',marginBottom:8}}>Los PINs no coinciden</div>}
+          <button className="btn btn-p" style={{width:'100%',marginTop:8}} onClick={()=>{if(paso1Ok())setPaso(2);}}>SIGUIENTE →</button>
+        </div>
+      )}
+
+      {/* PASO 2 — Pronósticos 16avos */}
+      {paso===2&&(
+        <div className="card">
+          <div className="card-title">⚽ Pronósticos — {etapaActiva?.nombre} ({partidos16.length} partidos)</div>
+          <div style={{fontSize:11,color:'var(--gm)',marginBottom:14,lineHeight:1.7}}>
+            Pronostica el marcador a 90 min (sin prórroga ni penales).<br/>
+            En caso de <strong style={{color:'var(--white)'}}>empate</strong>, elige también quién clasifica.
+          </div>
+          {partidos16.map(p=>{
+            const pr = preds[p.id]||{};
+            const paVal = pr.pa!==undefined?pr.pa:'';
+            const pbVal = pr.pb!==undefined?pr.pb:'';
+            const esEmpate = paVal!==''&&pbVal!==''&&parseInt(paVal)===parseInt(pbVal);
+            const hasTeams = !!(p.equipo_a&&p.equipo_b);
+            return (
+              <div key={p.id} style={{background:'rgba(0,0,0,.2)',borderRadius:8,padding:'10px 12px',marginBottom:8,border:`1px solid ${esEmpate&&!pr.clasif?'rgba(245,166,35,.4)':'rgba(255,255,255,.06)'}`}}>
+                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:8}}>
+                  <span style={{fontFamily:'Barlow Condensed',fontSize:11,color:'var(--gold)',fontWeight:700}}>{p.numero}</span>
+                  <span style={{fontSize:10,color:'var(--gm)'}}>{fLarga(p.fecha)} · {p.hora} IQ</span>
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:5,flex:1,justifyContent:'flex-end',minWidth:100}}>
+                    <span style={{fontFamily:'Barlow Condensed',fontSize:13,fontWeight:700,textAlign:'right',opacity:hasTeams?1:.6}}>
+                      {p.equipo_a||p.slot_a||'?'}
+                    </span>
+                    <Flag name={p.equipo_a} size={18}/>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:4}}>
+                    <input className="e-inp" type="number" min="0" max="20" placeholder="0" value={paVal}
+                      onChange={e=>setPred(p.id,'pa',e.target.value)} style={{width:44,fontSize:18,padding:'4px 6px'}}/>
+                    <span style={{color:'var(--gm)',fontSize:14}}>–</span>
+                    <input className="e-inp" type="number" min="0" max="20" placeholder="0" value={pbVal}
+                      onChange={e=>setPred(p.id,'pb',e.target.value)} style={{width:44,fontSize:18,padding:'4px 6px'}}/>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:5,flex:1,minWidth:100}}>
+                    <Flag name={p.equipo_b} size={18}/>
+                    <span style={{fontFamily:'Barlow Condensed',fontSize:13,fontWeight:700,opacity:hasTeams?1:.6}}>
+                      {p.equipo_b||p.slot_b||'?'}
+                    </span>
+                  </div>
+                </div>
+                {esEmpate&&hasTeams&&(
+                  <div style={{marginTop:8,display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+                    <span style={{fontSize:11,color:'var(--gold)',fontFamily:'Barlow Condensed',fontWeight:700}}>Empate → ¿Quién clasifica?</span>
+                    <div style={{display:'flex',gap:6}}>
+                      <button className={`btn btn-xs ${pr.clasif===p.equipo_a?'btn-p':'btn-s'}`}
+                        onClick={()=>setPred(p.id,'clasif',p.equipo_a)}>{p.equipo_a}</button>
+                      <button className={`btn btn-xs ${pr.clasif===p.equipo_b?'btn-p':'btn-s'}`}
+                        onClick={()=>setPred(p.id,'clasif',p.equipo_b)}>{p.equipo_b}</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <div style={{display:'flex',gap:8,marginTop:12}}>
+            <button className="btn btn-s" style={{flex:1}} onClick={()=>setPaso(1)}>← Atrás</button>
+            <button className="btn btn-p" style={{flex:2}} onClick={()=>{if(paso2Ok())setPaso(3);}}>SIGUIENTE →</button>
+          </div>
+        </div>
+      )}
+
+      {/* PASO 3 — Podio */}
+      {paso===3&&(
+        <div className="card">
+          <div className="card-title">🏅 Pronóstico de Podio</div>
+          <div style={{fontSize:11,color:'var(--gm)',marginBottom:14,lineHeight:1.7}}>
+            Solo puedes enviarlo una vez. No es modificable después.<br/>
+            <strong style={{color:'var(--gold)'}}>+5 pts por cada acierto</strong> (campeón, subcampeón, 3er lugar).
+          </div>
+          {[['campeon','🥇 Campeón del Mundo'],['subcampeon','🥈 Subcampeón'],['tercero','🥉 3er Lugar']].map(([k,lbl])=>(
+            <div className="form-group" style={{marginBottom:12}} key={k}>
+              <label className="lbl">{lbl}</label>
+              <select className="inp" value={podio[k]} onChange={e=>setPodio(prev=>({...prev,[k]:e.target.value}))}>
+                <option value="">— Selecciona un equipo —</option>
+                {TODOS_EQUIPOS.map(eq=><option key={eq} value={eq}>{eq}</option>)}
+              </select>
+            </div>
+          ))}
+          {podio.campeon&&podio.subcampeon&&podio.tercero&&new Set([podio.campeon,podio.subcampeon,podio.tercero]).size<3&&(
+            <div className="alert al-err">Los tres equipos deben ser diferentes</div>
+          )}
+          <div style={{display:'flex',gap:8,marginTop:12}}>
+            <button className="btn btn-s" style={{flex:1}} onClick={()=>setPaso(2)}>← Atrás</button>
+            <button className="btn btn-p" style={{flex:2}} onClick={enviar} disabled={saving}>
+              {saving?'Enviando...':'✅ ENVIAR PRONÓSTICOS'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── LOGIN ─────────────────────────────────────────────────
+function PronLogin({participantes, onBack, onLogin}) {
+  const [selNombre, setSelNombre] = useState('');
+  const [pin, setPin] = useState('');
+  const [err, setErr] = useState('');
+
+  const aprobados = participantes.filter(p=>p.aprobado).sort((a,b)=>a.nombre.localeCompare(b.nombre));
+
+  function intentarLogin() {
+    if (!selNombre) { setErr('Selecciona tu nombre'); return; }
+    if (!pin) { setErr('Ingresa tu PIN'); return; }
+    const user = aprobados.find(p=>p.nombre===selNombre&&p.pin===pin);
+    if (!user) { setErr('PIN incorrecto'); return; }
+    onLogin(user);
+  }
+
+  return (
+    <div style={{maxWidth:360,margin:'0 auto'}}>
+      <button className="btn btn-s btn-sm" style={{marginBottom:14}} onClick={onBack}>← Volver</button>
+      <div className="card" style={{textAlign:'center'}}>
+        <div style={{fontSize:32,marginBottom:10}}>🔑</div>
+        <div style={{fontFamily:'Barlow Condensed',fontSize:20,fontWeight:800,marginBottom:4}}>Ingresar</div>
+        <div style={{fontSize:12,color:'var(--gm)',marginBottom:20}}>Selecciona tu nombre e ingresa tu PIN</div>
+        {err&&<div className="alert al-err">{err}</div>}
+        <div className="form-group" style={{marginBottom:12,textAlign:'left'}}>
+          <label className="lbl">Tu nombre</label>
+          <select className="inp" value={selNombre} onChange={e=>{setSelNombre(e.target.value);setErr('');}}>
+            <option value="">— Selecciona —</option>
+            {aprobados.map(p=><option key={p.id} value={p.nombre}>{p.nombre}</option>)}
+          </select>
+        </div>
+        <div className="form-group" style={{marginBottom:16,textAlign:'left'}}>
+          <label className="lbl">PIN</label>
+          <input className="inp" type="password" placeholder="••••" maxLength={10}
+            value={pin} onChange={e=>{setPin(e.target.value.replace(/\D/g,''));setErr('');}}
+            onKeyDown={e=>e.key==='Enter'&&intentarLogin()}
+            style={{fontFamily:'Barlow Condensed',fontSize:24,letterSpacing:6,textAlign:'center'}}/>
+        </div>
+        <button className="btn btn-p" style={{width:'100%',padding:12,fontSize:14}} onClick={intentarLogin}>ENTRAR</button>
+      </div>
+    </div>
+  );
+}
+
+// ── VISTA LOGUEADO ────────────────────────────────────────
+function PronLogueado({user, partidos, etapas, etapaActiva, primerPartidoActivo, pronsCerrados, pronosticos, podios, participantes, onLogout, onRefresh}) {
+  const [subTab, setSubTab] = useState('mis');
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const [localPreds, setLocalPreds] = useState({});
+
+  const showMsg=(t,type='success')=>{ setMsg({t,type}); setTimeout(()=>setMsg(null),4000); };
+
+  const etapasOrden = [...etapas].sort((a,b)=>a.orden-b.orden);
+
+  // Mis pronósticos de la etapa activa
+  const misProns = pronosticos.filter(pr=>pr.participante_ko_id===user.id);
+  const miPodio = podios.find(p=>p.participante_ko_id===user.id);
+
+  // Partidos de etapa activa con mis predicciones
+  const partidosActivos = etapaActiva
+    ? partidos.filter(p=>p.etapa_id===etapaActiva.id&&p.equipo_a&&p.equipo_b)
+        .sort((a,b)=>a.fecha?.localeCompare(b.fecha)||a.hora?.localeCompare(b.hora))
+    : [];
+
+  // Inicializar local preds desde BD
+  useEffect(()=>{
+    if (!etapaActiva) return;
+    const init={};
+    partidosActivos.forEach(p=>{
+      const pr=misProns.find(x=>x.partido_ko_id===p.id);
+      if(pr) init[p.id]={pa:String(pr.pred_a??''),pb:String(pr.pred_b??''),clasif:pr.clasificado_pred||''};
+      else init[p.id]={pa:'',pb:'',clasif:''};
+    });
+    setLocalPreds(init);
+  },[etapaActiva?.id, pronosticos.length]);
+
+  function setPred(pid,campo,valor){ setLocalPreds(prev=>({...prev,[pid]:{...prev[pid],[campo]:valor}})); }
+
+  async function guardarProns() {
+    setSaving(true);
+    try {
+      for (const p of partidosActivos) {
+        const pr=localPreds[p.id]||{};
+        const pa=parseInt(pr.pa), pb=parseInt(pr.pb);
+        if(isNaN(pa)||isNaN(pb)) continue;
+        let clasif=pr.clasif||null;
+        if(!clasif) clasif=clasificadoImplicito(pa,pb,p.equipo_a,p.equipo_b);
+        const existe=misProns.find(x=>x.partido_ko_id===p.id);
+        if(existe){
+          await sb(`pronosticos_ko?id=eq.${existe.id}`,{method:'PATCH',prefer:'return=minimal',
+            body:JSON.stringify({pred_a:pa,pred_b:pb,clasificado_pred:clasif})});
+        } else {
+          await sb('pronosticos_ko',{method:'POST',prefer:'return=minimal',
+            body:JSON.stringify({participante_ko_id:user.id,partido_ko_id:p.id,pred_a:pa,pred_b:pb,clasificado_pred:clasif})});
+        }
+      }
+      showMsg('✓ Pronósticos guardados');
+      onRefresh();
+    } catch(e){ showMsg('Error: '+e.message,'error'); }
+    setSaving(false);
+  }
+
+  // Calcular mis puntos acumulados
+  const misPuntos = misProns.reduce((s,pr)=>s+(pr.puntos_total||0),0);
+  const misPtosPodio = miPodio ? (miPodio.pts_campeon||0)+(miPodio.pts_subcampeon||0)+(miPodio.pts_tercero||0) : 0;
+
+  // ¿Pronósticos públicos? → después del cierre
+  const pPublicos = pronsCerrados;
+
+  return (
+    <div>
+      {/* Header usuario */}
+      <div style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.1)',borderRadius:10,padding:'12px 14px',marginBottom:14,display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
+        <div>
+          <div style={{fontFamily:'Barlow Condensed',fontSize:18,fontWeight:800}}>{user.nombre}</div>
+          <div style={{fontSize:11,color:'var(--gm)'}}>Puntos KO: <strong style={{color:'var(--gold)',fontSize:16}}>{misPuntos+misPtosPodio}</strong> (marcador {misPuntos} + podio {misPtosPodio})</div>
+        </div>
+        <button className="btn btn-s btn-xs" onClick={onLogout}>Cerrar sesión</button>
+      </div>
+
+      {msg&&<div className={`alert al-${msg.type==='success'?'ok':'err'}`}>{msg.t}</div>}
+
+      <div className="adm-tabs">
+        <button className={`btn btn-sm ${subTab==='mis'?'btn-p':'btn-s'}`} onClick={()=>setSubTab('mis')}>⚽ Mis Pronósticos</button>
+        <button className={`btn btn-sm ${subTab==='historial'?'btn-p':'btn-s'}`} onClick={()=>setSubTab('historial')}>📋 Historial</button>
+        {pPublicos&&<button className={`btn btn-sm ${subTab==='todos'?'btn-p':'btn-s'}`} onClick={()=>setSubTab('todos')}>👥 Todos</button>}
+        <button className={`btn btn-sm ${subTab==='podio'?'btn-p':'btn-s'}`} onClick={()=>setSubTab('podio')}>🏅 Podio</button>
+      </div>
+
+      {/* MIS PRONÓSTICOS ETAPA ACTIVA */}
+      {subTab==='mis'&&(
+        <div className="card">
+          {!etapaActiva&&<div className="empty" style={{padding:20}}>No hay etapa activa. Espera a que el admin abra la siguiente ronda.</div>}
+          {etapaActiva&&pronsCerrados&&<div className="alert al-warn" style={{marginBottom:12}}>🔒 Los pronósticos de {etapaActiva.nombre} están cerrados.</div>}
+          {etapaActiva&&!pronsCerrados&&(
+            <>
+              <div className="card-title">⚽ {etapaActiva.nombre} — Ingresa tus pronósticos</div>
+              <div style={{fontSize:11,color:'var(--gm)',marginBottom:14}}>
+                Puedes guardar y volver a editar hasta que cierren. En empates elige quién clasifica.
+              </div>
+              {partidosActivos.length===0&&<div className="empty" style={{padding:16}}>Los equipos de esta ronda aún no están confirmados.</div>}
+              {partidosActivos.map(p=>{
+                const pr=localPreds[p.id]||{};
+                const paVal=pr.pa!==undefined?pr.pa:'';
+                const pbVal=pr.pb!==undefined?pr.pb:'';
+                const esEmpate=paVal!==''&&pbVal!==''&&parseInt(paVal)===parseInt(pbVal);
+                return (
+                  <div key={p.id} style={{background:'rgba(0,0,0,.2)',borderRadius:8,padding:'10px 12px',marginBottom:8,border:`1px solid ${esEmpate&&!pr.clasif?'rgba(245,166,35,.4)':'rgba(255,255,255,.06)'}`}}>
+                    <div style={{fontSize:10,color:'var(--gm)',marginBottom:6}}>
+                      <strong style={{color:'var(--gold)',fontFamily:'Barlow Condensed'}}>{p.numero}</strong> · {fLarga(p.fecha)} · {p.hora} IQ
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:5,flex:1,justifyContent:'flex-end',minWidth:100}}>
+                        <span style={{fontFamily:'Barlow Condensed',fontSize:13,fontWeight:700,textAlign:'right'}}>{p.equipo_a}</span>
+                        <Flag name={p.equipo_a} size={18}/>
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:4}}>
+                        <input className="e-inp" type="number" min="0" max="20" placeholder="0" value={paVal}
+                          onChange={e=>setPred(p.id,'pa',e.target.value)} style={{width:44,fontSize:18,padding:'4px 6px'}}/>
+                        <span style={{color:'var(--gm)',fontSize:14}}>–</span>
+                        <input className="e-inp" type="number" min="0" max="20" placeholder="0" value={pbVal}
+                          onChange={e=>setPred(p.id,'pb',e.target.value)} style={{width:44,fontSize:18,padding:'4px 6px'}}/>
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:5,flex:1,minWidth:100}}>
+                        <Flag name={p.equipo_b} size={18}/>
+                        <span style={{fontFamily:'Barlow Condensed',fontSize:13,fontWeight:700}}>{p.equipo_b}</span>
+                      </div>
+                    </div>
+                    {esEmpate&&(
+                      <div style={{marginTop:8,display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+                        <span style={{fontSize:11,color:'var(--gold)',fontFamily:'Barlow Condensed',fontWeight:700}}>Empate → ¿Quién clasifica?</span>
+                        <div style={{display:'flex',gap:6}}>
+                          <button className={`btn btn-xs ${pr.clasif===p.equipo_a?'btn-p':'btn-s'}`} onClick={()=>setPred(p.id,'clasif',p.equipo_a)}>{p.equipo_a}</button>
+                          <button className={`btn btn-xs ${pr.clasif===p.equipo_b?'btn-p':'btn-s'}`} onClick={()=>setPred(p.id,'clasif',p.equipo_b)}>{p.equipo_b}</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {partidosActivos.length>0&&(
+                <button className="btn btn-p" style={{width:'100%',marginTop:8,padding:12,fontSize:14}} onClick={guardarProns} disabled={saving}>
+                  {saving?'Guardando...':'💾 GUARDAR PRONÓSTICOS'}
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* HISTORIAL */}
+      {subTab==='historial'&&(
+        <div className="card">
+          <div className="card-title">📋 Mi historial de pronósticos</div>
+          {etapasOrden.map(etapa=>{
+            const psEtapa=partidos.filter(p=>p.etapa_id===etapa.id).sort((a,b)=>a.numero.localeCompare(b.numero));
+            const tieneAlguno=psEtapa.some(p=>misProns.find(pr=>pr.partido_ko_id===p.id));
+            if(!tieneAlguno)return null;
+            return(
+              <div key={etapa.id} style={{marginBottom:16}}>
+                <div style={{fontFamily:'Barlow Condensed',fontSize:12,fontWeight:800,letterSpacing:2,color:'var(--gold)',marginBottom:8,paddingBottom:4,borderBottom:'1px solid rgba(245,166,35,.2)'}}>{etapa.nombre.toUpperCase()}</div>
+                {psEtapa.map(p=>{
+                  const pr=misProns.find(x=>x.partido_ko_id===p.id);
+                  if(!pr)return null;
+                  const done=p.finalizado&&p.goles_a!==null;
+                  const pts=pr.puntos_total||0;
+                  return(
+                    <div key={p.id} style={{display:'flex',alignItems:'center',gap:8,padding:'7px 0',borderBottom:'1px solid rgba(255,255,255,.04)',flexWrap:'wrap'}}>
+                      <span style={{fontFamily:'Barlow Condensed',fontSize:11,color:'var(--gm)',minWidth:32}}>{p.numero}</span>
+                      <div style={{display:'flex',alignItems:'center',gap:4,flex:1,minWidth:160}}>
+                        <Flag name={p.equipo_a} size={14}/>
+                        <span style={{fontFamily:'Barlow Condensed',fontSize:12,fontWeight:700}}>{p.equipo_a||p.slot_a}</span>
+                        <span style={{color:'var(--gm)',fontSize:11,margin:'0 4px'}}>vs</span>
+                        <Flag name={p.equipo_b} size={14}/>
+                        <span style={{fontFamily:'Barlow Condensed',fontSize:12,fontWeight:700}}>{p.equipo_b||p.slot_b}</span>
+                      </div>
+                      <span style={{fontFamily:'Barlow Condensed',fontSize:14,fontWeight:700,color:'var(--white)'}}>{pr.pred_a}–{pr.pred_b}</span>
+                      {pr.clasificado_pred&&<span style={{fontSize:10,color:'var(--gm)'}}>→{pr.clasificado_pred.split(' ')[0]}</span>}
+                      {done&&<span style={{fontFamily:'Barlow Condensed',fontSize:12,color:'var(--gm)'}}>{p.goles_a}–{p.goles_b}</span>}
+                      {done&&<span style={{fontFamily:'Barlow Condensed',fontSize:13,fontWeight:800,
+                        color:pts>=5?'var(--gold)':pts>=3?'var(--green)':pts>0?'var(--blue)':'#FF6666',
+                        background:pts>=5?'rgba(245,166,35,.1)':pts>=3?'rgba(74,219,138,.1)':'rgba(255,255,255,.05)',
+                        padding:'1px 6px',borderRadius:4}}>
+                        {pts>0?'+'+pts:'✗'}
+                      </span>}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+          {miPodio&&(
+            <div style={{marginTop:8,background:'rgba(245,166,35,.06)',border:'1px solid rgba(245,166,35,.2)',borderRadius:8,padding:'10px 12px'}}>
+              <div style={{fontFamily:'Barlow Condensed',fontSize:12,fontWeight:800,letterSpacing:2,color:'var(--gold)',marginBottom:8}}>MI PODIO</div>
+              {[['🥇 Campeón',miPodio.pred_campeon,miPodio.pts_campeon],['🥈 Subcampeón',miPodio.pred_subcampeon,miPodio.pts_subcampeon],['🥉 3er lugar',miPodio.pred_tercero,miPodio.pts_tercero]].map(([lbl,eq,pts])=>(
+                <div key={lbl} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5}}>
+                  <span style={{fontSize:12}}>{lbl}:</span>
+                  <Flag name={eq} size={14}/>
+                  <span style={{fontFamily:'Barlow Condensed',fontSize:13,fontWeight:700,flex:1}}>{eq||'—'}</span>
+                  {pts>0&&<span style={{color:'var(--gold)',fontFamily:'Barlow Condensed',fontWeight:800}}>+{pts}</span>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TODOS (solo post-cierre) */}
+      {subTab==='todos'&&pPublicos&&(
+        <div className="card">
+          <div className="card-title">👥 Pronósticos de todos</div>
+          {etapasOrden.map(etapa=>{
+            const psEtapa=partidos.filter(p=>p.etapa_id===etapa.id&&p.finalizado).sort((a,b)=>a.numero.localeCompare(b.numero));
+            if(!psEtapa.length) return null;
+            return(
+              <div key={etapa.id} style={{marginBottom:20}}>
+                <div style={{fontFamily:'Barlow Condensed',fontSize:12,fontWeight:800,letterSpacing:2,color:'var(--gold)',marginBottom:10,paddingBottom:4,borderBottom:'1px solid rgba(245,166,35,.2)'}}>{etapa.nombre.toUpperCase()}</div>
+                {psEtapa.map(p=>{
+                  const aprobados=participantes.filter(x=>x.aprobado);
+                  return(
+                    <div key={p.id} style={{marginBottom:12}}>
+                      <div style={{fontSize:11,fontFamily:'Barlow Condensed',color:'var(--gm)',marginBottom:5}}>
+                        {p.numero} · {p.equipo_a||p.slot_a} <strong style={{color:'var(--gold)'}}>{p.goles_a}–{p.goles_b}</strong> {p.equipo_b||p.slot_b}
+                        {p.clasificado&&<span style={{color:'var(--green)',marginLeft:6}}>→ {p.clasificado}</span>}
+                      </div>
+                      <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+                        {aprobados.map(part=>{
+                          const pr=pronosticos.find(x=>x.participante_ko_id===part.id&&x.partido_ko_id===p.id);
+                          if(!pr) return null;
+                          const pts=pr.puntos_total||0;
+                          return(
+                            <div key={part.id} style={{background:'rgba(255,255,255,.04)',borderRadius:6,padding:'4px 8px',display:'flex',alignItems:'center',gap:5,
+                              border:`1px solid ${pts>=5?'rgba(245,166,35,.4)':pts>=3?'rgba(74,219,138,.3)':'rgba(255,255,255,.08)'}`}}>
+                              <span style={{fontSize:10,color:'var(--gm)'}}>{part.nombre.split(' ')[0]}</span>
+                              <span style={{fontFamily:'Barlow Condensed',fontSize:12,fontWeight:700}}>{pr.pred_a}–{pr.pred_b}</span>
+                              <span style={{fontSize:10,fontWeight:700,color:pts>=5?'var(--gold)':pts>=3?'var(--green)':pts>0?'var(--blue)':'#FF6666'}}>
+                                {pts>0?'+'+pts:'✗'}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* PODIO */}
+      {subTab==='podio'&&(
+        <div className="card">
+          <div className="card-title">🏅 Pronósticos de Podio</div>
+          {!pPublicos&&(
+            <div className="alert al-inf" style={{marginBottom:12}}>Los pronósticos de podio de los demás se revelan cuando cierren los pronósticos de 16avos.</div>
+          )}
+          {(pPublicos?participantes.filter(p=>p.aprobado):[user]).map(part=>{
+            const pod=podios.find(p=>p.participante_ko_id===part.id);
+            if(!pod) return null;
+            const total=(pod.pts_campeon||0)+(pod.pts_subcampeon||0)+(pod.pts_tercero||0);
+            return(
+              <div key={part.id} style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:8,padding:'12px 14px',marginBottom:8}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+                  <span style={{fontWeight:700,fontSize:14}}>{part.nombre}</span>
+                  {total>0&&<span style={{fontFamily:'Barlow Condensed',fontSize:16,fontWeight:800,color:'var(--gold)'}}>+{total} pts</span>}
+                </div>
+                {[['🥇',pod.pred_campeon,pod.pts_campeon],['🥈',pod.pred_subcampeon,pod.pts_subcampeon],['🥉',pod.pred_tercero,pod.pts_tercero]].map(([ic,eq,pts],i)=>(
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
+                    <span style={{fontSize:14}}>{ic}</span>
+                    <Flag name={eq} size={14}/>
+                    <span style={{fontFamily:'Barlow Condensed',fontSize:13,flex:1}}>{eq||'—'}</span>
+                    {pts>0&&<span style={{color:'var(--gold)',fontFamily:'Barlow Condensed',fontWeight:700,fontSize:12}}>+{pts}</span>}
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 // ── TAB POSICIONES ───────────────────────────────────────
 function TabPosiciones({participantes, pronosticos, partidos, podios, etapas}) {
   const [vista, setVista] = useState('general');
@@ -1538,7 +2359,9 @@ function App() {
 
   const TABS = [
     {id:'hoy',l:'⚽ Hoy/Mañana'},
+    {id:'calendario',l:'📅 Calendario'},
     {id:'bracket',l:'🏆 Bracket'},
+    {id:'misprons',l:'🎯 Mis Pronósticos'},
     {id:'posiciones',l:'📊 Posiciones'},
     {id:'admin',l:'⚙️ Admin'},
   ];
@@ -1554,7 +2377,13 @@ function App() {
               <div className="logo-sub">Fase Eliminatoria 2026</div>
             </div>
           </div>
-          <div className="ko-badge">FASE KO</div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <a href="./grupos.html" style={{fontSize:10,color:"var(--gm)",fontFamily:"Barlow Condensed",fontWeight:700,letterSpacing:1,textDecoration:"none",padding:"3px 8px",border:"1px solid rgba(255,255,255,.15)",borderRadius:4,transition:"all .2s"}}
+              onMouseEnter={e=>e.target.style.color="var(--white)"} onMouseLeave={e=>e.target.style.color="var(--gm)"}>
+              ← GRUPOS
+            </a>
+            <div className="ko-badge">FASE KO</div>
+          </div>
         </div>
         <nav className="nav-tabs">
           {TABS.map(t=><button key={t.id} className={`tab-btn ${tab===t.id?'active':''}`} onClick={()=>setTab(t.id)}>{t.l}</button>)}
@@ -1573,7 +2402,9 @@ function App() {
         ) : (
           <>
             {tab==='hoy' && <TabHoy partidos={partidos} etapas={etapas}/>}
+            {tab==='calendario' && <TabCalendario partidos={partidos} etapas={etapas}/>}
             {tab==='bracket' && <TabBracket partidos={partidos} etapas={etapas}/>}
+            {tab==='misprons' && <TabMisPron partidos={partidos} etapas={etapas} participantes={participantes} pronosticos={pronosticos} podios={podios} onRefresh={fetchAll}/>}
             {tab==='posiciones' && <TabPosiciones participantes={participantes} pronosticos={pronosticos} partidos={partidos} podios={podios} etapas={etapas}/>}
             {tab==='admin' && <TabAdmin partidos={partidos} etapas={etapas} participantes={participantes} pronosticos={pronosticos} podios={podios} onRefresh={fetchAll}/>}
           </>
