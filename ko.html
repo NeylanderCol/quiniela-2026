@@ -1841,9 +1841,9 @@ function AdminGrupos({partidosGrupos, showMsg, onRefresh}) {
   // slotMap: grupo -> {posicion -> 'PXX_a/b'}
   const slotMap = {
     A:{0:'P79_a',1:'P73_a'},
-    B:{1:'P73_b'},
+    B:{0:'P85_a',1:'P73_b'},
     C:{0:'P76_a',1:'P75_b'},
-    D:{1:'P88_a'},
+    D:{0:'P81_a',1:'P88_a'},
     E:{0:'P74_a',1:'P78_a'},
     F:{0:'P75_a',1:'P76_b'},
     G:{0:'P82_a',1:'P88_b'},
@@ -2391,10 +2391,15 @@ function AdminResultados({partidos, etapas, pronosticos, podios, showMsg, onRefr
   }
 
   const etapaMap2 = {};etapas.forEach(e=>etapaMap2[e.id]=e);
+  // Etapa activa = la de menor orden que tenga partidos sin finalizar (con o sin equipos)
+  const etapasConPend = etapas.filter(e=>partidos.some(p=>p.etapa_id===e.id&&!p.finalizado)).sort((a,b)=>a.orden-b.orden);
+  const etapaActivaIdRes = etapasConPend.length>0 ? String(etapasConPend[0].id) : 'TODOS';
+  // Si el filtro manual sigue en TODOS, usar la etapa activa automáticamente
+  const filtroEfectivo = filtroEtapa==='TODOS' ? etapaActivaIdRes : filtroEtapa;
   const pendientes = partidos.filter(p=>!p.finalizado&&p.equipo_a&&p.equipo_b).sort((a,b)=>a.fecha?.localeCompare(b.fecha)||a.hora?.localeCompare(b.hora));
   const terminados = partidos.filter(p=>p.finalizado&&p.goles_a!==null).sort((a,b)=>b.fecha?.localeCompare(a.fecha)||b.hora?.localeCompare(a.hora));
-  const etapasFiltro=['TODOS',...[...new Set(partidos.map(p=>p.etapa_id))].map(id=>etapaMap2[id]).filter(Boolean).sort((a,b)=>a.orden-b.orden).map(e=>String(e.id))];
-  const pendFiltrados = filtroEtapa==='TODOS'?pendientes:pendientes.filter(p=>String(p.etapa_id)===filtroEtapa);
+  const etapasFiltro=['TODOS',...etapas.sort((a,b)=>a.orden-b.orden).map(e=>String(e.id))];
+  const pendFiltrados = filtroEfectivo==='TODOS'?pendientes:pendientes.filter(p=>String(p.etapa_id)===filtroEfectivo);
 
   const selPartido = partidos.find(p=>p.id===selId);
   const eqA = selPartido?.equipo_a||'';
@@ -2410,7 +2415,8 @@ function AdminResultados({partidos, etapas, pronosticos, podios, showMsg, onRefr
             <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:12}}>
               {etapasFiltro.map(id=>{
                 const etapaObj=id==='TODOS'?null:etapaMap2[Number(id)];
-                return <button key={id} className={`btn btn-xs ${filtroEtapa===id?'btn-p':'btn-s'}`}
+                const isActive = filtroEfectivo===id;
+                return <button key={id} className={`btn btn-xs ${isActive?'btn-p':'btn-s'}`}
                   onClick={()=>setFiltroEtapa(id)}>{id==='TODOS'?'Todos':etapaObj?.nombre||id}</button>;
               })}
             </div>
@@ -2468,20 +2474,18 @@ function AdminResultados({partidos, etapas, pronosticos, podios, showMsg, onRefr
               </div>
 
               <div style={{background:'rgba(0,0,0,.2)',borderRadius:8,padding:'12px 14px',marginBottom:12}}>
-                <Toggle on={prorroga} onToggle={()=>{setProrroga(!prorroga);if(prorroga)setPenales(false);}} label="¿Hubo prórroga?"/>
-                {prorroga && <Toggle on={penales} onToggle={()=>setPenales(!penales)} label="¿Hubo penales?"/>}
+                <Toggle on={prorroga} onToggle={()=>setProrroga(!prorroga)} label="¿Hubo prórroga?"/>
+                <Toggle on={penales} onToggle={()=>setPenales(!penales)} label="¿Hubo penales?"/>
               </div>
 
-              {(gA!==''&&gB!==''&&parseInt(gA)===parseInt(gB)||penales) && (
-                <div className="form-group" style={{marginBottom:12}}>
-                  <label className="lbl">Equipo clasificado (obligatorio en empate/penales)</label>
-                  <select className="inp" value={clasificado} onChange={e=>setClasificado(e.target.value)}>
-                    <option value="">— Selecciona —</option>
-                    {eqA&&<option value={eqA}>{eqA}</option>}
-                    {eqB&&<option value={eqB}>{eqB}</option>}
-                  </select>
-                </div>
-              )}
+              <div className="form-group" style={{marginBottom:12}}>
+                <label className="lbl">Equipo clasificado (siempre obligatorio)</label>
+                <select className="inp" value={clasificado} onChange={e=>setClasificado(e.target.value)}>
+                  <option value="">— Selecciona quién clasifica —</option>
+                  {eqA&&<option value={eqA}>{eqA}</option>}
+                  {eqB&&<option value={eqB}>{eqB}</option>}
+                </select>
+              </div>
 
               {gA!==''&&gB!==''&&(
                 <div style={{background:'rgba(245,166,35,.08)',border:'1px solid rgba(245,166,35,.3)',borderRadius:8,padding:'10px 14px',marginBottom:12,textAlign:'center',fontFamily:'Barlow Condensed',fontSize:14}}>
@@ -2527,9 +2531,9 @@ function AdminResultados({partidos, etapas, pronosticos, podios, showMsg, onRefr
                       {editId===p.id && (
                         <div style={{marginTop:6}}>
                           <Toggle on={editProrroga} onToggle={()=>setEditProrroga(!editProrroga)} label="Prórroga"/>
-                          {editProrroga && <Toggle on={editPenales} onToggle={()=>setEditPenales(!editPenales)} label="Penales"/>}
+                          <Toggle on={editPenales} onToggle={()=>setEditPenales(!editPenales)} label="Penales"/>
                           <select className="inp" value={editClasificado} onChange={e=>setEditClasificado(e.target.value)} style={{marginTop:4,fontSize:11}}>
-                            <option value="">Clasifica: auto</option>
+                            <option value="">Clasifica: —</option>
                             <option value={p.equipo_a}>{p.equipo_a}</option>
                             <option value={p.equipo_b}>{p.equipo_b}</option>
                           </select>
