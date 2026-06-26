@@ -2580,21 +2580,58 @@ function AdminResultados({partidos, etapas, pronosticos, podios, showMsg, onRefr
     const partido=partidos.find(p=>p.id===pid);
     if(!clasFinal){if(ra>rb)clasFinal=partido.equipo_a;else if(rb>ra)clasFinal=partido.equipo_b;}
     try {
+      // Despropagar primero (el clasificado puede haber cambiado)
+      if (partido) await despropagar(partido.numero);
       await sb(`partidos_ko?id=eq.${pid}`,{method:'PATCH',prefer:'return=minimal',
         body:JSON.stringify({goles_a:ra,goles_b:rb,hubo_prorroga:editProrroga,hubo_penales:editPenales,clasificado:clasFinal,finalizado:true})});
       await calcularPuntosPartido(pid,ra,rb,clasFinal);
-      showMsg('✓ Resultado actualizado');setEditId(null);onRefresh();
+      // Re-propagar con el nuevo clasificado
+      if (partido && clasFinal) await propagarResultado({...partido,goles_a:ra,goles_b:rb},clasFinal);
+      showMsg('✓ Resultado actualizado y bracket recalculado');setEditId(null);onRefresh();
     }catch(e){showMsg('Error: '+e.message,'error');}
   }
 
+  // Despropagar: limpia equipo_a/b de partidos downstream que dependían de este,
+  // y cascadea si esos partidos también tenían resultados (los anula también)
+  async function despropagar(numero) {
+    const siguiente = partidos.filter(p=>p.slot_origen_a===numero||p.slot_origen_b===numero);
+    for (const sig of siguiente) {
+      const updates = {};
+      if (sig.slot_origen_a===numero) updates.equipo_a = null;
+      if (sig.slot_origen_b===numero) updates.equipo_b = null;
+      // Si el siguiente también estaba finalizado, anularlo también en cascada
+      if (sig.finalizado) {
+        updates.goles_a = null; updates.goles_b = null;
+        updates.hubo_prorroga = false; updates.hubo_penales = false;
+        updates.clasificado = null; updates.finalizado = false;
+        // Limpiar puntos de pronósticos de ese partido
+        for(const pr of pronosticos.filter(x=>x.partido_ko_id===sig.id))
+          await sb(`pronosticos_ko?id=eq.${pr.id}`,{method:'PATCH',prefer:'return=minimal',
+            body:JSON.stringify({puntos_marcador:0,puntos_clasificado:0,puntos_total:0})});
+        // Cascadear recursivamente
+        await despropagar(sig.numero);
+      }
+      if (Object.keys(updates).length>0) {
+        await sb(`partidos_ko?id=eq.${sig.id}`,{method:'PATCH',prefer:'return=minimal',
+          body:JSON.stringify(updates)});
+      }
+    }
+  }
+
   async function anular(pid) {
-    if(!confirm('¿Anular este resultado?')) return;
+    if(!confirm('¿Anular este resultado? Se limpiarán también los equipos propagados a rondas siguientes.')) return;
     try {
+      const partido = partidos.find(p=>p.id===pid);
+      // 1. Resetear el partido anulado
       await sb(`partidos_ko?id=eq.${pid}`,{method:'PATCH',prefer:'return=minimal',
         body:JSON.stringify({goles_a:null,goles_b:null,hubo_prorroga:false,hubo_penales:false,clasificado:null,finalizado:false})});
+      // 2. Resetear puntos de pronósticos de este partido
       for(const pr of pronosticos.filter(x=>x.partido_ko_id===pid))
-        await sb(`pronosticos_ko?id=eq.${pr.id}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({puntos_marcador:0,puntos_clasificado:0,puntos_total:0})});
-      showMsg('✓ Resultado anulado');onRefresh();
+        await sb(`pronosticos_ko?id=eq.${pr.id}`,{method:'PATCH',prefer:'return=minimal',
+          body:JSON.stringify({puntos_marcador:0,puntos_clasificado:0,puntos_total:0})});
+      // 3. Limpiar propagación downstream en cascada
+      if (partido) await despropagar(partido.numero);
+      showMsg('✓ Resultado anulado y bracket limpiado');onRefresh();
     }catch(e){showMsg('Error: '+e.message,'error');}
   }
 
