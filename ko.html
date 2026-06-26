@@ -185,6 +185,122 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--white);min
   .grupos-grid{grid-template-columns:1fr;}
   .terceros-list{grid-template-columns:1fr;}
 }
+
+/* ── BRACKET VISUAL ─────────────────────────────────────── */
+.bracket-scroll{overflow-x:auto;overflow-y:visible;padding-bottom:16px;-webkit-overflow-scrolling:touch;}
+.bracket-tree{
+  display:flex;
+  align-items:center;
+  gap:0;
+  min-width:1180px;
+  padding:8px 4px 20px;
+}
+
+/* Columnas de partidos */
+.bcol{display:flex;flex-direction:column;flex-shrink:0;}
+.bcol-label{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:9px;font-weight:800;letter-spacing:2px;
+  text-align:center;color:var(--gm);text-transform:uppercase;
+  padding:4px 0 8px;border-bottom:1px solid rgba(255,255,255,.08);
+  margin-bottom:6px;
+}
+.bcol-matches{display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:6px;}
+.bcol-slot{display:flex;align-items:center;justify-content:center;}
+.bcol-slot-center{justify-content:center;}
+
+/* Anchos por ronda */
+.bcol-16{width:128px;}
+.bcol-8{width:124px;}
+.bcol-4{width:122px;}
+.bcol-semi{width:122px;}
+.bcol-center{width:148px;align-self:stretch;display:flex;flex-direction:column;}
+
+/* Match card base */
+.bm{
+  width:100%;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:7px;
+  padding:7px 8px;
+  position:relative;
+}
+.bm-done{border-color:rgba(74,219,138,.35);background:rgba(74,219,138,.03);}
+.bm-highlight{border-color:rgba(245,166,35,.5);background:rgba(245,166,35,.06);}
+.bm-pending{opacity:.6;}
+.bm-empty{height:60px;}
+.bm-num{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:8px;font-weight:700;letter-spacing:1px;
+  color:var(--gt);margin-bottom:4px;
+}
+.bm-team{
+  display:flex;align-items:center;gap:5px;
+  padding:2px 0;border-radius:3px;
+  transition:background .15s;
+}
+.bm-team-lg{padding:3px 0;}
+.bm-winner{background:rgba(245,166,35,.12);}
+.bm-winner .bm-tname{color:var(--gold);font-weight:700;}
+.bm-tname{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:11px;font-weight:600;
+  flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--white);
+}
+.bm-score{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:13px;font-weight:800;
+  color:var(--gold);min-width:14px;text-align:right;
+}
+.bm-sep{height:1px;background:rgba(255,255,255,.07);margin:3px 0;}
+.bm-extra{font-size:8px;color:var(--gm);margin-top:3px;text-align:right;}
+.bm-campeon{
+  display:flex;align-items:center;gap:5px;
+  margin-top:5px;padding-top:5px;
+  border-top:1px solid rgba(245,166,35,.3);
+  font-size:10px;font-weight:700;color:var(--gold);
+  font-family:'Barlow Condensed',sans-serif;
+}
+
+/* Final card */
+.bm-final{
+  width:100%;
+  background:linear-gradient(135deg,rgba(10,31,92,.9),rgba(18,38,128,.6));
+  border:2px solid rgba(245,166,35,.5);
+  border-radius:10px;
+  padding:10px 10px;
+}
+.bm-final-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:11px;font-weight:800;letter-spacing:2px;
+  color:var(--gold);text-align:center;
+  margin-bottom:8px;text-transform:uppercase;
+}
+
+/* Conectores entre rondas */
+.bc-col{
+  display:flex;flex-direction:column;justify-content:space-around;
+  flex-shrink:0;width:16px;align-self:stretch;
+  padding:28px 0 6px;
+}
+.bc-line{
+  flex:1;
+  border-top:1px solid rgba(245,166,35,.25);
+  border-bottom:1px solid rgba(245,166,35,.25);
+  margin:3px 0;
+}
+.bc-left .bc-line{
+  border-right:1px solid rgba(245,166,35,.25);
+  border-left:none;
+  margin-right:0;
+}
+.bc-right .bc-line{
+  border-left:1px solid rgba(245,166,35,.25);
+  border-right:none;
+  margin-left:0;
+}
+
 </style>
 </head>
 <body>
@@ -425,84 +541,201 @@ function TabHoy({partidos, etapas}) {
   );
 }
 
-// ── TAB BRACKET ──────────────────────────────────────────
+// ── TAB BRACKET VISUAL ────────────────────────────────────
+// REEMPLAZA la función TabBracket completa en ko.html
+// Busca: "function TabBracket({partidos, etapas}) {"
+// Reemplaza todo hasta el cierre "}" que corresponde a esa función
+
 function TabBracket({partidos, etapas}) {
-  const etapaMap = useMemo(() => { const m={}; etapas.forEach(e=>m[e.id]=e); return m; }, [etapas]);
+  const [tick, setTick] = React.useState(Date.now());
+  React.useEffect(()=>{ const id=setInterval(()=>setTick(Date.now()),1000); return()=>clearInterval(id); },[]);
 
+  const etapaMap = React.useMemo(()=>{ const m={}; etapas.forEach(e=>m[e.id]=e); return m; },[etapas]);
+
+  // Indexar partidos por número
+  const pMap = React.useMemo(()=>{ const m={}; partidos.forEach(p=>m[p.numero]=p); return m; },[partidos]);
+
+  // Etapa activa para countdown
   const etapasOrden = [...etapas].sort((a,b)=>a.orden-b.orden);
-  const etapaIds = etapasOrden.map(e=>e.id);
+  const etapaActiva = etapasOrden.find(e=>partidos.filter(p=>p.etapa_id===e.id).some(p=>!p.finalizado));
+  const primerPendiente = etapaActiva
+    ? partidos.filter(p=>p.etapa_id===etapaActiva.id&&!p.finalizado&&p.fecha&&p.hora)
+        .sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.hora.localeCompare(b.hora))[0]
+    : null;
+  const cierreMs = primerPendiente ? cierreEtapa(primerPendiente.fecha, primerPendiente.hora) - tick : null;
 
-  // Partidos agrupados por etapa
-  const porEtapa = useMemo(() => {
-    const m={};
-    etapas.forEach(e=>m[e.id]=[]);
-    partidos.forEach(p => { if (m[p.etapa_id]) m[p.etapa_id].push(p); });
-    Object.values(m).forEach(arr=>arr.sort((a,b)=>a.numero.localeCompare(b.numero)));
-    return m;
-  }, [partidos, etapas]);
+  // ── MATCH CARD ─────────────────────────────────────────
+  function BMatch({numero, side='left', highlight=false}) {
+    const p = pMap[numero];
+    if (!p) return <div className="bm-empty"/>;
+    const done = p.finalizado && p.goles_a !== null;
+    const eqA = p.equipo_a || p.slot_a || '?';
+    const eqB = p.equipo_b || p.slot_b || '?';
+    const hasTeams = !!(p.equipo_a && p.equipo_b);
+    return (
+      <div className={`bm ${done?'bm-done':''} ${highlight?'bm-highlight':''} ${!hasTeams?'bm-pending':''}`}>
+        <div className="bm-num">{numero}</div>
+        <div className={`bm-team ${done&&p.clasificado===p.equipo_a?'bm-winner':''}`}>
+          <Flag name={p.equipo_a} size={13}/>
+          <span className="bm-tname">{eqA}</span>
+          {done && <span className="bm-score">{p.goles_a}</span>}
+        </div>
+        <div className="bm-sep"/>
+        <div className={`bm-team ${done&&p.clasificado===p.equipo_b?'bm-winner':''}`}>
+          <Flag name={p.equipo_b} size={13}/>
+          <span className="bm-tname">{eqB}</span>
+          {done && <span className="bm-score">{p.goles_b}</span>}
+        </div>
+        {done && (p.hubo_penales||p.hubo_prorroga) && (
+          <div className="bm-extra">{p.hubo_penales?'⚡ Pen.':'⏱ Prórr.'}</div>
+        )}
+      </div>
+    );
+  }
 
-  // Etapa activa: primera no finalizada con al menos un partido
-  const etapaActiva = etapasOrden.find(e => porEtapa[e.id]?.some(p=>!p.finalizado));
+  // ── CONNECTOR LINE (SVG) ───────────────────────────────
+  // Dibuja las líneas de conexión entre rondas
+  // side: 'left' lines go right→, 'right' lines go left←
+  function Connector({rows, side='left'}) {
+    // rows = número de partidos en esta columna
+    // Genera líneas horizontales + verticales simuladas con CSS
+    return (
+      <div className={`bc-col bc-${side}`} style={{display:'flex',flexDirection:'column',justifyContent:'space-around',alignItems:side==='left'?'flex-start':'flex-end'}}>
+        {Array.from({length:rows}).map((_,i)=>(
+          <div key={i} className={`bc-line bc-line-${side}`}/>
+        ))}
+      </div>
+    );
+  }
+
+  // ── COLUMN: stack de partidos ──────────────────────────
+  function BCol({numeros, label, side='left', colClass=''}) {
+    return (
+      <div className={`bcol ${colClass}`}>
+        <div className="bcol-label">{label}</div>
+        <div className="bcol-matches">
+          {numeros.map(n=>(
+            <div key={n} className="bcol-slot">
+              <BMatch numero={n} side={side}/>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── CENTRO: Final + 3er puesto ─────────────────────────
+  function BCenter() {
+    const pF = pMap['P104'];
+    const p3 = pMap['P103'];
+    const doneF = pF?.finalizado && pF?.goles_a !== null;
+    const done3 = p3?.finalizado && p3?.goles_a !== null;
+
+    function FinalCard({p, title, icon, done}) {
+      if (!p) return null;
+      const eqA = p.equipo_a || p.slot_a || '?';
+      const eqB = p.equipo_b || p.slot_b || '?';
+      return (
+        <div className={`bm-final ${done?'bm-done':''}`}>
+          <div className="bm-final-title">{icon} {title}</div>
+          <div className={`bm-team bm-team-lg ${done&&p.clasificado===p.equipo_a?'bm-winner':''}`}>
+            <Flag name={p.equipo_a} size={16}/>
+            <span className="bm-tname">{eqA}</span>
+            {done && <span className="bm-score">{p.goles_a}</span>}
+          </div>
+          <div className="bm-sep"/>
+          <div className={`bm-team bm-team-lg ${done&&p.clasificado===p.equipo_b?'bm-winner':''}`}>
+            <Flag name={p.equipo_b} size={16}/>
+            <span className="bm-tname">{eqB}</span>
+            {done && <span className="bm-score">{p.goles_b}</span>}
+          </div>
+          {done && p.clasificado && (
+            <div className="bm-campeon">
+              <Flag name={p.clasificado} size={18}/>
+              <span>{title==='GRAN FINAL'?'🏆 Campeón':'🥉 3er lugar'}: {p.clasificado}</span>
+            </div>
+          )}
+          {done && (p.hubo_penales||p.hubo_prorroga) && (
+            <div className="bm-extra">{p.hubo_penales?'⚡ Penales':'⏱ Prórroga'}</div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="bcol bcol-center">
+        <div className="bcol-label" style={{color:'var(--gold)'}}>FINAL</div>
+        <div className="bcol-matches">
+          <div className="bcol-slot bcol-slot-center">
+            <FinalCard p={pF} title="GRAN FINAL" icon="🏆" done={doneF}/>
+          </div>
+          <div className="bcol-slot bcol-slot-center" style={{marginTop:12}}>
+            <FinalCard p={p3} title="3ER PUESTO" icon="🥉" done={done3}/>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
-      {etapaActiva && (() => {
-        const primerP = porEtapa[etapaActiva.id]?.filter(p=>!p.finalizado).sort((a,b)=>a.fecha?.localeCompare(b.fecha)||a.hora?.localeCompare(b.hora))[0];
-        if (!primerP || !primerP.fecha || !primerP.hora) return null;
-        const cierre = cierreEtapa(primerP.fecha, primerP.hora);
-        const ms = cierre - Date.now();
-        if (ms > 0) return (
-          <div style={{background:'rgba(245,166,35,.08)',border:'1px solid rgba(245,166,35,.3)',borderRadius:10,padding:'12px 16px',marginBottom:16,display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-            <span style={{fontFamily:'Barlow Condensed',fontSize:13,fontWeight:800,color:'var(--gold)',letterSpacing:1}}>🟢 PRONÓSTICOS ABIERTOS — {etapaActiva.nombre.toUpperCase()}</span>
-            <span style={{fontFamily:'Barlow Condensed',fontSize:18,fontWeight:800,color:'#fff'}}>{formatCountdown(ms)}</span>
-            <span style={{fontSize:11,color:'var(--gm)'}}>hasta {fLarga(primerP.fecha)} {primerP.hora} IQ</span>
-          </div>
-        );
-        return null;
-      })()}
+      {/* Countdown banner */}
+      {cierreMs !== null && cierreMs > 0 && etapaActiva && (
+        <div style={{background:'rgba(245,166,35,.08)',border:'1px solid rgba(245,166,35,.3)',borderRadius:10,padding:'12px 16px',marginBottom:14,display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+          <span style={{fontFamily:'Barlow Condensed',fontSize:13,fontWeight:800,color:'var(--gold)',letterSpacing:1}}>
+            🟢 PRONÓSTICOS ABIERTOS — {etapaActiva.nombre.toUpperCase()}
+          </span>
+          <span style={{fontFamily:'Barlow Condensed',fontSize:20,fontWeight:800,color:'#fff'}}>{formatCountdown(cierreMs)}</span>
+          {primerPendiente && <span style={{fontSize:11,color:'var(--gm)'}}>cierra {fLarga(primerPendiente.fecha)} {primerPendiente.hora} IQ</span>}
+        </div>
+      )}
+      {cierreMs !== null && cierreMs <= 0 && etapaActiva && (
+        <div style={{background:'rgba(204,0,0,.08)',border:'1px solid rgba(204,0,0,.3)',borderRadius:10,padding:'10px 16px',marginBottom:14}}>
+          <span style={{fontFamily:'Barlow Condensed',fontSize:13,fontWeight:800,color:'#FF6666',letterSpacing:1}}>🔒 PRONÓSTICOS CERRADOS — {etapaActiva.nombre.toUpperCase()}</span>
+        </div>
+      )}
 
-      <div className="bracket-wrap">
-        <div className="bracket-cols">
-          {etapasOrden.map(etapa => {
-            const ps = porEtapa[etapa.id] || [];
-            return (
-              <div key={etapa.id} className="bracket-col">
-                <div className="bracket-col-title">{etapa.nombre}</div>
-                {ps.map(p => {
-                  const done = p.finalizado && p.goles_a !== null;
-                  const eqA = p.equipo_a || p.slot_a || '?';
-                  const eqB = p.equipo_b || p.slot_b || '?';
-                  return (
-                    <div key={p.id} className={`b-match ${done?'done':''}`}>
-                      <div className="b-num">{p.numero} · {p.fecha||'—'} {p.hora}</div>
-                      <div className="b-team">
-                        <Flag name={p.equipo_a} size={14}/>
-                        <span className="b-team-name" title={eqA}>{eqA}</span>
-                        {done && <span className="b-team-score">{p.goles_a}</span>}
-                      </div>
-                      <div className="b-sep"/>
-                      <div className="b-team">
-                        <Flag name={p.equipo_b} size={14}/>
-                        <span className="b-team-name" title={eqB}>{eqB}</span>
-                        {done && <span className="b-team-score">{p.goles_b}</span>}
-                      </div>
-                      {done && p.clasificado && (
-                        <div className="b-info">
-                          <span className="clasificado-tag">✓ {p.clasificado}</span>
-                          {p.hubo_penales && <span style={{color:'var(--gm)',marginLeft:4}}>⚡</span>}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
+      {/* Leyenda */}
+      <div style={{display:'flex',gap:14,flexWrap:'wrap',marginBottom:14,fontSize:11,color:'var(--gm)'}}>
+        <span><span style={{display:'inline-block',width:10,height:10,background:'rgba(245,166,35,.4)',borderRadius:2,marginRight:4,verticalAlign:'middle'}}/>Clasificado</span>
+        <span>⚡ Penales</span>
+        <span>⏱ Prórroga</span>
+        <span style={{color:'var(--gm)'}}>? = Equipo por confirmar</span>
+      </div>
+
+      {/* Bracket */}
+      <div className="bracket-scroll">
+        <div className="bracket-tree">
+
+          {/* IZQUIERDA: 16avos → 8vos → 4tos → Semi */}
+          <BCol numeros={['P73','P74','P75','P76','P77','P78','P79','P80']} label="16AVOS" side="left" colClass="bcol-16"/>
+          <Connector rows={4} side="left"/>
+          <BCol numeros={['P90','P89','P91','P92']} label="8VOS" side="left" colClass="bcol-8"/>
+          <Connector rows={2} side="left"/>
+          <BCol numeros={['P97','P99']} label="4TOS" side="left" colClass="bcol-4"/>
+          <Connector rows={1} side="left"/>
+          <BCol numeros={['P101']} label="SEMIS" side="left" colClass="bcol-semi"/>
+          <Connector rows={1} side="left"/>
+
+          {/* CENTRO */}
+          <BCenter/>
+
+          {/* DERECHA: Semi → 4tos → 8vos → 16avos */}
+          <Connector rows={1} side="right"/>
+          <BCol numeros={['P102']} label="SEMIS" side="right" colClass="bcol-semi"/>
+          <Connector rows={1} side="right"/>
+          <BCol numeros={['P98','P100']} label="4TOS" side="right" colClass="bcol-4"/>
+          <Connector rows={2} side="right"/>
+          <BCol numeros={['P93','P94','P95','P96']} label="8VOS" side="right" colClass="bcol-8"/>
+          <Connector rows={4} side="right"/>
+          <BCol numeros={['P83','P84','P81','P82','P85','P86','P87','P88']} label="16AVOS" side="right" colClass="bcol-16"/>
+
         </div>
       </div>
     </div>
   );
 }
+
 
 // ── TAB POSICIONES ───────────────────────────────────────
 function TabPosiciones({participantes, pronosticos, partidos, podios, etapas}) {
