@@ -543,10 +543,10 @@ function TabHoy({partidos, etapas}) {
 
 // ── TAB BRACKET VISUAL ────────────────────────────────────
 // REEMPLAZA la función TabBracket completa en ko.html
-// Busca: "function TabBracket({partidos, etapas}) {"
+// Busca: "function TabBracket({partidos, etapas, partidosGrupos=[]}) {"
 // Reemplaza todo hasta el cierre "}" que corresponde a esa función
 
-function TabBracket({partidos, etapas}) {
+function TabBracket({partidos, etapas, partidosGrupos=[]}) {
   const [tick, setTick] = React.useState(Date.now());
   React.useEffect(()=>{ const id=setInterval(()=>setTick(Date.now()),1000); return()=>clearInterval(id); },[]);
 
@@ -554,6 +554,64 @@ function TabBracket({partidos, etapas}) {
 
   // Indexar partidos por número
   const pMap = React.useMemo(()=>{ const m={}; partidos.forEach(p=>m[p.numero]=p); return m; },[partidos]);
+
+  // Standings en vivo desde partidos de fase grupos
+  const standings = React.useMemo(()=>{
+    const g={};
+    partidosGrupos.forEach(p=>{
+      if(!g[p.grupo])g[p.grupo]={};
+      [p.equipo_a,p.equipo_b].forEach(eq=>{
+        if(!g[p.grupo][eq])g[p.grupo][eq]={pts:0,j:0,gf:0,gc:0};
+      });
+      if(!p.finalizado||p.goles_a===null)return;
+      const a=g[p.grupo][p.equipo_a],b=g[p.grupo][p.equipo_b];
+      a.j++;b.j++;a.gf+=p.goles_a;a.gc+=p.goles_b;b.gf+=p.goles_b;b.gc+=p.goles_a;
+      if(p.goles_a>p.goles_b){a.pts+=3;}else if(p.goles_b>p.goles_a){b.pts+=3;}else{a.pts++;b.pts++;}
+    });
+    const result={};
+    Object.keys(g).sort().forEach(grupo=>{
+      result[grupo]=[...Object.entries(g[grupo])
+        .map(([n,s])=>({n,...s,dg:s.gf-s.gc}))
+        .sort((a,b)=>b.pts-a.pts||b.dg-a.dg||b.gf-a.gf)];
+      result[grupo].completo=result[grupo].every(e=>e.j===3);
+    });
+    return result;
+  },[partidosGrupos]);
+
+  // Terceros ordenados para slots
+  const terceros3 = React.useMemo(()=>{
+    return Object.keys(standings).sort()
+      .filter(g=>standings[g].length>=3)
+      .map(g=>({grupo:g,...standings[g][2]}))
+      .sort((a,b)=>b.pts-a.pts||(a.dg===undefined?0:b.dg-a.dg)||b.gf-a.gf);
+  },[standings]);
+  const top8grupos = terceros3.slice(0,8).map(t=>t.grupo);
+
+  // Resolver slot de un partido KO: si tiene equipo real usarlo, si no calcular desde grupos
+  function resolverSlot(partido) {
+    if (partido.equipo_a && partido.equipo_b) return partido; // ya confirmado
+    // Intentar calcular desde standings
+    const slotA = partido.slot_a||'';
+    const slotB = partido.slot_b||'';
+    function fromSlot(slot) {
+      const m1 = slot.match(/^([12])°\s*Grupo\s*([A-L])$/);
+      if(m1){const pos=parseInt(m1[1])-1,grp=m1[2];const t=standings[grp];return t&&t[pos]?{equipo:t[pos].n,provisional:!t.completo}:null;}
+      const m3 = slot.match(/^3°\s*(.+)$/);
+      if(m3){
+        const grupos=m3[1].split('/').map(s=>s.trim());
+        const cand=terceros3.filter(t=>grupos.includes(t.grupo));
+        const top=cand.find(c=>top8grupos.includes(c.grupo));
+        if(!top)return null;
+        return {equipo:top.n,provisional:!standings[top.grupo]?.completo};
+      }
+      return null;
+    }
+    return {
+      ...partido,
+      _slotA: fromSlot(slotA),
+      _slotB: fromSlot(slotB),
+    };
+  }
 
   // Etapa activa para countdown
   const etapasOrden = [...etapas].sort((a,b)=>a.orden-b.orden);
@@ -566,24 +624,30 @@ function TabBracket({partidos, etapas}) {
 
   // ── MATCH CARD ─────────────────────────────────────────
   function BMatch({numero, side='left', highlight=false}) {
-    const p = pMap[numero];
-    if (!p) return <div className="bm-empty"/>;
+    const pRaw = pMap[numero];
+    if (!pRaw) return <div className="bm-empty"/>;
+    const p = resolverSlot(pRaw);
     const done = p.finalizado && p.goles_a !== null;
-    const eqA = p.equipo_a || p.slot_a || '?';
-    const eqB = p.equipo_b || p.slot_b || '?';
-    const hasTeams = !!(p.equipo_a && p.equipo_b);
+    const sA = p._slotA, sB = p._slotB;
+    const eqA = p.equipo_a || sA?.equipo || p.slot_a || '?';
+    const eqB = p.equipo_b || sB?.equipo || p.slot_b || '?';
+    const provA = !p.equipo_a && sA?.provisional;
+    const provB = !p.equipo_b && sB?.provisional;
+    const hasTeams = !!(p.equipo_a && p.equipo_b) || !!(sA && sB);
     return (
       <div className={`bm ${done?'bm-done':''} ${highlight?'bm-highlight':''} ${!hasTeams?'bm-pending':''}`}>
         <div className="bm-num">{numero}</div>
         <div className={`bm-team ${done&&p.clasificado===p.equipo_a?'bm-winner':''}`}>
-          <Flag name={p.equipo_a} size={13}/>
-          <span className="bm-tname">{eqA}</span>
+          <Flag name={p.equipo_a||sA?.equipo} size={13}/>
+          <span className="bm-tname" style={{color:provA?'rgba(255,255,255,.6)':undefined}}>{eqA}</span>
+          {provA&&<span style={{fontSize:7,color:'var(--gold)',fontFamily:'Barlow Condensed',fontWeight:700}}>P</span>}
           {done && <span className="bm-score">{p.goles_a}</span>}
         </div>
         <div className="bm-sep"/>
         <div className={`bm-team ${done&&p.clasificado===p.equipo_b?'bm-winner':''}`}>
-          <Flag name={p.equipo_b} size={13}/>
-          <span className="bm-tname">{eqB}</span>
+          <Flag name={p.equipo_b||sB?.equipo} size={13}/>
+          <span className="bm-tname" style={{color:provB?'rgba(255,255,255,.6)':undefined}}>{eqB}</span>
+          {provB&&<span style={{fontSize:7,color:'var(--gold)',fontFamily:'Barlow Condensed',fontWeight:700}}>P</span>}
           {done && <span className="bm-score">{p.goles_b}</span>}
         </div>
         {done && (p.hubo_penales||p.hubo_prorroga) && (
@@ -2337,19 +2401,22 @@ function App() {
   const [participantes, setParticipantes] = useState([]);
   const [pronosticos, setPronosticos] = useState([]);
   const [podios, setPodios] = useState([]);
+  const [partidosGrupos, setPartidosGrupos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchAll = useCallback(async () => {
     try {
-      const [pk,et,pa,pr,pod] = await Promise.all([
+      const [pk,et,pa,pr,pod,pg] = await Promise.all([
         sb('partidos_ko?select=*&order=numero'),
         sb('etapas_ko?select=*&order=orden'),
         sb('participantes_ko?select=*&order=created_at'),
         sb('pronosticos_ko?select=*'),
         sb('pronostico_podio?select=*'),
+        sb('partidos?select=id,fecha,hora,equipo_a,equipo_b,grupo,goles_a,goles_b,finalizado&order=fecha,hora'),
       ]);
       setPartidos(pk); setEtapas(et); setParticipantes(pa); setPronosticos(pr); setPodios(pod);
+      setPartidosGrupos(pg);
       setError(null);
     } catch(e) { setError(e.message); }
     setLoading(false);
@@ -2403,7 +2470,7 @@ function App() {
           <>
             {tab==='hoy' && <TabHoy partidos={partidos} etapas={etapas}/>}
             {tab==='calendario' && <TabCalendario partidos={partidos} etapas={etapas}/>}
-            {tab==='bracket' && <TabBracket partidos={partidos} etapas={etapas}/>}
+            {tab==='bracket' && <TabBracket partidos={partidos} etapas={etapas} partidosGrupos={partidosGrupos}/>}
             {tab==='misprons' && <TabMisPron partidos={partidos} etapas={etapas} participantes={participantes} pronosticos={pronosticos} podios={podios} onRefresh={fetchAll}/>}
             {tab==='posiciones' && <TabPosiciones participantes={participantes} pronosticos={pronosticos} partidos={partidos} podios={podios} etapas={etapas}/>}
             {tab==='admin' && <TabAdmin partidos={partidos} etapas={etapas} participantes={participantes} pronosticos={pronosticos} podios={podios} onRefresh={fetchAll}/>}
