@@ -1404,8 +1404,16 @@ function PronLogueado({user, partidos, etapas, etapaActiva, primerPartidoActivo,
   const misPuntos = misProns.reduce((s,pr)=>s+(pr.puntos_total||0),0);
   const misPtosPodio = miPodio ? (miPodio.pts_campeon||0)+(miPodio.pts_subcampeon||0)+(miPodio.pts_tercero||0) : 0;
 
-  // ¿Pronósticos públicos? → después del cierre
-  const pPublicos = pronsCerrados;
+  // ¿Pronósticos públicos? → después del cierre de la etapa ACTIVA
+  // O si no hay etapa activa (todas terminadas) → siempre público
+  const pPublicos = pronsCerrados || !etapaActiva;
+
+  // Para el historial: una etapa es pública si ya terminó o no es la activa
+  function etapaEsPublica(etapaId) {
+    if (!etapaActiva) return true;           // sin etapa activa → todo público
+    if (etapaId !== etapaActiva.id) return true; // etapa pasada → público
+    return pronsCerrados;                    // etapa activa → solo si cerró
+  }
 
   return (
     <div>
@@ -1556,6 +1564,7 @@ function PronLogueado({user, partidos, etapas, etapaActiva, primerPartidoActivo,
               <div key={etapa.id} style={{marginBottom:20}}>
                 <div style={{fontFamily:'Barlow Condensed',fontSize:12,fontWeight:800,letterSpacing:2,color:'var(--gold)',marginBottom:10,paddingBottom:4,borderBottom:'1px solid rgba(245,166,35,.2)'}}>{etapa.nombre.toUpperCase()}</div>
                 {psEtapa.map(p=>{
+                  if(!etapaEsPublica(etapa.id)) return null; // no revelar si etapa no cerró
                   const aprobados=participantes.filter(x=>x.aprobado);
                   return(
                     <div key={p.id} style={{marginBottom:12}}>
@@ -1751,7 +1760,7 @@ function TabAdmin({partidos, etapas, participantes, pronosticos, podios, partido
 
       {atab==='grupos' && <AdminGrupos partidosGrupos={partidosGrupos} showMsg={showMsg} onRefresh={onRefresh}/>}
       {atab==='terceros' && <AdminTerceros partidosGrupos={partidosGrupos} showMsg={showMsg} onRefresh={onRefresh}/>}
-      {atab==='resultados' && <AdminResultados partidos={partidos} etapas={etapas} pronosticos={pronosticos} showMsg={showMsg} onRefresh={onRefresh}/>}
+      {atab==='resultados' && <AdminResultados partidos={partidos} etapas={etapas} pronosticos={pronosticos} podios={podios} showMsg={showMsg} onRefresh={onRefresh}/>}
       {atab==='participantes_adm' && <AdminParticipantes participantes={participantes} podios={podios} showMsg={showMsg} onRefresh={onRefresh}/>}
       {atab==='etapas_adm' && <AdminEtapas etapas={etapas} partidos={partidos} showMsg={showMsg} onRefresh={onRefresh}/>}
     </div>
@@ -2223,7 +2232,7 @@ function AdminTerceros({partidosGrupos, showMsg, onRefresh}) {
 
 
 // ── ADMIN: RESULTADOS KO ──────────────────────────────────
-function AdminResultados({partidos, etapas, pronosticos, showMsg, onRefresh}) {
+function AdminResultados({partidos, etapas, pronosticos, podios, showMsg, onRefresh}) {
   const [step, setStep] = useState(0);
   const [selId, setSelId] = useState(null);
   const [gA, setGA] = useState('');
@@ -2261,6 +2270,15 @@ function AdminResultados({partidos, etapas, pronosticos, showMsg, onRefresh}) {
         await sb(`partidos_ko?id=eq.${sig.id}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify(updates)});
       }
     }
+  }
+
+  async function recalcularPartido(pid, ra, rb, clasificadoReal) {
+    if (!confirm('¿Recalcular puntos de este partido? Sobreescribe los puntos actuales.')) return;
+    try {
+      await calcularPuntosPartido(pid, ra, rb, clasificadoReal);
+      showMsg('✓ Puntos recalculados correctamente');
+      onRefresh();
+    } catch(e) { showMsg('Error: '+e.message,'error'); }
   }
 
   async function calcularPuntosPartido(pid, ra, rb, clasificadoReal) {
@@ -2314,6 +2332,33 @@ function AdminResultados({partidos, etapas, pronosticos, showMsg, onRefresh}) {
         }
       } else {
         showMsg('✓ Resultado guardado, puntos calculados y bracket actualizado');
+      }
+      // ── PODIO: calcular puntos si es Final (P104) o 3er puesto (P103) ──
+      const numPartido = selPartido?.numero;
+      if (numPartido === 'P104' || numPartido === 'P103') {
+        const esFinal = numPartido === 'P104';
+        // ganador/perdedor del partido
+        const ra2 = parseInt(gA), rb2 = parseInt(gB);
+        const ganador2 = ra2 > rb2 ? selPartido.equipo_a : rb2 > ra2 ? selPartido.equipo_b : clasFinal;
+        const perdedor2 = ganador2 === selPartido.equipo_a ? selPartido.equipo_b : selPartido.equipo_a;
+        // Para cada pronóstico de podio, calcular puntos
+        for (const pod of podios) {
+          let patchPodio = {};
+          if (esFinal) {
+            // P104: campeón = ganador, subcampeón = perdedor
+            patchPodio.pts_campeon   = pod.pred_campeon   === ganador2 ? 5 : 0;
+            patchPodio.pts_subcampeon = pod.pred_subcampeon === perdedor2 ? 5 : 0;
+          } else {
+            // P103: 3er lugar = ganador de este partido
+            patchPodio.pts_tercero = pod.pred_tercero === ganador2 ? 5 : 0;
+          }
+          await sb(`pronostico_podio?id=eq.${pod.id}`, {
+            method: 'PATCH', prefer: 'return=minimal',
+            body: JSON.stringify(patchPodio)
+          });
+        }
+        if (esFinal) showMsg('✓ Final registrada — puntos de campeón y subcampeón calculados 🏆');
+        else showMsg('✓ 3er puesto registrado — puntos de podio calculados 🥉');
       }
       setStep(0);setSelId(null);setGA('');setGB('');setProrroga(false);setPenales(false);setClasificado('');
       onRefresh();
@@ -2505,7 +2550,10 @@ function AdminResultados({partidos, etapas, pronosticos, showMsg, onRefresh}) {
                           </div>
                         : <div style={{display:'flex',gap:4,justifyContent:'center'}}>
                             <button className="btn btn-w btn-xs" style={{background:'rgba(245,166,35,.2)',color:'var(--gold)',border:'1px solid rgba(245,166,35,.3)'}}
-                              onClick={()=>{setEditId(p.id);setEditA(String(p.goles_a));setEditB(String(p.goles_b));setEditProrroga(p.hubo_prorroga);setEditPenales(p.hubo_penales);setEditClasificado(p.clasificado||'');}}>✏️</button>
+                              onClick={()=>{setEditId(p.id);setEditA(String(p.goles_a));setEditB(String(p.goles_b));setEditProrroga(p.hubo_prorroga);setEditPenales(p.hubo_penales);setEditClasificado(p.clasificado||'');}}>✏️ Editar</button>
+                            <button className="btn btn-xs" style={{background:'rgba(100,150,255,.15)',color:'var(--blue)',border:'1px solid rgba(100,150,255,.3)'}}
+                              onClick={()=>recalcularPartido(p.id,p.goles_a,p.goles_b,p.clasificado)}
+                              title="Recalcular puntos">↻ Recalc</button>
                             <button className="btn btn-d btn-xs" onClick={()=>anular(p.id)}>🗑</button>
                           </div>
                       }
