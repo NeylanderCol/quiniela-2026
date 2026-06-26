@@ -1192,38 +1192,52 @@ function TabBracketLive({partidos}){
       .map(g=>({grupo:g,...standings[g][2]}))
       .sort((a,b)=>b.pts-a.pts||(b.dg-a.dg)||b.gf-a.gf);
   },[standings]);
-  const top8=new Set(terceros.slice(0,8).map(t=>t.grupo));
+  // top8 now computed inside asignacionTerceros
 
   function getEq(grupo,pos){
     const t=standings[grupo];
     if(!t||t.length<=pos)return null;
     return{equipo:t[pos].n,prov:!t.completo};
   }
-  function getBest3(grupos3Str){
-    const gs=grupos3Str.split("/");
-    const cands=terceros.filter(t=>gs.includes(t.grupo)&&top8.has(t.grupo));
-    if(!cands.length)return null;
-    const t=cands[0];
-    return{equipo:t.n,prov:!standings[t.grupo]?.completo};
+  // Asignación única de terceros a slots (sin duplicados)
+  const asignacionTerceros=React.useMemo(()=>{
+    const SLOTS={'P74':['A','B','C','D','F'],'P77':['C','D','F','G','H'],
+      'P79':['C','E','F','H','I'],'P80':['E','H','I','J','K'],
+      'P81':['B','E','F','I','J'],'P82':['A','E','H','I','J'],
+      'P85':['E','F','G','I','J'],'P87':['D','E','I','J','L']};
+    const t8=new Set(terceros.slice(0,8).map(t=>t.grupo));
+    const result={};
+    const usados=new Set();
+    // Slots más restrictivos primero
+    const ord=Object.entries(SLOTS).sort((a,b)=>a[1].length-b[1].length).map(([s])=>s);
+    for(const slot of ord){
+      const cand=terceros.find(t=>SLOTS[slot].includes(t.grupo)&&t8.has(t.grupo)&&!usados.has(t.grupo));
+      if(cand){result[slot]={equipo:cand.n,prov:!standings[cand.grupo]?.completo};usados.add(cand.grupo);}
+    }
+    return result;
+  },[terceros,standings]);
+
+  function getBest3(slot){
+    return asignacionTerceros[slot]||null;
   }
 
   // Definición de los 16 partidos KO
   const p16=[
     {num:"P73",la:"2°A",a:getEq("A",1),lb:"2°B",b:getEq("B",1)},
-    {num:"P74",la:"1°E",a:getEq("E",0),lb:"3°A/B/C/D/F",b:getBest3("A/B/C/D/F")},
+    {num:"P74",la:"1°E",a:getEq("E",0),lb:"3°A/B/C/D/F",b:getBest3("P74")},
     {num:"P75",la:"1°F",a:getEq("F",0),lb:"2°C",b:getEq("C",1)},
     {num:"P76",la:"1°C",a:getEq("C",0),lb:"2°F",b:getEq("F",1)},
-    {num:"P77",la:"1°I",a:getEq("I",0),lb:"3°C/D/F/G/H",b:getBest3("C/D/F/G/H")},
+    {num:"P77",la:"1°I",a:getEq("I",0),lb:"3°C/D/F/G/H",b:getBest3("P77")},
     {num:"P78",la:"2°E",a:getEq("E",1),lb:"2°I",b:getEq("I",1)},
-    {num:"P79",la:"1°A",a:getEq("A",0),lb:"3°C/E/F/H/I",b:getBest3("C/E/F/H/I")},
-    {num:"P80",la:"1°L",a:getEq("L",0),lb:"3°E/H/I/J/K",b:getBest3("E/H/I/J/K")},
-    {num:"P81",la:"1°D",a:getEq("D",0),lb:"3°B/E/F/I/J",b:getBest3("B/E/F/I/J")},
-    {num:"P82",la:"1°G",a:getEq("G",0),lb:"3°A/E/H/I/J",b:getBest3("A/E/H/I/J")},
+    {num:"P79",la:"1°A",a:getEq("A",0),lb:"3°C/E/F/H/I",b:getBest3("P79")},
+    {num:"P80",la:"1°L",a:getEq("L",0),lb:"3°E/H/I/J/K",b:getBest3("P80")},
+    {num:"P81",la:"1°D",a:getEq("D",0),lb:"3°B/E/F/I/J",b:getBest3("P81")},
+    {num:"P82",la:"1°G",a:getEq("G",0),lb:"3°A/E/H/I/J",b:getBest3("P82")},
     {num:"P83",la:"2°K",a:getEq("K",1),lb:"2°L",b:getEq("L",1)},
     {num:"P84",la:"1°H",a:getEq("H",0),lb:"2°J",b:getEq("J",1)},
-    {num:"P85",la:"1°B",a:getEq("B",0),lb:"3°E/F/G/I/J",b:getBest3("E/F/G/I/J")},
+    {num:"P85",la:"1°B",a:getEq("B",0),lb:"3°E/F/G/I/J",b:getBest3("P85")},
     {num:"P86",la:"1°J",a:getEq("J",0),lb:"2°H",b:getEq("H",1)},
-    {num:"P87",la:"1°K",a:getEq("K",0),lb:"3°D/E/I/J/L",b:getBest3("D/E/I/J/L")},
+    {num:"P87",la:"1°K",a:getEq("K",0),lb:"3°D/E/I/J/L",b:getBest3("P87")},
     {num:"P88",la:"2°D",a:getEq("D",1),lb:"2°G",b:getEq("G",1)},
   ];
 
