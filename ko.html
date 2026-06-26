@@ -589,28 +589,30 @@ function TabBracket({partidos, etapas, partidosGrupos=[]}) {
 
   // Resolver slot de un partido KO: si tiene equipo real usarlo, si no calcular desde grupos
   function resolverSlot(partido) {
-    if (partido.equipo_a && partido.equipo_b) return partido; // ya confirmado
-    // Intentar calcular desde standings
+    if (partido.equipo_a && partido.equipo_b) return partido;
     const slotA = partido.slot_a||'';
     const slotB = partido.slot_b||'';
+
+    // Pre-compute unique third-place slot assignments (no duplicates)
+    const SLOTS3={'P74':['A','B','C','D','F'],'P77':['C','D','F','G','H'],
+      'P79':['C','E','F','H','I'],'P80':['E','H','I','J','K'],
+      'P81':['B','E','F','I','J'],'P82':['A','E','H','I','J'],
+      'P85':['E','F','G','I','J'],'P87':['D','E','I','J','L']};
+    const t8=new Set(terceros3.slice(0,8).map(t=>t.grupo));
+    const asig3={};const usados=new Set();
+    const ord=Object.entries(SLOTS3).sort((a,b)=>a[1].length-b[1].length).map(([s])=>s);
+    for(const slot of ord){
+      const cand=terceros3.find(t=>SLOTS3[slot].includes(t.grupo)&&t8.has(t.grupo)&&!usados.has(t.grupo));
+      if(cand){asig3[slot]={equipo:cand.n,provisional:!standings[cand.grupo]?.completo};usados.add(cand.grupo);}
+    }
+
     function fromSlot(slot) {
       const m1 = slot.match(/^([12])°\s*Grupo\s*([A-L])$/);
       if(m1){const pos=parseInt(m1[1])-1,grp=m1[2];const t=standings[grp];return t&&t[pos]?{equipo:t[pos].n,provisional:!t.completo}:null;}
-      const m3 = slot.match(/^3°\s*(.+)$/);
-      if(m3){
-        const grupos=m3[1].split('/').map(s=>s.trim());
-        const cand=terceros3.filter(t=>grupos.includes(t.grupo));
-        const top=cand.find(c=>top8grupos.includes(c.grupo));
-        if(!top)return null;
-        return {equipo:top.n,provisional:!standings[top.grupo]?.completo};
-      }
+      if(slot.startsWith('3°')) return asig3[partido.numero]||null;
       return null;
     }
-    return {
-      ...partido,
-      _slotA: fromSlot(slotA),
-      _slotB: fromSlot(slotB),
-    };
+    return { ...partido, _slotA: fromSlot(slotA), _slotB: fromSlot(slotB) };
   }
 
   // Etapa activa para countdown
