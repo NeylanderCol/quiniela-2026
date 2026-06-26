@@ -1230,7 +1230,19 @@ function TabBracketLive({partidos}){
     if(!t||t.length<=pos)return null;
     return{equipo:t[pos].n,prov:!t.completo};
   }
-  function get3(slot){return asig3[slot]||null;}
+  // get3: usa asignación definitiva si hay 8+ grupos; si no, muestra el mejor elegible provisionalmente
+  const SLOTS_DEF={'P74':['A','B','C','D','F'],'P77':['C','D','F','G','H'],
+    'P79':['C','E','F','H','I'],'P80':['E','H','I','J','K'],
+    'P81':['B','E','F','I','J'],'P82':['A','E','H','I','J'],
+    'P85':['E','F','G','I','J'],'P87':['D','E','I','J','L']};
+  function get3(slot){
+    if(asig3[slot]) return asig3[slot];
+    // Fallback: mejor tercero elegible para este slot aunque sea provisional
+    const elegibles=SLOTS_DEF[slot]||[];
+    const cand=terceros.find(t=>elegibles.includes(t.grupo));
+    if(!cand) return null;
+    return{equipo:cand.n,prov:true};
+  }
 
   // Datos de los 16 cruces
   const cruces={
