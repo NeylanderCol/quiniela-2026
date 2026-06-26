@@ -1289,12 +1289,9 @@ function TabBracketLive({partidos}){
       </div>
     );
     if(!c) return <div className="bm-empty"/>;
-    const tieneA=!!c.a, tieneB=!!c.b;
-    const ambos=tieneA&&tieneB;
-    const alguno=tieneA||tieneB;
     const prov=(c.a?.prov||c.b?.prov);
     return(
-      <div className={`bm ${prov&&ambos?'bm-prov':''} ${!alguno?'bm-pending':''}`}>
+      <div className={`bm ${prov?'bm-prov':''}`} style={{minHeight:52}}>
         <div className="bm-num">{num}</div>
         <TeamRow eq={c.a} label={c.la}/>
         <div className="bm-sep"/>
