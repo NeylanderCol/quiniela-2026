@@ -165,12 +165,17 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--white);min
   .pred-grid{grid-template-columns:repeat(2,1fr);}
   .match-picker-grid{grid-template-columns:1fr;}
 }
+
+/* TERCEROS + BRACKET LIVE */
+.grp-card-live{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 12px;margin-bottom:6px;}
+.grp-card-live.completo{border-color:rgba(74,219,138,.2);}
+.ko-pill{background:rgba(100,150,255,.15);color:#AAC0FF;padding:2px 8px;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const {useState,useEffect,useCallback,useRef} = React;
+const {useState,useEffect,useCallback,useRef,useMemo} = React;
 
 const SB_URL = "https://zccpukcvzrzgmaluemuq.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjY3B1a2N2enJ6Z21hbHVlbXVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMDgzNzksImV4cCI6MjA5NjY4NDM3OX0.ln2MWHiFQbMjEwyNGSuP_hhgzSv3JGYFQY-q9IzLiZM";
@@ -1036,6 +1041,254 @@ function TabAdmin({partidos,parts,prons,onRefresh}){
   );
 }
 
+
+// ── TABLA DE MEJORES TERCEROS ────────────────────────────────
+function TabTerceros({partidos}){
+  // Calcular standings por grupo
+  const g={};
+  partidos.forEach(p=>{
+    if(!g[p.grupo])g[p.grupo]={};
+    [p.equipo_a,p.equipo_b].forEach(eq=>{
+      if(!g[p.grupo][eq])g[p.grupo][eq]={pts:0,j:0,gf:0,gc:0,gn:0,e:0,pe:0};
+    });
+    if(!p.finalizado||p.goles_a===null)return;
+    const a=g[p.grupo][p.equipo_a],b=g[p.grupo][p.equipo_b];
+    a.j++;b.j++;a.gf+=p.goles_a;a.gc+=p.goles_b;b.gf+=p.goles_b;b.gc+=p.goles_a;
+    const dg=(x)=>x.gf-x.gc;
+    if(p.goles_a>p.goles_b){a.pts+=3;a.gn++;b.pe++;}
+    else if(p.goles_a<p.goles_b){b.pts+=3;b.gn++;a.pe++;}
+    else{a.pts++;b.pts++;a.e++;b.e++;}
+  });
+
+  // Extraer el 3ero de cada grupo
+  const terceros=[];
+  Object.keys(g).sort().forEach(grupo=>{
+    const tabla=Object.entries(g[grupo])
+      .map(([n,s])=>({n,...s,dg:s.gf-s.gc}))
+      .sort((a,b)=>b.pts-a.pts||b.dg-a.dg||b.gf-a.gf);
+    if(tabla.length>=3){
+      const completo=tabla.every(e=>e.j===3);
+      terceros.push({grupo,...tabla[2],completo});
+    }
+  });
+
+  // Ordenar por criterios FIFA: pts → dg → gf
+  const ordenados=[...terceros].sort((a,b)=>b.pts-a.pts||(b.dg-a.dg)||b.gf-a.gf);
+  const clasifican=ordenados.slice(0,8);
+  const eliminados=ordenados.slice(8);
+
+  return(
+    <div>
+      <div style={{background:"rgba(245,166,35,.08)",border:"1px solid rgba(245,166,35,.25)",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:11,lineHeight:1.8,color:"var(--gm)"}}>
+        <strong style={{color:"var(--gold)"}}>Criterios FIFA para mejores 3eros:</strong>{" "}
+        Puntos → Diferencia de goles → Goles a favor → Fair play (tarjetas) → Ranking FIFA<br/>
+        <strong style={{color:"var(--gold)"}}>⚠️</strong> Fair play y Ranking FIFA no se calculan aquí — aplican solo si hay empate en los primeros 3 criterios.
+      </div>
+
+      <div className="card" style={{marginBottom:14}}>
+        <div style={{fontFamily:"Barlow Condensed",fontSize:12,fontWeight:800,letterSpacing:2,color:"#4ADB8A",marginBottom:10}}>
+          ✅ CLASIFICAN AL BRACKET KO (Top 8)
+        </div>
+        <div style={{overflowX:"auto"}}>
+          <table className="st-table">
+            <thead><tr>
+              <th>#</th><th>Grp</th><th>Equipo</th>
+              <th style={{textAlign:"center"}}>PJ</th>
+              <th style={{textAlign:"center"}}>Pts</th>
+              <th style={{textAlign:"center"}}>DG</th>
+              <th style={{textAlign:"center"}}>GF</th>
+              <th style={{textAlign:"center"}}>GC</th>
+              <th style={{textAlign:"center"}}>Estado</th>
+            </tr></thead>
+            <tbody>
+              {clasifican.map((t,i)=>(
+                <tr key={t.grupo}>
+                  <td><div className={`pos-b p${i<3?i+1:"x"}`} style={{background:i<8?"rgba(74,219,138,.3)":undefined,color:i<8?"#4ADB8A":undefined}}>{i+1}</div></td>
+                  <td><span className="grp-badge">G{t.grupo}</span></td>
+                  <td><div style={{display:"flex",alignItems:"center",gap:6}}><Flag name={t.n} size={16}/><span style={{fontWeight:600,fontSize:13}}>{t.n}</span></div></td>
+                  <td style={{textAlign:"center",color:"var(--gm)",fontSize:12}}>{t.j}</td>
+                  <td style={{textAlign:"center"}}><span className="pts-big">{t.pts}</span></td>
+                  <td style={{textAlign:"center",color:t.dg>0?"#4ADB8A":t.dg<0?"#FF6666":"var(--gm)",fontWeight:700}}>{t.dg>0?"+":""}{t.dg}</td>
+                  <td style={{textAlign:"center",fontSize:12}}>{t.gf}</td>
+                  <td style={{textAlign:"center",fontSize:12,color:"var(--gm)"}}>{t.gc}</td>
+                  <td style={{textAlign:"center"}}>
+                    <span style={{fontSize:9,padding:"2px 6px",borderRadius:3,fontFamily:"Barlow Condensed",fontWeight:700,letterSpacing:1,
+                      background:t.completo?"rgba(74,219,138,.15)":"rgba(245,166,35,.15)",
+                      color:t.completo?"#4ADB8A":"var(--gold)"}}>
+                      {t.completo?"FINAL":"EN CURSO"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {eliminados.length>0&&(
+        <div className="card">
+          <div style={{fontFamily:"Barlow Condensed",fontSize:12,fontWeight:800,letterSpacing:2,color:"#FF6666",marginBottom:10}}>
+            ❌ NO CLASIFICAN (posiciones 9-12)
+          </div>
+          <div style={{overflowX:"auto"}}>
+            <table className="st-table">
+              <thead><tr>
+                <th>#</th><th>Grp</th><th>Equipo</th>
+                <th style={{textAlign:"center"}}>Pts</th>
+                <th style={{textAlign:"center"}}>DG</th>
+                <th style={{textAlign:"center"}}>GF</th>
+              </tr></thead>
+              <tbody>
+                {eliminados.map((t,i)=>(
+                  <tr key={t.grupo} style={{opacity:.6}}>
+                    <td><div className="pos-b px">{i+9}</div></td>
+                    <td><span className="grp-badge">G{t.grupo}</span></td>
+                    <td><div style={{display:"flex",alignItems:"center",gap:6}}><Flag name={t.n} size={16}/><span style={{fontWeight:600,fontSize:13}}>{t.n}</span></div></td>
+                    <td style={{textAlign:"center"}}><span className="pts-big" style={{color:"var(--gm)"}}>{t.pts}</span></td>
+                    <td style={{textAlign:"center",color:t.dg>0?"#4ADB8A":t.dg<0?"#FF6666":"var(--gm)",fontWeight:700}}>{t.dg>0?"+":""}{t.dg}</td>
+                    <td style={{textAlign:"center",fontSize:12}}>{t.gf}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── BRACKET KO LIVE (vista provisional desde grupos) ─────────
+function TabBracketLive({partidos}){
+  // Calcular standings en vivo
+  const standings=useMemo(()=>{
+    const g={};
+    partidos.forEach(p=>{
+      if(!g[p.grupo])g[p.grupo]={};
+      [p.equipo_a,p.equipo_b].forEach(eq=>{
+        if(!g[p.grupo][eq])g[p.grupo][eq]={pts:0,j:0,gf:0,gc:0};
+      });
+      if(!p.finalizado||p.goles_a===null)return;
+      const a=g[p.grupo][p.equipo_a],b=g[p.grupo][p.equipo_b];
+      a.j++;b.j++;a.gf+=p.goles_a;a.gc+=p.goles_b;b.gf+=p.goles_b;b.gc+=p.goles_a;
+      if(p.goles_a>p.goles_b)a.pts+=3;
+      else if(p.goles_b>p.goles_a)b.pts+=3;
+      else{a.pts++;b.pts++;}
+    });
+    const r={};
+    Object.keys(g).sort().forEach(grupo=>{
+      r[grupo]=Object.entries(g[grupo])
+        .map(([n,s])=>({n,...s,dg:s.gf-s.gc}))
+        .sort((a,b)=>b.pts-a.pts||(b.dg-a.dg)||b.gf-a.gf);
+      r[grupo].completo=r[grupo].every(e=>e.j===3);
+    });
+    return r;
+  },[partidos]);
+
+  // Top 8 terceros
+  const terceros=useMemo(()=>{
+    return Object.keys(standings).sort()
+      .filter(g=>standings[g].length>=3)
+      .map(g=>({grupo:g,...standings[g][2]}))
+      .sort((a,b)=>b.pts-a.pts||(b.dg-a.dg)||b.gf-a.gf);
+  },[standings]);
+  const top8=new Set(terceros.slice(0,8).map(t=>t.grupo));
+
+  function getEq(grupo,pos){
+    const t=standings[grupo];
+    if(!t||t.length<=pos)return null;
+    return{equipo:t[pos].n,prov:!t.completo};
+  }
+  function getBest3(grupos3Str){
+    const gs=grupos3Str.split("/");
+    const cands=terceros.filter(t=>gs.includes(t.grupo)&&top8.has(t.grupo));
+    if(!cands.length)return null;
+    const t=cands[0];
+    return{equipo:t.n,prov:!standings[t.grupo]?.completo};
+  }
+
+  // Definición de los 16 partidos KO
+  const p16=[
+    {num:"P73",la:"2°A",a:getEq("A",1),lb:"2°B",b:getEq("B",1)},
+    {num:"P74",la:"1°E",a:getEq("E",0),lb:"3°A/B/C/D/F",b:getBest3("A/B/C/D/F")},
+    {num:"P75",la:"1°F",a:getEq("F",0),lb:"2°C",b:getEq("C",1)},
+    {num:"P76",la:"1°C",a:getEq("C",0),lb:"2°F",b:getEq("F",1)},
+    {num:"P77",la:"1°I",a:getEq("I",0),lb:"3°C/D/F/G/H",b:getBest3("C/D/F/G/H")},
+    {num:"P78",la:"2°E",a:getEq("E",1),lb:"2°I",b:getEq("I",1)},
+    {num:"P79",la:"1°A",a:getEq("A",0),lb:"3°C/E/F/H/I",b:getBest3("C/E/F/H/I")},
+    {num:"P80",la:"1°L",a:getEq("L",0),lb:"3°E/H/I/J/K",b:getBest3("E/H/I/J/K")},
+    {num:"P81",la:"1°D",a:getEq("D",0),lb:"3°B/E/F/I/J",b:getBest3("B/E/F/I/J")},
+    {num:"P82",la:"1°G",a:getEq("G",0),lb:"3°A/E/H/I/J",b:getBest3("A/E/H/I/J")},
+    {num:"P83",la:"2°K",a:getEq("K",1),lb:"2°L",b:getEq("L",1)},
+    {num:"P84",la:"1°H",a:getEq("H",0),lb:"2°J",b:getEq("J",1)},
+    {num:"P85",la:"1°B",a:getEq("B",0),lb:"3°E/F/G/I/J",b:getBest3("E/F/G/I/J")},
+    {num:"P86",la:"1°J",a:getEq("J",0),lb:"2°H",b:getEq("H",1)},
+    {num:"P87",la:"1°K",a:getEq("K",0),lb:"3°D/E/I/J/L",b:getBest3("D/E/I/J/L")},
+    {num:"P88",la:"2°D",a:getEq("D",1),lb:"2°G",b:getEq("G",1)},
+  ];
+
+  function EqRow({eq,label}){
+    if(!eq)return(
+      <div style={{display:"flex",alignItems:"center",gap:5,padding:"3px 0"}}>
+        <div style={{width:18,height:13,background:"rgba(255,255,255,.08)",borderRadius:2,flexShrink:0}}/>
+        <span style={{fontFamily:"Barlow Condensed",fontSize:11,color:"var(--gt)",fontStyle:"italic"}}>{label}</span>
+      </div>
+    );
+    return(
+      <div style={{display:"flex",alignItems:"center",gap:5,padding:"3px 0"}}>
+        <Flag name={eq.equipo} size={13}/>
+        <span style={{fontFamily:"Barlow Condensed",fontSize:12,fontWeight:700,flex:1,
+          color:eq.prov?"rgba(255,255,255,.55)":"var(--white)"}}>{eq.equipo}</span>
+        {eq.prov&&<span style={{fontSize:8,color:"var(--gold)",fontFamily:"Barlow Condensed",fontWeight:700,letterSpacing:.5}}>PROV</span>}
+      </div>
+    );
+  }
+
+  // Agrupar por fecha España (referencia)
+  const fechas=[
+    {label:"Dom 28 Jun",nums:["P73"]},
+    {label:"Lun 29 Jun",nums:["P74","P75","P76"]},
+    {label:"Mar 30 Jun",nums:["P77","P78","P79"]},
+    {label:"Mié 1 Jul",nums:["P80","P81","P82"]},
+    {label:"Jue 2 Jul",nums:["P83","P84","P85"]},
+    {label:"Vie 3 Jul",nums:["P86","P87","P88"]},
+  ];
+
+  return(
+    <div>
+      <div style={{background:"rgba(100,150,255,.08)",border:"1px solid rgba(100,150,255,.25)",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:11,color:"var(--gm)",lineHeight:1.8}}>
+        <strong style={{color:"#AAC0FF"}}>Vista provisional del bracket KO</strong> — se actualiza automáticamente con los resultados de grupos.
+        <span style={{color:"var(--gold)"}}> PROV</span> = grupo aún no terminó (puede cambiar).{" "}
+        <a href="./ko.html" style={{color:"var(--gold)",fontWeight:700}}>Ver portal KO completo →</a>
+      </div>
+
+      {fechas.map(({label,nums})=>(
+        <div key={label}>
+          <div className="cal-hdr" style={{marginTop:16}}>{label} — 16avos de Final</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(230px,1fr))",gap:8,marginBottom:8}}>
+            {nums.map(num=>{
+              const p=p16.find(x=>x.num===num);
+              if(!p)return null;
+              return(
+                <div key={num} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.09)",borderRadius:8,padding:"9px 10px"}}>
+                  <div style={{fontFamily:"Barlow Condensed",fontSize:9,color:"var(--gt)",letterSpacing:1,marginBottom:5}}>{num}</div>
+                  <EqRow eq={p.a} label={p.la}/>
+                  <div style={{borderTop:"1px solid rgba(255,255,255,.07)",margin:"3px 0"}}/>
+                  <EqRow eq={p.b} label={p.lb}/>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      <div style={{marginTop:16,padding:"10px 14px",background:"rgba(0,0,0,.2)",borderRadius:8,fontSize:11,color:"var(--gm)"}}>
+        Cruces KO confirmados por FIFA. Los equipos definitivos se conocen al terminar todos los grupos (27 junio).
+      </div>
+    </div>
+  );
+}
+
 // ── APP ──────────────────────────────────────────────────
 function App(){
   const[tab,setTab]=useState("hoy");
@@ -1083,7 +1336,7 @@ function App(){
 
   useEffect(()=>{seed();},[]);
 
-  const TABS=[{id:"hoy",l:"⚽ Hoy"},{id:"calendario",l:"📅 Calendario"},{id:"posiciones",l:"🏆 Posiciones"},{id:"grupos",l:"🌍 Grupos"},{id:"pronosticos",l:"📊 Pronósticos"},{id:"admin",l:"⚙️ Admin"}];
+  const TABS=[{id:"hoy",l:"⚽ Hoy"},{id:"calendario",l:"📅 Calendario"},{id:"posiciones",l:"🏆 Posiciones"},{id:"grupos",l:"🌍 Grupos"},{id:"terceros",l:"🥉 Mejores 3eros"},{id:"bracket_live",l:"🏆 Bracket KO"},{id:"pronosticos",l:"📊 Pronósticos"},{id:"admin",l:"⚙️ Admin"}];
 
   return(
     <>
@@ -1118,6 +1371,8 @@ function App(){
             {tab==="calendario"&&<TabCalendario partidos={partidos} prons={prons} parts={parts}/>}
             {tab==="posiciones"&&<TabPosiciones partidos={partidos} prons={prons} parts={parts}/>}
             {tab==="grupos"&&<TabGrupos partidos={partidos}/>}
+            {tab==="terceros"&&<TabTerceros partidos={partidos}/>}
+            {tab==="bracket_live"&&<TabBracketLive partidos={partidos}/>}
             {tab==="pronosticos"&&<TabPronosticos partidos={partidos} prons={prons} parts={parts}/>}
             {tab==="admin"&&<TabAdmin partidos={partidos} parts={parts} prons={prons} onRefresh={fetchAll}/>}
           </>
