@@ -4,238 +4,688 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Quiniela Destin — Mundial FIFA 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
 :root{
-  --navy:#0A1F5C;--navy-mid:#122680;--red:#CC0000;
-  --gold:#F5A623;--gold-l:#FFB940;--white:#FFF;--gm:#B0BBDD;--bg:#060F33;
+  --navy:#0A1F5C;--navy-mid:#122680;--red:#CC0000;--red-l:#e60000;
+  --gold:#F5A623;--gold-l:#FFB940;--white:#FFF;--gm:#B0BBDD;--gt:#6B7BAA;--bg:#060F33;
+  --green:#4ADB8A;--blue:#6496FF;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{
-  font-family:'Barlow',sans-serif;
-  background:var(--bg);
-  color:var(--white);
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:24px 16px;
-  position:relative;
-  overflow:hidden;
-}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;}
 
-/* Fondo animado sutil */
-body::before{
-  content:'';
-  position:fixed;
-  inset:0;
-  background:
-    radial-gradient(ellipse at 20% 50%, rgba(18,38,128,.6) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 20%, rgba(204,0,0,.15) 0%, transparent 50%),
-    radial-gradient(ellipse at 60% 80%, rgba(245,166,35,.08) 0%, transparent 50%);
-  pointer-events:none;
-}
+/* ── HEADER ─────────────────────────────────────────────── */
+.header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 60%,var(--red) 100%);padding:16px 18px 0;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.5);}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.logo-area{display:flex;align-items:center;gap:10px;}
+.logo-ball{width:42px;height:42px;background:radial-gradient(circle at 35% 35%,#fff 0%,#ddd 60%,#aaa 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 2px 8px rgba(0,0,0,.4);flex-shrink:0;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+.logo-text{font-family:'Barlow Condensed',sans-serif;}
+.logo-title{font-size:21px;font-weight:800;letter-spacing:1px;line-height:1;}
+.logo-sub{font-size:10px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;}
+.prize-pill{background:var(--gold);color:var(--navy);padding:4px 10px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;white-space:nowrap;}
+.nav-tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.tab-btn{background:none;border:none;cursor:pointer;padding:9px 14px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:.5px;color:var(--gm);border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;}
+.tab-btn:hover{color:var(--white);}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
 
-.wrap{
-  position:relative;
-  z-index:1;
-  width:100%;
-  max-width:480px;
-  text-align:center;
-}
+/* ── LAYOUT ─────────────────────────────────────────────── */
+.main{max-width:720px;margin:0 auto;padding:24px 16px 60px;}
+.card{background:var(--navy);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:20px;margin-bottom:14px;}
+.card.gold-card{border-color:rgba(245,166,35,.35);background:rgba(245,166,35,.05);}
+.card.green-card{border-color:rgba(74,219,138,.3);background:rgba(74,219,138,.04);}
+.card.red-card{border-color:rgba(204,0,0,.35);background:rgba(204,0,0,.05);}
+.card.blue-card{border-color:rgba(100,150,255,.3);background:rgba(100,150,255,.05);}
 
-/* Logo */
-.logo{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  margin-bottom:40px;
-}
-.ball{
-  width:72px;height:72px;
-  background:radial-gradient(circle at 35% 35%,#fff 0%,#ddd 60%,#aaa 100%);
-  border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:36px;
-  box-shadow:0 8px 32px rgba(0,0,0,.5);
-  margin-bottom:16px;
-  animation:float 3s ease-in-out infinite;
-}
-@keyframes float{
-  0%,100%{transform:translateY(0);}
-  50%{transform:translateY(-8px);}
-}
-.title{
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:32px;
-  font-weight:800;
-  letter-spacing:2px;
-  line-height:1;
-  margin-bottom:6px;
-}
-.subtitle{
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:13px;
-  color:var(--gold);
-  letter-spacing:3px;
-  text-transform:uppercase;
-}
-
-/* Selector */
-.selector-label{
-  font-size:12px;
-  color:var(--gm);
-  letter-spacing:2px;
-  text-transform:uppercase;
-  margin-bottom:20px;
-  font-family:'Barlow Condensed',sans-serif;
-}
-
-.cards{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
-  margin-bottom:32px;
-}
-
-.portal-card{
-  background:rgba(255,255,255,.04);
-  border:2px solid rgba(255,255,255,.1);
-  border-radius:16px;
-  padding:24px 16px;
-  cursor:pointer;
-  text-decoration:none;
-  color:var(--white);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:10px;
-  transition:all .25s;
-  position:relative;
-  overflow:hidden;
-}
-.portal-card::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  opacity:0;
-  transition:opacity .25s;
-  border-radius:14px;
-}
-.portal-card.grupos::before{
-  background:linear-gradient(135deg,rgba(10,31,92,.8),rgba(18,38,128,.4));
-}
-.portal-card.ko::before{
-  background:linear-gradient(135deg,rgba(204,0,0,.2),rgba(245,166,35,.15));
-}
-.portal-card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 12px 40px rgba(0,0,0,.4);
-}
-.portal-card.grupos:hover{
-  border-color:var(--gold);
-}
-.portal-card.ko:hover{
-  border-color:var(--red);
-}
-.portal-card:hover::before{opacity:1;}
-
-.card-icon{
-  font-size:38px;
-  line-height:1;
-  position:relative;
-  z-index:1;
-}
-.card-name{
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:17px;
-  font-weight:800;
-  letter-spacing:1px;
-  position:relative;
-  z-index:1;
-  text-align:center;
-  line-height:1.2;
-}
-.card-desc{
-  font-size:11px;
-  color:var(--gm);
-  position:relative;
-  z-index:1;
-  text-align:center;
-  line-height:1.5;
-}
-.card-badge{
-  position:relative;
-  z-index:1;
-  padding:3px 10px;
-  border-radius:20px;
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:1px;
-  margin-top:2px;
-}
+/* ── PORTALES SELECTOR ──────────────────────────────────── */
+.portales{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px;}
+.portal-card{background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.1);border-radius:16px;padding:22px 16px;cursor:pointer;text-decoration:none;color:var(--white);display:flex;flex-direction:column;align-items:center;gap:10px;transition:all .25s;position:relative;overflow:hidden;}
+.portal-card.grupos:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.4);}
+.portal-card.ko:hover{border-color:var(--red);transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.4);}
+.portal-icon{font-size:36px;line-height:1;}
+.portal-name{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:1px;text-align:center;line-height:1.2;}
+.portal-desc{font-size:11px;color:var(--gm);text-align:center;line-height:1.5;}
+.portal-badge{padding:3px 10px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;}
 .badge-grupos{background:rgba(245,166,35,.2);color:var(--gold);}
 .badge-ko{background:rgba(204,0,0,.2);color:#FF6666;}
 
-/* Inscripción */
-.inscripcion{
-  font-size:11px;
-  color:var(--gm);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-}
-.inscripcion strong{color:var(--gold);}
+/* ── SECCIONES REGLAMENTO ────────────────────────────────── */
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;padding-bottom:7px;border-bottom:1px solid rgba(245,166,35,.25);display:flex;align-items:center;gap:9px;}
+.sec-title .ico{font-size:18px;}
+p{font-size:13px;line-height:1.85;color:rgba(255,255,255,.9);}
+p+p{margin-top:8px;}
 
-/* Separador */
-.sep{
-  width:40px;height:2px;
-  background:linear-gradient(90deg,transparent,rgba(245,166,35,.4),transparent);
-  margin:0 auto 24px;
-}
+/* ── PUNTUACIÓN ─────────────────────────────────────────── */
+.pts-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07);}
+.pts-row:last-child{border-bottom:none;padding-bottom:0;}
+.pts-badge{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;min-width:50px;text-align:center;padding:5px 0;border-radius:7px;flex-shrink:0;line-height:1.1;}
+.b5{background:var(--gold);color:var(--navy);}
+.b4{background:var(--green);color:var(--navy);}
+.b3{background:var(--blue);color:#fff;}
+.b2{background:rgba(255,100,200,.8);color:#fff;}
+.b0{background:rgba(255,255,255,.1);color:var(--gm);}
+.pts-body{flex:1;font-size:13px;line-height:1.7;}
+.pts-body strong{color:var(--white);}
+.pts-ex{font-size:11px;color:var(--gm);margin-top:5px;padding:5px 8px;background:rgba(0,0,0,.2);border-radius:5px;line-height:1.7;}
+.pts-ex span{color:var(--green);font-weight:700;}
 
-@media(max-width:380px){
-  .cards{grid-template-columns:1fr;}
-  .title{font-size:26px;}
+/* ── COMBINACIONES ──────────────────────────────────────── */
+.combo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:8px;}
+.combo-card{background:rgba(0,0,0,.25);border-radius:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.07);}
+.combo-total{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--gold);margin-bottom:3px;}
+.combo-label{font-size:11px;color:var(--gm);line-height:1.5;}
+.combo-breakdown{font-size:10px;color:var(--gt);margin-top:4px;}
+
+/* ── PODIO ──────────────────────────────────────────────── */
+.podio-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07);}
+.podio-row:last-child{border-bottom:none;}
+.podio-icon{font-size:26px;min-width:32px;text-align:center;}
+.podio-pts{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--gold);min-width:40px;text-align:right;}
+
+/* ── FLUJO PASOS ────────────────────────────────────────── */
+.paso{display:flex;gap:12px;margin-bottom:12px;}
+.paso-num{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--gold);min-width:26px;padding-top:1px;}
+.paso-body{flex:1;font-size:13px;line-height:1.75;}
+.paso-body strong{color:var(--gold);}
+.paso-body em{color:var(--green);font-style:normal;}
+
+/* ── ALERTS ─────────────────────────────────────────────── */
+.alert{padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:12px;line-height:1.7;}
+.al-gold{background:rgba(245,166,35,.09);border:1px solid rgba(245,166,35,.3);color:var(--gold);}
+.al-red{background:rgba(204,0,0,.09);border:1px solid rgba(204,0,0,.3);color:#FF9999;}
+.al-green{background:rgba(74,219,138,.07);border:1px solid rgba(74,219,138,.25);color:var(--green);}
+.al-blue{background:rgba(100,150,255,.07);border:1px solid rgba(100,150,255,.25);color:#AAC0FF;}
+
+/* ── SIMULADOR ──────────────────────────────────────────── */
+.sim-panel{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:16px;margin-bottom:12px;}
+.sim-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--gm);text-transform:uppercase;margin-bottom:8px;}
+.sim-teams{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.sim-team{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;}
+.sim-team-name{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;text-align:center;}
+.sim-inp{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:8px;padding:8px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;width:64px;text-align:center;transition:border-color .2s;}
+.sim-inp:focus{outline:none;border-color:var(--gold);}
+.sim-inp.pred{border-color:rgba(100,150,255,.4);}
+.sim-inp.real{border-color:rgba(74,219,138,.4);}
+.sim-vs{font-family:'Barlow Condensed',sans-serif;font-size:18px;color:var(--gm);font-weight:300;}
+.clasif-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+.clasif-btn{padding:5px 12px;border:none;border-radius:5px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;}
+.clasif-btn.sel{background:var(--gold);color:var(--navy);}
+.clasif-btn.unsel{background:rgba(255,255,255,.08);color:var(--gm);border:1px solid rgba(255,255,255,.15);}
+
+/* RESULTADO SIMULADOR */
+.sim-result{border-radius:10px;padding:18px;margin-top:12px;transition:all .3s;}
+.sim-result.none{background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.1);}
+.sim-result.show{background:rgba(10,31,92,.8);border:1px solid rgba(245,166,35,.4);}
+.sim-pts-total{font-family:'Barlow Condensed',sans-serif;font-size:48px;font-weight:800;line-height:1;text-align:center;margin-bottom:4px;}
+.sim-pts-label{font-size:11px;color:var(--gm);text-align:center;letter-spacing:1px;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;margin-bottom:14px;}
+.sim-breakdown{display:flex;flex-direction:column;gap:6px;}
+.sim-br-row{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;}
+.sim-br-ok{background:rgba(74,219,138,.1);border:1px solid rgba(74,219,138,.2);}
+.sim-br-no{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);}
+.sim-br-pts{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;min-width:32px;text-align:center;}
+.sim-br-desc{font-size:12px;flex:1;line-height:1.5;}
+
+/* EJEMPLOS RÁPIDOS */
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:10px;}
+.quick-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:8px 10px;cursor:pointer;text-align:center;transition:all .2s;color:var(--white);}
+.quick-btn:hover{border-color:var(--gold);background:rgba(245,166,35,.07);}
+.quick-title{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--gold);margin-bottom:3px;}
+.quick-sub{font-size:10px;color:var(--gm);line-height:1.4;}
+
+/* ETAPAS TABLA */
+.etapa-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.etapa-row:last-child{border-bottom:none;}
+.etapa-badge{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:3px;}
+.eb16{background:rgba(100,150,255,.2);color:var(--blue);}
+.eb8{background:rgba(245,166,35,.2);color:var(--gold);}
+.eb4{background:rgba(74,219,138,.2);color:var(--green);}
+.ebs{background:rgba(204,0,0,.2);color:#FF6666;}
+.ebf{background:linear-gradient(135deg,rgba(245,166,35,.4),rgba(204,0,0,.4));color:#fff;}
+
+/* PREMIOS */
+.premio-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07);}
+.premio-row:last-child{border-bottom:none;}
+.premio-pct{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:var(--gold);min-width:50px;}
+
+/* SCROLL */
+.scroll-top{position:fixed;bottom:20px;right:16px;background:var(--gold);color:var(--navy);width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.4);z-index:50;}
+.sep{width:40px;height:2px;background:linear-gradient(90deg,transparent,rgba(245,166,35,.4),transparent);margin:20px auto;}
+
+@media(max-width:480px){
+  .portales{grid-template-columns:1fr;}
+  .combo-grid{grid-template-columns:1fr 1fr;}
+  .sim-pts-total{font-size:38px;}
 }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div id="root"></div>
+<script type="text/babel">
+const {useState, useMemo} = React;
 
-  <div class="logo">
-    <div class="ball">⚽</div>
-    <div class="title">QUINIELA DESTIN</div>
-    <div class="subtitle">Mundial FIFA 2026</div>
-  </div>
+// ── LÓGICA PUNTUACIÓN ────────────────────────────────────────
+function calcMarcador(pa, pb, ra, rb) {
+  if (pa==='' || pb==='' || ra==='' || rb==='') return null;
+  const [pA,pB,rA,rB] = [+pa,+pb,+ra,+rb];
+  if (pA===rA && pB===rB) return {pts:5, razon:'Marcador exacto'};
+  const predGanaA=pA>pB, predGanaB=pB>pA, predEmp=pA===pB;
+  const realGanaA=rA>rB, realGanaB=rB>rA, realEmp=rA===rB;
+  const ganadorOk=(predGanaA&&realGanaA)||(predGanaB&&realGanaB)||(predEmp&&realEmp);
+  if (!ganadorOk) return {pts:0, razon:'Resultado incorrecto'};
+  if ((pA-pB)===(rA-rB)) return {pts:4, razon:'Ganador correcto + diferencia de goles igual'};
+  return {pts:3, razon:'Ganador o empate correcto'};
+}
 
-  <div class="selector-label">¿A dónde quieres ir?</div>
+function calcClasificado(clasPred, clasReal) {
+  if (!clasPred || !clasReal) return null;
+  return clasPred===clasReal
+    ? {pts:2, razon:'Clasificado acertado'}
+    : {pts:0, razon:'Clasificado incorrecto'};
+}
 
-  <div class="cards">
-    <a href="./grupos.html" class="portal-card grupos">
-      <div class="card-icon">🌍</div>
-      <div class="card-name">Fase de<br/>Grupos</div>
-      <div class="card-desc">Partidos, pronósticos y posiciones de la fase inicial</div>
-      <div class="card-badge badge-grupos">72 PARTIDOS</div>
-    </a>
+// ── SIMULADOR ────────────────────────────────────────────────
+function Simulador() {
+  const [pA, setPA] = useState('');
+  const [pB, setPB] = useState('');
+  const [rA, setRA] = useState('');
+  const [rB, setRB] = useState('');
+  const [clasPred, setClasPred] = useState('');
+  const [clasReal, setClasReal] = useState('');
 
-    <a href="./ko.html" class="portal-card ko">
-      <div class="card-icon">🏆</div>
-      <div class="card-name">Fase<br/>Eliminatoria</div>
-      <div class="card-desc">Bracket, 16avos hasta la Gran Final</div>
-      <div class="card-badge badge-ko">FASE KO</div>
-    </a>
-  </div>
+  const EQUIPO_A = 'Equipo A';
+  const EQUIPO_B = 'Equipo B';
 
-  <div class="sep"></div>
+  const predEmpate = pA!==''&&pB!==''&&+pA===+pB;
+  const realEmpate = rA!==''&&rB!==''&&+rA===+rB;
 
-  <div class="inscripcion">
-    Inscripción <strong>$10 USD</strong> · Premio acumulado entre todos
-  </div>
+  // Clasificado implícito si no hay empate
+  const clasPredFinal = predEmpate ? clasPred : (pA!==''&&pB!=='' ? (+pA>+pB?EQUIPO_A:EQUIPO_B) : '');
+  const clasRealFinal = realEmpate ? clasReal : (rA!==''&&rB!=='' ? (+rA>+rB?EQUIPO_A:EQUIPO_B) : '');
 
-</div>
+  const marcador = useMemo(()=>calcMarcador(pA,pB,rA,rB),[pA,pB,rA,rB]);
+  const clasificado = useMemo(()=>calcClasificado(clasPredFinal,clasRealFinal),[clasPredFinal,clasRealFinal]);
+
+  const total = (marcador?.pts||0) + (clasificado?.pts||0);
+  const haySuficiente = pA!==''&&pB!==''&&rA!==''&&rB!==''&&(!realEmpate||clasReal)&&(!predEmpate||clasPred);
+
+  function colorPts(pts) {
+    if (pts>=5) return 'var(--gold)';
+    if (pts>=3) return 'var(--green)';
+    if (pts===2) return '#FF88DD';
+    return 'var(--gm)';
+  }
+
+  function cargarEjemplo(e) {
+    setPA(String(e.pA)); setPB(String(e.pB));
+    setRA(String(e.rA)); setRB(String(e.rB));
+    setClasPred(e.clasPred||''); setClasReal(e.clasReal||'');
+  }
+
+  const EJEMPLOS = [
+    {label:'Exacto perfecto',sub:'Pred 2-1 / Real 2-1',pA:2,pB:1,rA:2,rB:1,clasPred:'',clasReal:''},
+    {label:'Ganador + dif igual',sub:'Pred 2-0 / Real 3-1',pA:2,pB:0,rA:3,rB:1,clasPred:'',clasReal:''},
+    {label:'Solo ganador',sub:'Pred 3-1 / Real 2-1',pA:3,pB:1,rA:2,rB:1,clasPred:'',clasReal:''},
+    {label:'Empate exacto',sub:'Pred 1-1 / Real 1-1',pA:1,pB:1,rA:1,rB:1,clasPred:EQUIPO_A,clasReal:EQUIPO_A},
+    {label:'Empate, dif igual',sub:'Pred 0-0 / Real 1-1',pA:0,pB:0,rA:1,rB:1,clasPred:EQUIPO_A,clasReal:EQUIPO_A},
+    {label:'Clasif. correcto solo',sub:'Pred 0-1 / Real 2-1',pA:0,pB:1,rA:2,rB:1,clasPred:'',clasReal:''},
+    {label:'Fallo total',sub:'Pred 2-0 / Real 0-1',pA:2,pB:0,rA:0,rB:1,clasPred:'',clasReal:''},
+    {label:'Empate mal clasif.',sub:'Pred 1-1 A / Real 1-1 B',pA:1,pB:1,rA:1,rB:1,clasPred:EQUIPO_A,clasReal:EQUIPO_B},
+  ];
+
+  return (
+    <div>
+      <div className="alert al-blue" style={{marginBottom:16}}>
+        Ingresá una predicción y un resultado real para ver exactamente cuántos puntos generaría y por qué.
+      </div>
+
+      {/* PREDICCIÓN */}
+      <div className="sim-panel">
+        <div className="sim-label">🎯 Tu predicción</div>
+        <div className="sim-teams">
+          <div className="sim-team">
+            <div className="sim-team-name">Equipo A</div>
+            <input className="sim-inp pred" type="number" min="0" max="20"
+              placeholder="0" value={pA} onChange={e=>{setPA(e.target.value);setClasPred('');}}/>
+          </div>
+          <div className="sim-vs">–</div>
+          <div className="sim-team">
+            <input className="sim-inp pred" type="number" min="0" max="20"
+              placeholder="0" value={pB} onChange={e=>{setPB(e.target.value);setClasPred('');}}/>
+            <div className="sim-team-name">Equipo B</div>
+          </div>
+        </div>
+        {predEmpate && pA!=='' && (
+          <div>
+            <div style={{fontSize:12,color:'var(--gold)',fontFamily:'Barlow Condensed',fontWeight:700,marginBottom:6}}>
+              ⚠️ Predecís empate — ¿quién clasificaría?
+            </div>
+            <div className="clasif-row">
+              <button className={`clasif-btn ${clasPred===EQUIPO_A?'sel':'unsel'}`} onClick={()=>setClasPred(EQUIPO_A)}>Equipo A</button>
+              <button className={`clasif-btn ${clasPred===EQUIPO_B?'sel':'unsel'}`} onClick={()=>setClasPred(EQUIPO_B)}>Equipo B</button>
+            </div>
+          </div>
+        )}
+        {!predEmpate && pA!=='' && pB!=='' && (
+          <div style={{fontSize:11,color:'var(--gm)',marginTop:4}}>
+            Clasificado implícito: <strong style={{color:'var(--white)'}}>{+pA>+pB?'Equipo A':'Equipo B'}</strong> (se asume automáticamente)
+          </div>
+        )}
+      </div>
+
+      {/* RESULTADO REAL */}
+      <div className="sim-panel">
+        <div className="sim-label">✅ Resultado real (a 120 min)</div>
+        <div className="sim-teams">
+          <div className="sim-team">
+            <div className="sim-team-name">Equipo A</div>
+            <input className="sim-inp real" type="number" min="0" max="20"
+              placeholder="0" value={rA} onChange={e=>{setRA(e.target.value);setClasReal('');}}/>
+          </div>
+          <div className="sim-vs">–</div>
+          <div className="sim-team">
+            <input className="sim-inp real" type="number" min="0" max="20"
+              placeholder="0" value={rB} onChange={e=>{setRB(e.target.value);setClasReal('');}}/>
+            <div className="sim-team-name">Equipo B</div>
+          </div>
+        </div>
+        {realEmpate && rA!=='' && (
+          <div>
+            <div style={{fontSize:12,color:'var(--green)',fontFamily:'Barlow Condensed',fontWeight:700,marginBottom:6}}>
+              Empate en 120 min — ¿quién clasificó (penales)?
+            </div>
+            <div className="clasif-row">
+              <button className={`clasif-btn ${clasReal===EQUIPO_A?'sel':'unsel'}`} onClick={()=>setClasReal(EQUIPO_A)}>Equipo A</button>
+              <button className={`clasif-btn ${clasReal===EQUIPO_B?'sel':'unsel'}`} onClick={()=>setClasReal(EQUIPO_B)}>Equipo B</button>
+            </div>
+          </div>
+        )}
+        {!realEmpate && rA!=='' && rB!=='' && (
+          <div style={{fontSize:11,color:'var(--gm)',marginTop:4}}>
+            Clasificado: <strong style={{color:'var(--white)'}}>{+rA>+rB?'Equipo A':'Equipo B'}</strong>
+          </div>
+        )}
+      </div>
+
+      {/* RESULTADO */}
+      <div className={`sim-result ${haySuficiente?'show':'none'}`}>
+        {haySuficiente ? (
+          <>
+            <div className="sim-pts-total" style={{color:colorPts(total)}}>{total}</div>
+            <div className="sim-pts-label">puntos totales</div>
+            <div className="sim-breakdown">
+              {marcador && (
+                <div className={`sim-br-row ${marcador.pts>0?'sim-br-ok':'sim-br-no'}`}>
+                  <div className="sim-br-pts" style={{color:marcador.pts>=5?'var(--gold)':marcador.pts>=3?'var(--green)':'var(--gm)'}}>
+                    {marcador.pts>0?`+${marcador.pts}`:'✗'}
+                  </div>
+                  <div className="sim-br-desc">
+                    <strong>Marcador:</strong> {marcador.razon}
+                    {marcador.pts===4&&<div style={{fontSize:10,color:'var(--gm)',marginTop:2}}>
+                      Pred {pA}–{pB} (dif {+pA-+pB>0?'+':''}{+pA-+pB}) · Real {rA}–{rB} (dif {+rA-+rB>0?'+':''}{+rA-+rB})
+                    </div>}
+                  </div>
+                </div>
+              )}
+              {clasificado && (
+                <div className={`sim-br-row ${clasificado.pts>0?'sim-br-ok':'sim-br-no'}`}>
+                  <div className="sim-br-pts" style={{color:clasificado.pts>0?'#FF88DD':'var(--gm)'}}>
+                    {clasificado.pts>0?`+${clasificado.pts}`:'✗'}
+                  </div>
+                  <div className="sim-br-desc">
+                    <strong>Clasificado:</strong> {clasificado.razon}
+                    <div style={{fontSize:10,color:'var(--gm)',marginTop:2}}>
+                      Predijiste: {clasPredFinal} · Real: {clasRealFinal}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {total===7&&(
+                <div style={{textAlign:'center',marginTop:8,fontFamily:'Barlow Condensed',fontSize:13,fontWeight:700,color:'var(--gold)'}}>
+                  🌟 ¡Puntaje máximo posible en un partido!
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <div style={{textAlign:'center',color:'var(--gm)',fontSize:12,padding:'10px 0'}}>
+            Completá los campos para ver el resultado
+          </div>
+        )}
+      </div>
+
+      {/* EJEMPLOS RÁPIDOS */}
+      <div style={{marginTop:16}}>
+        <div style={{fontFamily:'Barlow Condensed',fontSize:11,fontWeight:700,letterSpacing:1.5,color:'var(--gm)',marginBottom:8,textTransform:'uppercase'}}>
+          Ejemplos rápidos →
+        </div>
+        <div className="quick-grid">
+          {EJEMPLOS.map((e,i)=>(
+            <button key={i} className="quick-btn" onClick={()=>cargarEjemplo(e)}>
+              <div className="quick-title">{e.label}</div>
+              <div className="quick-sub">{e.sub}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── REGLAMENTO ───────────────────────────────────────────────
+function Reglamento() {
+  return (
+    <div>
+      {/* INTRO */}
+      <div className="card gold-card" style={{marginBottom:20}}>
+        <p>La Fase KO es una quiniela <strong>completamente independiente</strong> de la fase de grupos. Cubre toda la eliminatoria del Mundial: desde los 16avos de final hasta la Gran Final del 19 de julio. Podés participar haya o no participado en la fase de grupos — son dos torneos separados con su propio pozo de premios.</p>
+      </div>
+
+      {/* INSCRIPCIÓN */}
+      <div className="sec-title"><span className="ico">💰</span>Inscripción</div>
+      <div className="card" style={{marginBottom:20}}>
+        <div className="pts-row">
+          <div style={{fontSize:22,minWidth:30,textAlign:'center'}}>💵</div>
+          <div className="pts-body"><strong>Cuota de entrada:</strong> $10 USD por participante. El 100% del pozo se distribuye en premios.</div>
+        </div>
+        <div className="pts-row">
+          <div style={{fontSize:22,minWidth:30,textAlign:'center'}}>📅</div>
+          <div className="pts-body"><strong>Fecha límite:</strong> antes del primer pitazo de 16avos (28 junio, 22:00 hora Irak). Después de ese momento el registro cierra definitivamente.</div>
+        </div>
+        <div className="pts-row">
+          <div style={{fontSize:22,minWidth:30,textAlign:'center'}}>🔑</div>
+          <div className="pts-body"><strong>Cómo registrarse:</strong> entrás al portal KO, ponés tu nombre completo y elegís un PIN de 4 dígitos. <strong>Guardá ese PIN</strong> — lo vas a necesitar en cada ronda.</div>
+        </div>
+        <div className="pts-row">
+          <div style={{fontSize:22,minWidth:30,textAlign:'center'}}>⏱️</div>
+          <div className="pts-body"><strong>El sistema registra la hora exacta</strong> de tu registro. Si te anotás después del primer partido de 16avos, esa ronda te queda en cero aunque el admin te apruebe después.</div>
+        </div>
+      </div>
+
+      {/* ETAPAS */}
+      <div className="sec-title"><span className="ico">📅</span>Etapas del Torneo</div>
+      <div className="card" style={{marginBottom:20}}>
+        {[
+          {badge:'eb16',lbl:'16AVOS',name:'16avos de Final',partidos:'P73–P88',fechas:'28 jun – 3 jul · 16 partidos'},
+          {badge:'eb8',lbl:'8VOS',name:'8vos de Final',partidos:'P89–P96',fechas:'4 jul – 7 jul · 8 partidos'},
+          {badge:'eb4',lbl:'4TOS',name:'Cuartos de Final',partidos:'P97–P100',fechas:'9 jul – 12 jul · 4 partidos'},
+          {badge:'ebs',lbl:'SEMIS',name:'Semifinales',partidos:'P101–P102',fechas:'14 jul – 15 jul · 2 partidos'},
+          {badge:'ebf',lbl:'FINAL',name:'3er Puesto + Gran Final',partidos:'P103–P104',fechas:'18 jul – 19 jul'},
+        ].map((e,i)=>(
+          <div key={i} className="etapa-row">
+            <span className={`etapa-badge ${e.badge}`}>{e.lbl}</span>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:'Barlow Condensed',fontSize:15,fontWeight:800}}>{e.name}</div>
+              <div style={{fontSize:11,color:'var(--gm)'}}>{e.partidos} · {e.fechas}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* FLUJO */}
+      <div className="sec-title"><span className="ico">⚙️</span>Flujo por Ronda — Paso a Paso</div>
+      <div className="card" style={{marginBottom:8}}>
+        <div className="paso"><div className="paso-num">1</div><div className="paso-body"><strong>Se abre la ronda</strong> — cuando terminan todos los partidos de la ronda anterior, el portal habilita automáticamente los pronósticos de la siguiente etapa. Recibirás aviso.</div></div>
+        <div className="paso"><div className="paso-num">2</div><div className="paso-body"><strong>Ingresás con tu nombre y PIN</strong> — vas al portal KO, pestaña <em>Mis Pronósticos</em>, seleccionás tu nombre y ponés tu PIN de 4 dígitos.</div></div>
+        <div className="paso"><div className="paso-num">3</div><div className="paso-body"><strong>Completás tus pronósticos</strong> — para cada partido de la ronda ponés el marcador que esperás al final de los 120 minutos. Si predecís empate, también elegís quién clasifica. Podés guardar y volver a editar cuantas veces quieras antes del cierre.</div></div>
+        <div className="paso"><div className="paso-num">4</div><div className="paso-body"><strong>Cierre automático</strong> — los pronósticos se cierran solos cuando arranca el primer partido de esa ronda (hora Irak). Después de eso ya no se puede cambiar nada.</div></div>
+        <div className="paso"><div className="paso-num">5</div><div className="paso-body"><strong>Se revelan todos los pronósticos</strong> — al cerrar la ronda podés ver qué predijo cada participante. Antes del cierre solo ves los tuyos.</div></div>
+        <div className="paso"><div className="paso-num">6</div><div className="paso-body"><strong>El admin carga los resultados</strong> — conforme van terminando los partidos, el admin ingresa el marcador oficial. Los puntos se calculan y actualizan automáticamente.</div></div>
+      </div>
+      <div className="alert al-red" style={{marginBottom:20}}>
+        <strong>¿No ingresaste tus pronósticos antes del cierre?</strong> Esa ronda te queda en cero para los partidos que no pronosticaste. No se aceptan pronósticos tardíos bajo ninguna circunstancia.
+      </div>
+
+      {/* PUNTUACIÓN MARCADOR */}
+      <div className="sec-title"><span className="ico">⭐</span>Puntuación del Marcador</div>
+      <div className="alert al-blue" style={{marginBottom:12}}>
+        Pronosticás el resultado <strong>al final de 120 minutos</strong> (90 min reglamentarios + prórroga si la hay). Si hay penales, el marcador oficial sigue siendo el del minuto 120 — los penales no cambian el marcador, solo determinan quién clasifica.
+      </div>
+      <div className="card" style={{marginBottom:8}}>
+        <div className="pts-row">
+          <div className="pts-badge b5">5 pts</div>
+          <div className="pts-body">
+            <strong>Marcador exacto</strong> — acertás los goles de ambos equipos exactamente.
+            <div className="pts-ex">
+              Pred <span>2–1</span> · Real <span>2–1</span> → <span>5 pts</span><br/>
+              Pred <span>0–0</span> · Real <span>0–0</span> → <span>5 pts</span>
+            </div>
+          </div>
+        </div>
+        <div className="pts-row">
+          <div className="pts-badge b4">4 pts</div>
+          <div className="pts-body">
+            <strong>Ganador correcto + diferencia de goles igual</strong> — no acertás el marcador exacto, pero el equipo que gana es el mismo y la diferencia entre los goles es idéntica.
+            <div className="pts-ex">
+              Pred <span>2–0</span> (dif +2) · Real <span>3–1</span> (dif +2) → <span>4 pts</span><br/>
+              Pred <span>1–3</span> (dif –2) · Real <span>0–2</span> (dif –2) → <span>4 pts</span><br/>
+              Pred <span>1–1</span> (dif 0) · Real <span>2–2</span> (dif 0) → <span>4 pts</span> ← empate con dif igual<br/>
+              Pred <span>0–0</span> (dif 0) · Real <span>1–1</span> (dif 0) → <span>4 pts</span> ← también cuenta
+            </div>
+          </div>
+        </div>
+        <div className="pts-row">
+          <div className="pts-badge b3">3 pts</div>
+          <div className="pts-body">
+            <strong>Ganador o empate correcto</strong> — acertás quién gana (o que hay empate) pero la diferencia de goles no coincide.
+            <div className="pts-ex">
+              Pred <span>3–1</span> (dif +2) · Real <span>2–1</span> (dif +1) → <span>3 pts</span><br/>
+              Pred <span>1–0</span> (dif +1) · Real <span>4–1</span> (dif +3) → <span>3 pts</span><br/>
+              Pred <span>2–2</span> (dif 0) · Real <span>1–0</span> (dif +1) → <span>0 pts</span> ← predijiste empate pero ganó A
+            </div>
+          </div>
+        </div>
+        <div className="pts-row">
+          <div className="pts-badge b0">0 pts</div>
+          <div className="pts-body">
+            <strong>Resultado incorrecto</strong> — predecís que gana uno y gana el otro, o predecís empate y hay un ganador (o viceversa).
+            <div className="pts-ex">
+              Pred <span>2–0</span> (A gana) · Real <span>0–1</span> (B gana) → <span>0 pts</span><br/>
+              Pred <span>1–1</span> (empate) · Real <span>2–0</span> (A gana) → <span>0 pts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* PUNTUACIÓN CLASIFICADO */}
+      <div className="sec-title"><span className="ico">✅</span>Puntuación del Clasificado</div>
+      <div className="card" style={{marginBottom:8}}>
+        <div className="pts-row">
+          <div className="pts-badge b2">+2 pts</div>
+          <div className="pts-body">
+            <strong>Acertás quién pasa a la siguiente ronda</strong> — este punto es completamente independiente del marcador. Podés tener 0 en el marcador y aun así sumar +2 si adivinás quién clasifica.
+            <div className="pts-ex">
+              Si predecís que A gana (cualquier marcador sin empate) → el clasificado es A de forma automática, no tenés que elegir nada.<br/>
+              Si predecís empate → <strong>debés elegir manualmente quién clasifica</strong> en el portal. Si no lo hacés, esos +2 posibles se pierden aunque el clasificado sea correcto.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="alert al-gold" style={{marginBottom:20}}>
+        <strong>Puntaje máximo por partido: 7 puntos</strong> (5 marcador + 2 clasificado).<br/>
+        Pero también podés sumar 2 sin acertar el marcador: pred 0–1, real 2–1, B clasifica → 3 pts marcador + 2 pts clasificado = <strong>5 puntos totales</strong>.
+      </div>
+
+      {/* TODAS LAS COMBINACIONES */}
+      <div className="sec-title"><span className="ico">📊</span>Todas las Combinaciones Posibles</div>
+      <div className="card" style={{marginBottom:20}}>
+        <p style={{marginBottom:12}}>Estos son todos los escenarios posibles de puntuación en un partido KO:</p>
+        <div className="combo-grid">
+          {[
+            {total:7,label:'Marcador exacto + clasificado correcto',breakdown:'5 + 2'},
+            {total:6,label:'Ganador+dif correcto + clasificado correcto',breakdown:'4 + 2'},
+            {total:5,label:'Solo ganador correcto + clasificado correcto',breakdown:'3 + 2'},
+            {total:5,label:'Marcador exacto + clasificado incorrecto',breakdown:'5 + 0',note:'Solo posible en empate'},
+            {total:4,label:'Ganador+dif correcto, clasificado incorrecto',breakdown:'4 + 0',note:'Solo posible en empate'},
+            {total:3,label:'Solo ganador correcto, clasificado incorrecto',breakdown:'3 + 0',note:'Solo posible en empate'},
+            {total:2,label:'Resultado incorrecto + clasificado correcto',breakdown:'0 + 2'},
+            {total:0,label:'Resultado incorrecto + clasificado incorrecto',breakdown:'0 + 0'},
+          ].map((c,i)=>(
+            <div key={i} className="combo-card">
+              <div className="combo-total" style={{color:c.total>=5?'var(--gold)':c.total>=3?'var(--green)':c.total>=2?'#FF88DD':'var(--gm)'}}>{c.total} pts</div>
+              <div className="combo-label">{c.label}</div>
+              <div className="combo-breakdown">{c.breakdown}{c.note?` · ${c.note}`:''}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* PRONÓSTICO DE PODIO */}
+      <div className="sec-title"><span className="ico">🏅</span>Pronóstico de Podio</div>
+      <div className="card gold-card" style={{marginBottom:8}}>
+        <p style={{marginBottom:14}}>Al registrarte en la Fase KO hacés un único pronóstico de podio que <strong>no se puede modificar después</strong>. Elegís de entre los 48 equipos del Mundial:</p>
+        <div className="podio-row">
+          <div className="podio-icon">🥇</div>
+          <div style={{flex:1}}>
+            <div style={{fontFamily:'Barlow Condensed',fontSize:15,fontWeight:800}}>Campeón del Mundo</div>
+            <div style={{fontSize:12,color:'var(--gm)'}}>El equipo que gane la Gran Final (Partido 104 · 19 julio)</div>
+          </div>
+          <div className="podio-pts">+5 pts</div>
+        </div>
+        <div className="podio-row">
+          <div className="podio-icon">🥈</div>
+          <div style={{flex:1}}>
+            <div style={{fontFamily:'Barlow Condensed',fontSize:15,fontWeight:800}}>Subcampeón</div>
+            <div style={{fontSize:12,color:'var(--gm)'}}>El equipo que pierda la Gran Final (Partido 104 · 19 julio)</div>
+          </div>
+          <div className="podio-pts">+5 pts</div>
+        </div>
+        <div className="podio-row">
+          <div className="podio-icon">🥉</div>
+          <div style={{flex:1}}>
+            <div style={{fontFamily:'Barlow Condensed',fontSize:15,fontWeight:800}}>Tercer Lugar</div>
+            <div style={{fontSize:12,color:'var(--gm)'}}>El equipo que gane el partido por el bronce (Partido 103 · 18 julio)</div>
+          </div>
+          <div className="podio-pts">+5 pts</div>
+        </div>
+      </div>
+      <div className="alert al-blue" style={{marginBottom:8}}>
+        Los tres deben ser equipos distintos. <strong>Máximo posible: +15 puntos de podio</strong> si acertás los tres. Estos puntos se suman a tu tabla KO general al final del torneo.
+      </div>
+      <div className="alert al-red" style={{marginBottom:20}}>
+        <strong>¡Atención!</strong> El pronóstico de podio se envía una sola vez al registrarte y no se puede cambiar después bajo ninguna circunstancia. Pensalo bien antes de confirmar.
+      </div>
+
+      {/* PREMIOS */}
+      <div className="sec-title"><span className="ico">🏆</span>Premios</div>
+      <div className="card" style={{marginBottom:8}}>
+        {[
+          {icon:'🥇',pos:'1er lugar',pct:'60%'},
+          {icon:'🥈',pos:'2do lugar',pct:'30%'},
+          {icon:'🥉',pos:'3er lugar',pct:'10%'},
+        ].map((p,i)=>(
+          <div key={i} className="premio-row">
+            <div style={{fontSize:24,minWidth:32,textAlign:'center'}}>{p.icon}</div>
+            <div style={{flex:1,fontSize:13,fontWeight:600}}>{p.pos}</div>
+            <div className="premio-pct">{p.pct}</div>
+          </div>
+        ))}
+      </div>
+      <div className="alert al-green" style={{marginBottom:8}}>
+        El pozo se calcula sobre el total de cuotas KO. Ejemplo: 12 participantes × $10 = $120 → 1° recibe $72 · 2° recibe $36 · 3° recibe $12.
+      </div>
+      <div className="alert al-gold" style={{marginBottom:20}}>
+        <strong>Empate en puntos:</strong> se desempata por mayor cantidad de marcadores exactos (5 pts) → mayor cantidad de clasificados acertados (+2) → aciertos de podio. Si persiste el empate, el premio se divide en partes iguales.
+      </div>
+
+      {/* REGLAS */}
+      <div className="sec-title"><span className="ico">📌</span>Reglas Finales</div>
+      <div className="card">
+        {[
+          {ico:'🔒',t:'Pronósticos definitivos','d':'Una vez que cierra la ronda (al inicio del primer partido) no se puede cambiar nada.'},
+          {ico:'👁️',t:'Visibilidad','d':'Antes del cierre, cada quien ve solo sus propios pronósticos. Después del cierre se revelan los de todos.'},
+          {ico:'⏱️',t:'El marcador es a 120 min','d':'Tiempo reglamentario (90 min) + prórroga si la hay. Los penales no cambian el marcador pero sí determinan el clasificado.'},
+          {ico:'🤝',t:'Podio irrevocable','d':'El pronóstico de campeón/subcampeón/3ero se envía una sola vez al registrarse. No se modifica.'},
+          {ico:'📱',t:'Guardá tu PIN','d':'Sin PIN no podés ingresar a las rondas siguientes. El admin puede restablecerlo, pero es tu responsabilidad no perderlo.'},
+          {ico:'⚖️',t:'Decisión del admin','d':'Cualquier situación no contemplada en este reglamento será resuelta por el administrador. Su decisión es final.'},
+        ].map((r,i)=>(
+          <div key={i} className="pts-row">
+            <div style={{fontSize:20,minWidth:30,textAlign:'center'}}>{r.ico}</div>
+            <div className="pts-body"><strong>{r.t}:</strong> {r.d}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── APP ──────────────────────────────────────────────────────
+function App() {
+  const [tab, setTab] = useState('portales');
+
+  const TABS = [
+    {id:'portales', l:'🏠 Inicio'},
+    {id:'reglamento', l:'📖 Reglamento KO'},
+    {id:'simulador', l:'🧮 Simulador'},
+  ];
+
+  return (
+    <>
+      <header className="header">
+        <div className="header-top">
+          <div className="logo-area">
+            <div className="logo-ball">⚽</div>
+            <div className="logo-text">
+              <div className="logo-title">QUINIELA DESTIN</div>
+              <div className="logo-sub">Mundial FIFA 2026</div>
+            </div>
+          </div>
+          <div className="prize-pill">Inscripción $10</div>
+        </div>
+        <nav className="nav-tabs">
+          {TABS.map(t=>(
+            <button key={t.id} className={`tab-btn ${tab===t.id?'active':''}`} onClick={()=>setTab(t.id)}>{t.l}</button>
+          ))}
+        </nav>
+      </header>
+
+      <main className="main">
+        {/* PORTALES */}
+        {tab==='portales' && (
+          <>
+            <div style={{textAlign:'center',padding:'24px 0 20px'}}>
+              <div style={{fontFamily:'Barlow Condensed',fontSize:13,color:'var(--gm)',letterSpacing:2,marginBottom:6,textTransform:'uppercase'}}>¿A dónde querés ir?</div>
+            </div>
+            <div className="portales">
+              <a href="./grupos.html" className="portal-card grupos">
+                <div className="portal-icon">🌍</div>
+                <div className="portal-name">Fase de<br/>Grupos</div>
+                <div className="portal-desc">Partidos, pronósticos y posiciones de la fase inicial</div>
+                <div className="portal-badge badge-grupos">72 PARTIDOS</div>
+              </a>
+              <a href="./ko.html" className="portal-card ko">
+                <div className="portal-icon">🏆</div>
+                <div className="portal-name">Fase<br/>Eliminatoria</div>
+                <div className="portal-desc">Bracket, 16avos hasta la Gran Final</div>
+                <div className="portal-badge badge-ko">FASE KO</div>
+              </a>
+            </div>
+            <div style={{width:40,height:2,background:'linear-gradient(90deg,transparent,rgba(245,166,35,.4),transparent)',margin:'0 auto 24px'}}/>
+            <div style={{textAlign:'center',fontSize:12,color:'var(--gm)'}}>
+              ¿Primera vez en la Fase KO? Lee el{' '}
+              <button onClick={()=>setTab('reglamento')} style={{background:'none',border:'none',color:'var(--gold)',cursor:'pointer',fontFamily:'Barlow',fontSize:12,fontWeight:600,textDecoration:'underline'}}>
+                reglamento
+              </button>{' '}y prueba el{' '}
+              <button onClick={()=>setTab('simulador')} style={{background:'none',border:'none',color:'var(--gold)',cursor:'pointer',fontFamily:'Barlow',fontSize:12,fontWeight:600,textDecoration:'underline'}}>
+                simulador de puntos
+              </button>.
+            </div>
+          </>
+        )}
+
+        {tab==='reglamento' && <Reglamento/>}
+        {tab==='simulador' && <Simulador/>}
+      </main>
+
+      <button className="scroll-top" onClick={()=>window.scrollTo({top:0,behavior:'smooth'})}>↑</button>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
 </body>
 </html>
