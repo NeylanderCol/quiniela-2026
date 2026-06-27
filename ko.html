@@ -2573,8 +2573,7 @@ function AdminFixture({partidos, showMsg, onRefresh}) {
     if (!p.equipo_a && !p.equipo_b) { showMsg('No hay equipos en BD para intercambiar', 'warn'); return; }
     const a = p.equipo_a || '(vacío)';
     const b = p.equipo_b || '(vacío)';
-    if (!confirm('¿Intercambiar ' + a + ' ↔ ' + b + '?
-Esto actualiza la BD directamente.')) return;
+    if (!confirm('¿Intercambiar ' + a + ' ↔ ' + b + '? Esto actualiza la BD directamente.')) return;
     setSaving(p.id);
     try {
       await sb(`partidos_ko?id=eq.${p.id}`, {method:'PATCH', prefer:'return=minimal',
@@ -2588,9 +2587,7 @@ Esto actualiza la BD directamente.')) return;
   async function limpiarEstimaciones() {
     const p16 = partidos.filter(p => p.etapa_id === 1 && !p.finalizado);
     if (!p16.length) { showMsg('No hay 16avos pendientes que limpiar', 'warn'); return; }
-    if (!confirm('¿Borrar equipo_a y equipo_b de los ' + p16.length + ' partidos de 16avos sin resultado?
-
-El bracket los calculará en vivo desde los grupos.')) return;
+    if (!confirm('¿Borrar equipo_a y equipo_b de los ' + p16.length + ' partidos de 16avos sin resultado? El bracket los calculará en vivo desde los grupos.')) return;
     setLimpiando(true);
     try {
       for (const p of p16)
