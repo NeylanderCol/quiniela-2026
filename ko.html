@@ -702,29 +702,58 @@ function TabBracket({partidos, etapas, partidosGrupos=[], pronosticos=[], partic
   },[standings]);
   const top8grupos = terceros3.slice(0,8).map(t=>t.grupo);
 
-  // Resolver slot de un partido KO: si tiene equipo real usarlo, si no calcular desde grupos
-  function resolverSlot(partido) {
-    if (partido.equipo_a && partido.equipo_b) return partido;
-    const slotA = partido.slot_a||'';
-    const slotB = partido.slot_b||'';
+  // ── resolverSlot ────────────────────────────────────────────────
+  // Regla única: si el partido está FINALIZADO, los equipos en BD son el dato real.
+  // En cualquier otro caso (pendiente, incluso con equipo_a/b pre-populados como estimación)
+  // SIEMPRE recalculamos desde standings en vivo.
+  // Así, las estimaciones del admin nunca se muestran como "confirmadas".
+  //
+  // provisional = true  → el grupo de ese equipo aún no terminó (puede cambiar)
+  // provisional = false → grupo completo, equipo definitivo
 
-    // Pre-compute unique third-place slot assignments (no duplicates)
+  // Greedy assignment de terceros: más restrictivo primero, sin duplicados de grupo ni de slot
+  const asig3 = React.useMemo(()=>{
     const SLOTS3={'P74':['A','B','C','D','F'],'P77':['C','D','F','G','H'],
       'P79':['C','E','F','H','I'],'P80':['E','H','I','J','K'],
       'P81':['B','E','F','I','J'],'P82':['A','E','H','I','J'],
       'P85':['E','F','G','I','J'],'P87':['D','E','I','J','L']};
     const t8=new Set(terceros3.slice(0,8).map(t=>t.grupo));
-    const asig3={};const usados=new Set();
-    const ord=Object.entries(SLOTS3).sort((a,b)=>a[1].length-b[1].length).map(([s])=>s);
-    for(const slot of ord){
-      const cand=terceros3.find(t=>SLOTS3[slot].includes(t.grupo)&&t8.has(t.grupo)&&!usados.has(t.grupo));
-      if(cand){asig3[slot]={equipo:cand.n,provisional:!standings[cand.grupo]?.completo};usados.add(cand.grupo);}
+    const asig={};const slotsUsados=new Set();const gruposUsados=new Set();
+    const ord=Object.entries(SLOTS3).sort((a,b)=>a[1].length-b[1].length);
+    for(const [slot,grupos] of ord){
+      const cand=terceros3.find(t=>grupos.includes(t.grupo)&&t8.has(t.grupo)&&!slotsUsados.has(slot)&&!gruposUsados.has(t.grupo));
+      if(cand){
+        asig[slot]={equipo:cand.n,provisional:!standings[cand.grupo]?.completo};
+        slotsUsados.add(slot);gruposUsados.add(cand.grupo);
+      }
     }
+    return asig;
+  },[terceros3,standings]);
+
+  function resolverSlot(partido) {
+    // Partido finalizado → datos reales en BD, usar siempre
+    if (partido.finalizado) return partido;
+
+    // Partido pendiente → calcular en vivo desde standings (ignorar equipo_a/b de BD)
+    const slotA = partido.slot_a||'';
+    const slotB = partido.slot_b||'';
 
     function fromSlot(slot) {
+      // 1° o 2° de grupo → standings en vivo
       const m1 = slot.match(/^([12])°\s*Grupo\s*([A-L])$/);
-      if(m1){const pos=parseInt(m1[1])-1,grp=m1[2];const t=standings[grp];return t&&t[pos]?{equipo:t[pos].n,provisional:!t.completo}:null;}
+      if(m1){
+        const pos=parseInt(m1[1])-1, grp=m1[2];
+        const t=standings[grp];
+        if(!t||t.length<=pos) return null;
+        return {equipo:t[pos].n, provisional:!t.completo};
+      }
+      // 3° → asignación greedy desde terceros
       if(slot.startsWith('3°')) return asig3[partido.numero]||null;
+      // Propagado desde ronda anterior (Gan./Per.) → usar equipo_a/b de BD si existen
+      if(slot.startsWith('Gan.')||slot.startsWith('Per.')){
+        const eq = slot===partido.slot_a ? partido.equipo_a : partido.equipo_b;
+        return eq ? {equipo:eq, provisional:false} : null;
+      }
       return null;
     }
     return { ...partido, _slotA: fromSlot(slotA), _slotB: fromSlot(slotB) };
@@ -749,29 +778,39 @@ function TabBracket({partidos, etapas, partidosGrupos=[], pronosticos=[], partic
     const p = resolverSlot(pRaw);
     const done = p.finalizado && p.goles_a !== null;
     const sA = p._slotA, sB = p._slotB;
-    const eqA = p.equipo_a || sA?.equipo || p.slot_a || '?';
-    const eqB = p.equipo_b || sB?.equipo || p.slot_b || '?';
-    const provA = !p.equipo_a && sA?.provisional;
-    const provB = !p.equipo_b && sB?.provisional;
-    const hasTeams = !!(p.equipo_a && p.equipo_b) || !!(sA && sB);
+    // Si finalizado: usar equipos de BD (reales). Si no: usar cálculo en vivo primero.
+    const eqA = done ? (p.equipo_a||'?') : (sA?.equipo || p.slot_a || '?');
+    const eqB = done ? (p.equipo_b||'?') : (sB?.equipo || p.slot_b || '?');
+    // provisional = grupo fuente no ha terminado aún (puede cambiar)
+    const provA = !done && sA?.provisional;
+    const provB = !done && sB?.provisional;
+    const hasTeams = done ? !!(p.equipo_a && p.equipo_b) : !!(sA || sB);
     return (
       <div className={`bm ${done?'bm-done':''} ${highlight?'bm-highlight':''} ${!hasTeams?'bm-pending':''}`}>
         <div className="bm-num">{numero}</div>
         <div className={`bm-team ${done&&p.clasificado===p.equipo_a?'bm-winner':''}`}>
-          <Flag name={p.equipo_a||sA?.equipo} size={13}/>
+          <Flag name={done?p.equipo_a:sA?.equipo} size={13}/>
           <span className="bm-tname" style={{color:provA?'rgba(255,255,255,.6)':undefined}}>{eqA}</span>
-          {provA&&<span style={{fontSize:7,color:'var(--gold)',fontFamily:'Barlow Condensed',fontWeight:700}}>P</span>}
+          {provA&&<span style={{fontSize:7,color:'var(--gold)',fontFamily:'Barlow Condensed',fontWeight:700,letterSpacing:.5}}>P</span>}
           {done && <span className="bm-score">{p.goles_a}</span>}
         </div>
         <div className="bm-sep"/>
         <div className={`bm-team ${done&&p.clasificado===p.equipo_b?'bm-winner':''}`}>
-          <Flag name={p.equipo_b||sB?.equipo} size={13}/>
+          <Flag name={done?p.equipo_b:sB?.equipo} size={13}/>
           <span className="bm-tname" style={{color:provB?'rgba(255,255,255,.6)':undefined}}>{eqB}</span>
-          {provB&&<span style={{fontSize:7,color:'var(--gold)',fontFamily:'Barlow Condensed',fontWeight:700}}>P</span>}
+          {provB&&<span style={{fontSize:7,color:'var(--gold)',fontFamily:'Barlow Condensed',fontWeight:700,letterSpacing:.5}}>P</span>}
           {done && <span className="bm-score">{p.goles_b}</span>}
         </div>
         {done && (p.hubo_penales||p.hubo_prorroga) && (
           <div className="bm-extra">{p.hubo_penales?'⚡ Pen.':'⏱ Prórr.'}</div>
+        )}
+        {!done && (provA||provB) && (
+          <div style={{marginTop:4,textAlign:'center',fontSize:8,color:'var(--gold)',
+            fontFamily:'Barlow Condensed',fontWeight:700,letterSpacing:.8,
+            background:'rgba(245,166,35,.08)',borderRadius:3,padding:'2px 4px',
+            border:'1px solid rgba(245,166,35,.2)'}}>
+            ⏳ puede cambiar
+          </div>
         )}
         {(eqA!=='?'||eqB!=='?') && (
           <button
@@ -892,11 +931,15 @@ function TabBracket({partidos, etapas, partidosGrupos=[], pronosticos=[], partic
       )}
 
       {/* Leyenda */}
-      <div style={{display:'flex',gap:14,flexWrap:'wrap',marginBottom:14,fontSize:11,color:'var(--gm)'}}>
-        <span><span style={{display:'inline-block',width:10,height:10,background:'rgba(245,166,35,.4)',borderRadius:2,marginRight:4,verticalAlign:'middle'}}/>Clasificado</span>
+      <div style={{display:'flex',gap:10,flexWrap:'wrap',marginBottom:14,fontSize:10,color:'var(--gm)',alignItems:'center'}}>
+        <span><span style={{display:'inline-block',width:9,height:9,background:'rgba(245,166,35,.4)',borderRadius:2,marginRight:4,verticalAlign:'middle'}}/>Clasificado</span>
         <span>⚡ Penales</span>
         <span>⏱ Prórroga</span>
-        <span style={{color:'var(--gm)'}}>? = Equipo por confirmar</span>
+        <span style={{background:'rgba(245,166,35,.08)',border:'1px solid rgba(245,166,35,.2)',borderRadius:3,padding:'1px 5px',fontFamily:'Barlow Condensed',fontSize:9,fontWeight:700,color:'var(--gold)'}}>
+          P = provisional
+        </span>
+        <span style={{fontSize:10,color:'var(--gm)'}}>⏳ puede cambiar = grupo incompleto</span>
+        <span>? = sin datos aún</span>
       </div>
 
       {/* Modal pronósticos bracket */}
@@ -2516,15 +2559,32 @@ function AdminFixture({partidos, showMsg, onRefresh}) {
         <div className="alert al-warn" style={{marginBottom:12}}>
           <strong>Solo admin.</strong> Corrige equipo_a, equipo_b, fecha y hora de cualquier partido KO.
           Usa <strong>\u2194</strong> para intercambiar lados sin riesgo tipogr\u00e1fico.
-          \u26a0\ufe0f Si el partido ya tiene resultado, usa <em>Anular</em> en Resultados antes de editar equipos.
+          <br/>\u2139\ufe0f Los partidos de 16avos <strong>no necesitan equipos en BD</strong> — el bracket los calcula en vivo desde los grupos.
+          Solo rellena equipo_a/b manualmente si el c\u00e1lculo autom\u00e1tico falla o cuando el admin confirme terceros.
+          \u26a0\ufe0f Si el partido ya tiene resultado registrado, usa <em>Anular</em> en Resultados antes de editar equipos.
         </div>
-        <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:12}}>
+        <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:12,alignItems:'center'}}>
           {['TODOS',...etapaIds].map(id=>(
             <button key={id} className={`btn btn-xs ${filtroEtapa===id?'btn-p':'btn-s'}`}
               onClick={()=>setFiltroEtapa(id)}>
               {id==='TODOS'?'Todas':ETAPA_LABEL[Number(id)]||`Etapa ${id}`}
             </button>
           ))}
+          <div style={{flex:1}}/>
+          <button className="btn btn-xs" onClick={async()=>{
+            if(!confirm('\u00bfLimpiar equipos_a/b de todos los 16avos sin resultado? El bracket los calcular\u00e1 en vivo desde grupos.'))return;
+            const p16=partidos.filter(p=>p.etapa_id===1&&!p.finalizado);
+            try{
+              for(const p of p16)
+                await sb(`partidos_ko?id=eq.${p.id}`,{method:'PATCH',prefer:'return=minimal',
+                  body:JSON.stringify({equipo_a:null,equipo_b:null})});
+              showMsg(`\u2713 ${p16.length} partidos limpiados — bracket calcula en vivo`);onRefresh();
+            }catch(e){showMsg('Error: '+e.message,'error');}
+          }} style={{background:'rgba(255,100,100,.15)',border:'1px solid rgba(255,100,100,.3)',
+            borderRadius:4,color:'#FF8888',cursor:'pointer',fontSize:10,padding:'4px 10px',
+            fontFamily:'Barlow Condensed',fontWeight:700,letterSpacing:.5,whiteSpace:'nowrap'}}>
+            🧹 Limpiar estimaciones 16avos
+          </button>
         </div>
         <div style={{overflowX:'auto'}}>
           <table className="r-table" style={{minWidth:680}}>
