@@ -954,8 +954,10 @@ function TabBracket({partidos, etapas, partidosGrupos=[], pronosticos=[], partic
       <div className="bracket-scroll">
         <div className="bracket-tree">
 
-          {/* IZQUIERDA: 16avos → 8vos → 4tos → Semi */}
-          <BCol numeros={['P73','P74','P75','P76','P77','P78','P79','P80']} label="16AVOS" side="left" colClass="bcol-16"/>
+          {/* IZQUIERDA: 16avos → 8vos → 4tos → Semi
+              Pares correctos FIFA:
+              P73+P75 → P90 | P74+P77 → P89 | P76+P78 → P91 | P79+P80 → P92 */}
+          <BCol numeros={['P73','P75','P74','P77','P76','P78','P79','P80']} label="16AVOS" side="left" colClass="bcol-16"/>
           <Connector rows={4} side="left"/>
           <BCol numeros={['P90','P89','P91','P92']} label="8VOS" side="left" colClass="bcol-8"/>
           <Connector rows={2} side="left"/>
@@ -967,7 +969,9 @@ function TabBracket({partidos, etapas, partidosGrupos=[], pronosticos=[], partic
           {/* CENTRO */}
           <BCenter/>
 
-          {/* DERECHA: Semi → 4tos → 8vos → 16avos */}
+          {/* DERECHA: Semi → 4tos → 8vos → 16avos
+              Pares correctos FIFA:
+              P83+P84 → P93 | P81+P82 → P94 | P86+P88 → P95 | P85+P87 → P96 */}
           <Connector rows={1} side="right"/>
           <BCol numeros={['P102']} label="SEMIS" side="right" colClass="bcol-semi"/>
           <Connector rows={1} side="right"/>
@@ -975,7 +979,7 @@ function TabBracket({partidos, etapas, partidosGrupos=[], pronosticos=[], partic
           <Connector rows={2} side="right"/>
           <BCol numeros={['P93','P94','P95','P96']} label="8VOS" side="right" colClass="bcol-8"/>
           <Connector rows={4} side="right"/>
-          <BCol numeros={['P83','P84','P81','P82','P85','P86','P87','P88']} label="16AVOS" side="right" colClass="bcol-16"/>
+          <BCol numeros={['P83','P84','P81','P82','P86','P88','P85','P87']} label="16AVOS" side="right" colClass="bcol-16"/>
 
         </div>
       </div>
@@ -1961,7 +1965,7 @@ function TabAdmin({partidos, etapas, participantes, pronosticos, podios, partido
     <div>
       {msg && <div className={`alert al-${msg.type==='success'?'ok':msg.type==='error'?'err':msg.type==='warn'?'warn':'inf'}`}>{msg.t}</div>}
       <div className="adm-tabs">
-        {[['grupos','🌍 Grupos'],['terceros','3° Lugar'],['resultados',`⚽ Resultados`],['participantes_adm','👥 Participantes'],['etapas_adm','⏱ Etapas']].map(([id,lbl])=>(
+        {[['grupos','🌍 Grupos'],['terceros','3° Lugar'],['resultados',`⚽ Resultados`],['fixture_adm','🗂 Fixture'],['participantes_adm','👥 Participantes'],['etapas_adm','⏱ Etapas']].map(([id,lbl])=>(
           <button key={id} className={`btn btn-sm ${atab===id?'btn-p':'btn-s'}`} onClick={()=>setAtab(id)}>{lbl}</button>
         ))}
       </div>
@@ -1969,6 +1973,7 @@ function TabAdmin({partidos, etapas, participantes, pronosticos, podios, partido
       {atab==='grupos' && <AdminGrupos partidosGrupos={partidosGrupos} showMsg={showMsg} onRefresh={onRefresh}/>}
       {atab==='terceros' && <AdminTerceros partidosGrupos={partidosGrupos} showMsg={showMsg} onRefresh={onRefresh}/>}
       {atab==='resultados' && <AdminResultados partidos={partidos} etapas={etapas} pronosticos={pronosticos} podios={podios} showMsg={showMsg} onRefresh={onRefresh}/>}
+      {atab==='fixture_adm' && <AdminFixture partidos={partidos} showMsg={showMsg} onRefresh={onRefresh}/>}
       {atab==='participantes_adm' && <AdminParticipantes participantes={participantes} podios={podios} showMsg={showMsg} onRefresh={onRefresh}/>}
       {atab==='etapas_adm' && <AdminEtapas etapas={etapas} partidos={partidos} showMsg={showMsg} onRefresh={onRefresh}/>}
     </div>
@@ -2256,14 +2261,17 @@ function AdminGrupos({partidosGrupos, showMsg, onRefresh}) {
 
 
 
-// ── ADMIN: TERCEROS (live, auto-asignación, abre 16avos) ──────
+// ── ADMIN: TERCEROS v2 — tabla reordenable + asignación de slots ──────
 function AdminTerceros({partidosGrupos, showMsg, onRefresh}) {
-  const [bgData, setBgData] = useState({});
-  const [seleccionados, setSeleccionados] = useState({}); // grupo -> slot asignado
-  const [saving, setSaving] = useState(false);
-  const [loadingBg, setLoadingBg] = useState(true);
+  const [bgData, setBgData] = React.useState({});
+  const [seleccionados, setSeleccionados] = React.useState({});
+  const [ordenManual, setOrdenManual] = React.useState(null);
+  const [saving, setSaving] = React.useState(false);
+  const [loadingBg, setLoadingBg] = React.useState(true);
+  const [dragIdx, setDragIdx] = React.useState(null);
+  const [dragOver, setDragOver] = React.useState(null);
 
-  useEffect(()=>{
+  React.useEffect(()=>{
     sb('bracket_grupos?select=*&order=grupo').then(rows=>{
       const m={}; rows.forEach(r=>m[r.grupo]=r);
       setBgData(m); setLoadingBg(false);
@@ -2272,49 +2280,43 @@ function AdminTerceros({partidosGrupos, showMsg, onRefresh}) {
 
   const gruposConfirmados = Object.values(bgData).filter(d=>d.confirmado).length;
 
-  // Calcular terceros en vivo desde partidos
-  const terceros = useMemo(()=>{
+  const tercerosAuto = React.useMemo(()=>{
     const g={};
     partidosGrupos.forEach(p=>{
       if(!g[p.grupo])g[p.grupo]={};
       [p.equipo_a,p.equipo_b].forEach(eq=>{
-        if(!g[p.grupo][eq])g[p.grupo][eq]={pts:0,j:0,gf:0,gc:0};
+        if(eq&&!g[p.grupo][eq])g[p.grupo][eq]={pts:0,j:0,gf:0,gc:0};
       });
       if(!p.finalizado||p.goles_a===null)return;
       const a=g[p.grupo][p.equipo_a],b=g[p.grupo][p.equipo_b];
+      if(!a||!b)return;
       a.j++;b.j++;a.gf+=p.goles_a;a.gc+=p.goles_b;b.gf+=p.goles_b;b.gc+=p.goles_a;
       if(p.goles_a>p.goles_b)a.pts+=3;else if(p.goles_b>p.goles_a)b.pts+=3;else{a.pts++;b.pts++;}
     });
-    // Extraer 3ero de cada grupo confirmado
     const lista=[];
     Object.keys(g).sort().forEach(grupo=>{
       if(!bgData[grupo]?.confirmado)return;
-      const tabla=[...Object.entries(g[grupo]).map(([n,s])=>({n,...s,dg:s.gf-s.gc})).sort((a,b)=>b.pts-a.pts||b.dg-a.dg||b.gf-a.gf)];
+      const tabla=Object.entries(g[grupo]).map(([n,s])=>({n,...s,dg:s.gf-s.gc})).sort((a,b)=>b.pts-a.pts||b.dg-a.dg||b.gf-a.gf);
       if(tabla.length>=3) lista.push({grupo,equipo:tabla[2].n,pts:tabla[2].pts,dg:tabla[2].dg,gf:tabla[2].gf,j:tabla[2].j});
     });
     return lista.sort((a,b)=>b.pts-a.pts||b.dg-a.dg||b.gf-a.gf);
   },[partidosGrupos,bgData]);
 
-  // Auto-sugerir asignación de slots (greedy: mejor tercero al mejor slot disponible)
-  const sugerencia = useMemo(()=>{
-    const asignados={};
-    const slotsUsados=new Set();
-    // Iterar terceros en orden (mejor primero)
-    for(const t of terceros){
+  const terceros = ordenManual || tercerosAuto;
+
+  // Greedy slot assignment: proceso más restrictivo primero para evitar duplicados
+  const sugerencia = React.useMemo(()=>{
+    const asignados={};const slotsUsados=new Set();const gruposUsados=new Set();
+    const slotsOrdenados=Object.entries(SLOTS_TERCEROS).sort((a,b)=>a[1].length-b[1].length);
+    for(const [slot,grupos] of slotsOrdenados){
       if(Object.keys(asignados).length>=8)break;
-      const slotsValidos=Object.entries(SLOTS_TERCEROS)
-        .filter(([slot,grupos])=>grupos.includes(t.grupo)&&!slotsUsados.has(slot))
-        .map(([slot])=>slot);
-      if(slotsValidos.length>0){
-        asignados[t.grupo]=slotsValidos[0];
-        slotsUsados.add(slotsValidos[0]);
-      }
+      const cand=terceros.find(t=>grupos.includes(t.grupo)&&!slotsUsados.has(slot)&&!gruposUsados.has(t.grupo));
+      if(cand){asignados[cand.grupo]=slot;slotsUsados.add(slot);gruposUsados.add(cand.grupo);}
     }
     return asignados;
   },[terceros]);
 
-  // Inicializar selección con sugerencia
-  useEffect(()=>{
+  React.useEffect(()=>{
     if(Object.keys(sugerencia).length>0&&Object.keys(seleccionados).length===0)
       setSeleccionados(sugerencia);
   },[sugerencia]);
@@ -2322,116 +2324,291 @@ function AdminTerceros({partidosGrupos, showMsg, onRefresh}) {
   function toggleSlot(grupo,slot){
     setSeleccionados(prev=>{
       const nuevo={...prev};
-      // Quitar si ya tenía ese slot
       Object.keys(nuevo).forEach(g=>{ if(nuevo[g]===slot&&g!==grupo) delete nuevo[g]; });
       if(nuevo[grupo]===slot) delete nuevo[grupo]; else nuevo[grupo]=slot;
       return nuevo;
     });
   }
 
+  function onDragStart(i){setDragIdx(i);}
+  function onDragEnter(i){setDragOver(i);}
+  function onDragEnd(){
+    if(dragIdx===null||dragOver===null||dragIdx===dragOver){setDragIdx(null);setDragOver(null);return;}
+    const arr=[...terceros];
+    const [moved]=arr.splice(dragIdx,1);
+    arr.splice(dragOver,0,moved);
+    setOrdenManual(arr);setSeleccionados({});
+    setDragIdx(null);setDragOver(null);
+  }
+  function moverArriba(i){
+    if(i===0)return;
+    const arr=[...terceros];[arr[i-1],arr[i]]=[arr[i],arr[i-1]];
+    setOrdenManual(arr);setSeleccionados({});
+  }
+  function moverAbajo(i){
+    if(i>=terceros.length-1)return;
+    const arr=[...terceros];[arr[i],arr[i+1]]=[arr[i+1],arr[i]];
+    setOrdenManual(arr);setSeleccionados({});
+  }
+
   const slotCount={};
   Object.values(seleccionados).forEach(s=>{slotCount[s]=(slotCount[s]||0)+1;});
   const hayConflicto=Object.values(slotCount).some(c=>c>1);
   const totalSel=Object.keys(seleccionados).length;
-  const top8=new Set(terceros.slice(0,8).map(t=>t.grupo));
 
   async function confirmarTerceros(){
-    if(totalSel!==8){showMsg('Selecciona exactamente 8 terceros','error');return;}
-    if(hayConflicto){showMsg('Hay conflicto de slots — revisa la asignación','error');return;}
+    if(totalSel!==8){showMsg('Asigna exactamente 8 terceros','error');return;}
+    if(hayConflicto){showMsg('Hay conflicto de slots — revisa','error');return;}
     setSaving(true);
     try{
-      // 1. Actualizar equipo_b en cada partido KO con su tercero
       for(const [grupo,slot] of Object.entries(seleccionados)){
-        const tercero=terceros.find(t=>t.grupo===grupo);
-        if(!tercero)continue;
+        const t=terceros.find(x=>x.grupo===grupo);
+        if(!t)continue;
         await sb(`partidos_ko?numero=eq.${slot}`,{method:'PATCH',prefer:'return=minimal',
-          body:JSON.stringify({equipo_b:tercero.equipo})});
+          body:JSON.stringify({equipo_b:t.equipo})});
       }
-      // 2. Abrir etapa 16avos automáticamente
       await sb('etapas_ko?orden=eq.1',{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({abierta:true})});
-      showMsg('✓ 8 terceros asignados — etapa 16avos ABIERTA para pronósticos');
-      onRefresh();
+      showMsg('\u2713 8 terceros asignados — 16avos ABIERTOS');onRefresh();
     }catch(e){showMsg('Error: '+e.message,'error');}
     setSaving(false);
   }
 
   if(loadingBg) return <div className="loading"><div className="spinner"/></div>;
-
   if(gruposConfirmados<12) return(
     <div className="card">
-      <div className="card-title">🥉 Mejores Terceros</div>
-      <div className="alert al-warn">
-        Confirma los 12 grupos primero ({gruposConfirmados}/12 listos).
-      </div>
+      <div className="card-title">\uD83E\uDD49 Mejores Terceros</div>
+      <div className="alert al-warn">Confirma los 12 grupos primero ({gruposConfirmados}/12 listos).</div>
     </div>
   );
 
   return(
     <div className="card">
-      <div className="card-title">🥉 Asignar 8 Mejores Terceros → Abre 16avos</div>
-      <div className="alert al-inf" style={{marginBottom:14}}>
-        Ranking calculado en vivo. La sugerencia de slots es automática según restricciones FIFA.
-        Puedes cambiar cualquier asignación. Al confirmar se abre la etapa de 16avos.
-        <br/><strong style={{color:'var(--gold)'}}>Seleccionados: {totalSel}/8</strong>
-        {hayConflicto&&<span style={{color:'#FF6666',marginLeft:8}}>⚠️ Conflicto de slots</span>}
+      <div className="card-title">\uD83E\uDD49 Asignar 8 Mejores Terceros \u2192 Abre 16avos</div>
+      <div className="alert al-inf" style={{marginBottom:10}}>
+        Ranking en vivo. <strong style={{color:'var(--gold)'}}>Reordena</strong> arrastrando filas o usando \u25b2\u25bc para desempate manual.
+        Los slots se recalculan solos tras cada cambio.
+        <strong style={{color:'var(--gold)',marginLeft:8}}>{totalSel}/8 asignados</strong>
+        {hayConflicto&&<span style={{color:'#FF6666',marginLeft:8}}>\u26a0\ufe0f Conflicto de slots</span>}
+        {ordenManual&&<span style={{color:'var(--gold)',marginLeft:8}}>\u270f\ufe0f Orden manual activo</span>}
       </div>
 
-      {/* Tabla de los 12 terceros */}
       {terceros.map((t,i)=>{
-        const esCasificado=i<8;
+        const esTop8=i<8;
         const slotSel=seleccionados[t.grupo];
         const slotsValidos=Object.entries(SLOTS_TERCEROS).filter(([s,gs])=>gs.includes(t.grupo)).map(([s])=>s);
         const esConflicto=slotSel&&slotCount[slotSel]>1;
-
+        const isDragging=dragIdx===i;
+        const isOver=dragOver===i;
         return(
-          <div key={t.grupo} style={{marginBottom:8,padding:'10px 12px',background:esCasificado?'rgba(74,219,138,.04)':'rgba(255,100,100,.04)',
-            borderRadius:8,border:`1px solid ${esConflicto?'rgba(255,100,100,.5)':esCasificado?'rgba(74,219,138,.25)':'rgba(255,100,100,.2)'}`}}>
-            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6,flexWrap:'wrap'}}>
-              {/* Posición */}
-              <div style={{width:22,height:22,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',
-                background:esCasificado?'rgba(74,219,138,.3)':'rgba(255,100,100,.3)',
-                fontFamily:'Barlow Condensed',fontSize:11,fontWeight:800,color:esCasificado?'var(--green)':'#FF6666',flexShrink:0}}>
+          <div key={t.grupo}
+            draggable onDragStart={()=>onDragStart(i)} onDragEnter={()=>onDragEnter(i)}
+            onDragOver={e=>e.preventDefault()} onDragEnd={onDragEnd}
+            style={{marginBottom:5,padding:'8px 10px',cursor:'grab',
+              background:isDragging?'rgba(245,166,35,.12)':isOver?'rgba(100,150,255,.1)':esTop8?'rgba(74,219,138,.04)':'rgba(255,100,100,.04)',
+              borderRadius:8,opacity:isDragging?.5:1,transition:'opacity .15s',
+              border:`1px solid ${esConflicto?'rgba(255,100,100,.6)':isOver?'rgba(100,150,255,.5)':esTop8?'rgba(74,219,138,.25)':'rgba(255,100,100,.2)'}`}}>
+            <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:esTop8?5:0,flexWrap:'wrap'}}>
+              <div style={{display:'flex',flexDirection:'column',gap:0,flexShrink:0}}>
+                <button onClick={()=>moverArriba(i)} disabled={i===0}
+                  style={{background:'none',border:'none',color:'var(--gm)',cursor:'pointer',fontSize:9,lineHeight:1,padding:'1px 3px',opacity:i===0?.3:1}}>\u25b2</button>
+                <button onClick={()=>moverAbajo(i)} disabled={i>=terceros.length-1}
+                  style={{background:'none',border:'none',color:'var(--gm)',cursor:'pointer',fontSize:9,lineHeight:1,padding:'1px 3px',opacity:i>=terceros.length-1?.3:1}}>\u25bc</button>
+              </div>
+              <span style={{color:'var(--gt)',fontSize:10,userSelect:'none'}}>\u2195</span>
+              <div style={{width:21,height:21,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,
+                background:esTop8?'rgba(74,219,138,.3)':'rgba(255,100,100,.3)',
+                fontFamily:'Barlow Condensed',fontSize:11,fontWeight:800,color:esTop8?'var(--green)':'#FF6666'}}>
                 {i+1}
               </div>
-              <span className="grp-badge" style={{fontSize:10}}>G{t.grupo}</span>
-              <Flag name={t.equipo} size={18}/>
-              <span style={{fontWeight:700,fontSize:14,flex:1}}>{t.equipo}</span>
-              {/* Stats */}
-              <div style={{display:'flex',gap:8,fontSize:11,color:'var(--gm)'}}>
-                <span><strong style={{color:'var(--gold)'}}>{t.pts}</strong>pts</span>
-                <span style={{color:t.dg>0?'var(--green)':t.dg<0?'#FF6666':'var(--gm)'}}>{t.dg>0?'+':''}{t.dg}DG</span>
+              <span style={{background:'rgba(100,150,255,.2)',color:'#AAC0FF',padding:'1px 6px',borderRadius:3,fontFamily:'Barlow Condensed',fontSize:10,fontWeight:700}}>G{t.grupo}</span>
+              <Flag name={t.equipo} size={15}/>
+              <span style={{fontWeight:700,fontSize:13,flex:1,color:esTop8?'var(--white)':'var(--gt)'}}>{t.equipo}</span>
+              <div style={{display:'flex',gap:6,fontSize:10,color:'var(--gm)'}}>
+                <span><strong style={{color:'var(--gold)'}}>{t.pts}</strong>p</span>
+                <span style={{color:t.dg>0?'var(--green)':t.dg<0?'#FF6666':'var(--gm)'}}>{t.dg>0?'+':''}{t.dg}</span>
                 <span>{t.gf}GF</span>
               </div>
-              {esConflicto&&<span style={{fontSize:10,color:'#FF6666'}}>⚠️ Slot duplicado</span>}
+              {esConflicto&&<span style={{fontSize:9,color:'#FF6666'}}>\u26a0\ufe0f Dup.</span>}
             </div>
-
-            {/* Selector de slots */}
-            {esCasificado&&(
-              <div style={{display:'flex',gap:5,flexWrap:'wrap',alignItems:'center'}}>
-                <span style={{fontSize:10,color:'var(--gm)',minWidth:60}}>Slot:</span>
+            {esTop8&&(
+              <div style={{display:'flex',gap:4,flexWrap:'wrap',alignItems:'center',paddingLeft:52}}>
+                <span style={{fontSize:9,color:'var(--gm)',minWidth:28}}>Slot:</span>
                 {slotsValidos.map(slot=>(
                   <button key={slot}
                     className={`btn btn-xs ${slotSel===slot?'btn-p':slotCount[slot]>1&&slotSel!==slot?'btn-d':'btn-s'}`}
-                    onClick={()=>toggleSlot(t.grupo,slot)}>
-                    {slot}
-                  </button>
+                    onClick={()=>toggleSlot(t.grupo,slot)}>{slot}</button>
                 ))}
-                {!slotSel&&<span style={{fontSize:10,color:'#FF6666',fontStyle:'italic'}}>⚠️ Sin asignar</span>}
+                {!slotSel&&<span style={{fontSize:9,color:'#FF6666',fontStyle:'italic'}}>\u26a0\ufe0f Sin slot</span>}
               </div>
             )}
-            {!esCasificado&&(
-              <div style={{fontSize:10,color:'#FF6666',fontStyle:'italic'}}>Eliminado — no clasifica</div>
-            )}
+            {!esTop8&&<div style={{fontSize:9,color:'rgba(255,100,100,.6)',fontStyle:'italic',paddingLeft:52}}>No clasifica ({i+1}°)</div>}
           </div>
         );
       })}
-
-      <div style={{display:'flex',gap:8,marginTop:12}}>
-        <button className="btn btn-s btn-sm" onClick={()=>setSeleccionados(sugerencia)}>↺ Auto-sugerir</button>
-        <button className="btn btn-p" style={{flex:1,padding:12,fontSize:14}}
+      <div style={{display:'flex',gap:8,marginTop:12,flexWrap:'wrap'}}>
+        {ordenManual&&<button className="btn btn-s btn-sm" onClick={()=>{setOrdenManual(null);setSeleccionados({});}}>\u21ba Restablecer orden FIFA</button>}
+        <button className="btn btn-s btn-sm" onClick={()=>setSeleccionados(sugerencia)}>\uD83E\uDD16 Auto-slots</button>
+        <button className="btn btn-p" style={{flex:1,padding:11,fontSize:13}}
           onClick={confirmarTerceros} disabled={saving||totalSel!==8||hayConflicto}>
-          {saving?'Guardando...':'✓ CONFIRMAR Y ABRIR 16AVOS'}
+          {saving?'Guardando...':'\u2713 CONFIRMAR Y ABRIR 16AVOS'}
         </button>
+      </div>
+    </div>
+  );
+}
+
+
+// ── ADMIN: FIXTURE KO (editar equipos / fecha / hora de cualquier partido) ──────
+function AdminFixture({partidos, showMsg, onRefresh}) {
+  const [edits, setEdits] = React.useState({});
+  const [saving, setSaving] = React.useState(null);
+  const [filtroEtapa, setFiltroEtapa] = React.useState('1');
+
+  const ETAPA_LABEL={1:'16avos',2:'8vos',3:'4tos',4:'Semis',5:'3er Puesto',6:'Final'};
+
+  const partOrden = [...partidos].sort((a,b)=>{
+    const na=parseInt(a.numero.replace('P',''));
+    const nb=parseInt(b.numero.replace('P',''));
+    return na-nb;
+  });
+
+  const etapaIds=[...new Set(partidos.map(p=>String(p.etapa_id)))].sort((a,b)=>Number(a)-Number(b));
+  const filtrados = filtroEtapa==='TODOS' ? partOrden : partOrden.filter(p=>String(p.etapa_id)===filtroEtapa);
+
+  function editField(id,campo,val){setEdits(prev=>({...prev,[id]:{...prev[id],[campo]:val}}));}
+  function getVal(p,campo){return edits[p.id]?.[campo]!==undefined?edits[p.id][campo]:(p[campo]??'');}
+  function hasChanges(p){if(!edits[p.id])return false;return Object.entries(edits[p.id]).some(([k,v])=>String(p[k]??'')!==String(v));}
+  function cancelEdit(id){setEdits(prev=>{const n={...prev};delete n[id];return n;});}
+
+  async function guardarPartido(p){
+    if(!hasChanges(p))return;
+    const changes=edits[p.id];
+    const newA=changes.equipo_a!==undefined?changes.equipo_a:p.equipo_a;
+    const newB=changes.equipo_b!==undefined?changes.equipo_b:p.equipo_b;
+    if(newA&&newB&&newA.trim()===newB.trim()){showMsg('\u274c equipo_a y equipo_b no pueden ser iguales','error');return;}
+    setSaving(p.id);
+    try{
+      // Convertir strings vacios a null para BD
+      const payload={};
+      Object.entries(changes).forEach(([k,v])=>{payload[k]=v===''?null:v;});
+      await sb(`partidos_ko?id=eq.${p.id}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify(payload)});
+      showMsg(`\u2713 ${p.numero} actualizado`);cancelEdit(p.id);onRefresh();
+    }catch(e){showMsg('Error: '+e.message,'error');}
+    setSaving(null);
+  }
+
+  async function swapEquipos(p){
+    if(!p.equipo_a&&!p.equipo_b){showMsg('No hay equipos que intercambiar','warn');return;}
+    if(!confirm(`\u00bfIntercambiar ${p.equipo_a||'(vac\u00edo)'} \u2194 ${p.equipo_b||'(vac\u00edo)'}?`))return;
+    setSaving(p.id);
+    try{
+      await sb(`partidos_ko?id=eq.${p.id}`,{method:'PATCH',prefer:'return=minimal',
+        body:JSON.stringify({equipo_a:p.equipo_b||null,equipo_b:p.equipo_a||null})});
+      showMsg(`\u2713 ${p.numero}: equipos intercambiados`);onRefresh();
+    }catch(e){showMsg('Error: '+e.message,'error');}
+    setSaving(null);
+  }
+
+  return(
+    <div>
+      <div className="card">
+        <div className="card-title">\uD83D\uddc2\ufe0f Editor de Fixture KO</div>
+        <div className="alert al-warn" style={{marginBottom:12}}>
+          <strong>Solo admin.</strong> Corrige equipo_a, equipo_b, fecha y hora de cualquier partido KO.
+          Usa <strong>\u2194</strong> para intercambiar lados sin riesgo tipogr\u00e1fico.
+          \u26a0\ufe0f Si el partido ya tiene resultado, usa <em>Anular</em> en Resultados antes de editar equipos.
+        </div>
+        <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:12}}>
+          {['TODOS',...etapaIds].map(id=>(
+            <button key={id} className={`btn btn-xs ${filtroEtapa===id?'btn-p':'btn-s'}`}
+              onClick={()=>setFiltroEtapa(id)}>
+              {id==='TODOS'?'Todas':ETAPA_LABEL[Number(id)]||`Etapa ${id}`}
+            </button>
+          ))}
+        </div>
+        <div style={{overflowX:'auto'}}>
+          <table className="r-table" style={{minWidth:680}}>
+            <thead>
+              <tr>
+                <th style={{width:56}}>Partido</th>
+                <th>Equipo A</th>
+                <th style={{width:32,textAlign:'center'}}>\u2194</th>
+                <th>Equipo B</th>
+                <th style={{width:110}}>Fecha</th>
+                <th style={{width:80}}>Hora IQ</th>
+                <th style={{width:88,textAlign:'center'}}>Guardar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtrados.map(p=>{
+                const changed=hasChanges(p);
+                const isSaving=saving===p.id;
+                return(
+                  <tr key={p.id} style={{background:p.finalizado?'rgba(74,219,138,.04)':changed?'rgba(245,166,35,.05)':'',transition:'background .2s'}}>
+                    <td>
+                      <div style={{fontFamily:'Barlow Condensed',fontSize:12,fontWeight:800,color:'var(--gold)'}}>{p.numero}</div>
+                      <div style={{fontSize:9,color:'var(--gt)'}}>{ETAPA_LABEL[p.etapa_id]||''}</div>
+                      {p.finalizado&&<div style={{fontSize:8,color:'var(--green)'}}>\u2713 Finalizado</div>}
+                    </td>
+                    <td>
+                      <div style={{fontSize:8,color:'var(--gt)',marginBottom:2,fontStyle:'italic',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:130}}>{p.slot_a}</div>
+                      <div style={{display:'flex',alignItems:'center',gap:3}}>
+                        <Flag name={getVal(p,'equipo_a')} size={12}/>
+                        <input className="inp" style={{fontSize:11,padding:'4px 6px',minWidth:0}}
+                          value={getVal(p,'equipo_a')}
+                          onChange={e=>editField(p.id,'equipo_a',e.target.value)}
+                          placeholder="Pa\u00eds A"/>
+                      </div>
+                    </td>
+                    <td style={{textAlign:'center'}}>
+                      <button title="Intercambiar A\u2194B en BD" onClick={()=>swapEquipos(p)} disabled={isSaving}
+                        style={{background:'rgba(100,150,255,.15)',border:'1px solid rgba(100,150,255,.3)',borderRadius:4,
+                          color:'#AAC0FF',cursor:'pointer',fontSize:14,width:26,height:26,
+                          display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto',padding:0}}>
+                        \u2194
+                      </button>
+                    </td>
+                    <td>
+                      <div style={{fontSize:8,color:'var(--gt)',marginBottom:2,fontStyle:'italic',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:130}}>{p.slot_b}</div>
+                      <div style={{display:'flex',alignItems:'center',gap:3}}>
+                        <Flag name={getVal(p,'equipo_b')} size={12}/>
+                        <input className="inp" style={{fontSize:11,padding:'4px 6px',minWidth:0}}
+                          value={getVal(p,'equipo_b')}
+                          onChange={e=>editField(p.id,'equipo_b',e.target.value)}
+                          placeholder="Pa\u00eds B"/>
+                      </div>
+                    </td>
+                    <td>
+                      <input className="inp" type="date" style={{fontSize:11,padding:'4px 6px'}}
+                        value={getVal(p,'fecha')}
+                        onChange={e=>editField(p.id,'fecha',e.target.value)}/>
+                    </td>
+                    <td>
+                      <input className="inp" type="time" style={{fontSize:11,padding:'4px 6px'}}
+                        value={getVal(p,'hora')}
+                        onChange={e=>editField(p.id,'hora',e.target.value)}/>
+                    </td>
+                    <td style={{textAlign:'center'}}>
+                      {changed
+                        ? <div style={{display:'flex',gap:3,justifyContent:'center'}}>
+                            <button className="btn btn-p btn-xs" onClick={()=>guardarPartido(p)} disabled={isSaving}>
+                              {isSaving?'\u2026':'\u2713'}
+                            </button>
+                            <button className="btn btn-s btn-xs" onClick={()=>cancelEdit(p.id)}>\u2715</button>
+                          </div>
+                        : <span style={{fontSize:9,color:'var(--gt)'}}>\u2014</span>
+                      }
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div style={{marginTop:8,fontSize:9,color:'var(--gt)',lineHeight:1.6}}>
+          Los textos en it\u00e1lica bajo cada campo muestran el slot de origen (ej. "1\u00b0 Grupo A").
+          Son s\u00f3lo informativos; no se editan aqu\u00ed. Las ediciones van directo a Supabase.
+        </div>
       </div>
     </div>
   );
