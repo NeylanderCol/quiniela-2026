@@ -749,12 +749,14 @@ function TabBracket({partidos, etapas, partidosGrupos=[], pronosticos=[], partic
     // Partido finalizado → datos reales en BD, usar siempre
     if (partido.finalizado) return partido;
 
-    // Partido pendiente → calcular en vivo desde standings (ignorar equipo_a/b de BD)
     const slotA = partido.slot_a||'';
     const slotB = partido.slot_b||'';
 
-    function fromSlot(slot) {
-      // 1° o 2° de grupo → standings en vivo
+    function fromSlot(slot, esA) {
+      // Si hay equipo cargado en BD → usarlo directo (grupos cerrados o propagado)
+      const eqBD = esA ? partido.equipo_a : partido.equipo_b;
+      if(eqBD) return {equipo: eqBD, provisional: false};
+      // Sin dato en BD → calcular desde standings
       const m1 = slot.match(/^([12])°\s*Grupo\s*([A-L])$/);
       if(m1){
         const pos=parseInt(m1[1])-1, grp=m1[2];
@@ -762,16 +764,14 @@ function TabBracket({partidos, etapas, partidosGrupos=[], pronosticos=[], partic
         if(!t||t.length<=pos) return null;
         return {equipo:t[pos].n, provisional:!t.completo};
       }
-      // 3° → asignación greedy desde terceros
       if(slot.startsWith('3°')) return asig3[partido.numero]||null;
-      // Propagado desde ronda anterior (Gan./Per.) → usar equipo_a/b de BD si existen
       if(slot.startsWith('Gan.')||slot.startsWith('Per.')){
-        const eq = slot===partido.slot_a ? partido.equipo_a : partido.equipo_b;
+        const eq = esA ? partido.equipo_a : partido.equipo_b;
         return eq ? {equipo:eq, provisional:false} : null;
       }
       return null;
     }
-    return { ...partido, _slotA: fromSlot(slotA), _slotB: fromSlot(slotB) };
+    return { ...partido, _slotA: fromSlot(slotA, true), _slotB: fromSlot(slotB, false) };
   }
 
   // Etapa activa para countdown
@@ -3389,10 +3389,13 @@ function App() {
   },[tercerosApp,standingsApp]);
 
   // ── partidos enriquecidos: resuelve equipos en vivo para Hoy, Calendario y Bracket ──
-  // Regla: si finalizado → usar BD. Si no → calcular desde standings.
+  // Regla: si finalizado → BD. Si equipo_a/b en BD → directo (grupos cerrados o propagado).
+  // Si no → calcular desde standings (fallback para rondas futuras sin dato aún).
   const partidosResueltos = React.useMemo(()=>{
     function resolveEq(partido, slotRaw, esA) {
       if(partido.finalizado) return {equipo: esA?partido.equipo_a:partido.equipo_b, provisional:false};
+      const eqBD = esA ? partido.equipo_a : partido.equipo_b;
+      if(eqBD) return {equipo: eqBD, provisional: false};
       const m1=slotRaw.match(/^([12])°\s*Grupo\s*([A-L])$/);
       if(m1){
         const pos=parseInt(m1[1])-1,grp=m1[2];
@@ -3402,8 +3405,7 @@ function App() {
       }
       if(slotRaw.startsWith('3°')) return asig3App[partido.numero]||null;
       if(slotRaw.startsWith('Gan.')||slotRaw.startsWith('Per.')){
-        const eq=esA?partido.equipo_a:partido.equipo_b;
-        return eq?{equipo:eq,provisional:false}:null;
+        return null;
       }
       return null;
     }
