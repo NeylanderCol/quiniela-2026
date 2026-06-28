@@ -2002,7 +2002,7 @@ function TabAdmin({partidos, etapas, participantes, pronosticos, podios, partido
   const [authed, setAuthed] = useState(false);
   const [pass, setPass] = useState('');
   const [passErr, setPassErr] = useState(false);
-  const [atab, setAtab] = useState('grupos');
+  const [atab, setAtab] = useState('resultados');
   const [msg, setMsg] = useState(null);
 
   const showMsg = (t, type='success') => { setMsg({t,type}); setTimeout(()=>setMsg(null), 5000); };
@@ -2028,15 +2028,12 @@ function TabAdmin({partidos, etapas, participantes, pronosticos, podios, partido
     <div>
       {msg && <div className={`alert al-${msg.type==='success'?'ok':msg.type==='error'?'err':msg.type==='warn'?'warn':'inf'}`}>{msg.t}</div>}
       <div className="adm-tabs">
-        {[['grupos','🌍 Grupos'],['terceros','3° Lugar'],['resultados',`⚽ Resultados`],['fixture_adm','🗂 Fixture'],['participantes_adm','👥 Participantes'],['etapas_adm','⏱ Etapas']].map(([id,lbl])=>(
+        {[['resultados','⚽ Resultados'],['participantes_adm','👥 Participantes'],['etapas_adm','⏱ Etapas']].map(([id,lbl])=>(
           <button key={id} className={`btn btn-sm ${atab===id?'btn-p':'btn-s'}`} onClick={()=>setAtab(id)}>{lbl}</button>
         ))}
       </div>
 
-      {atab==='grupos' && <AdminGrupos partidosGrupos={partidosGrupos} showMsg={showMsg} onRefresh={onRefresh}/>}
-      {atab==='terceros' && <AdminTerceros partidosGrupos={partidosGrupos} showMsg={showMsg} onRefresh={onRefresh}/>}
       {atab==='resultados' && <AdminResultados partidos={partidos} etapas={etapas} pronosticos={pronosticos} podios={podios} showMsg={showMsg} onRefresh={onRefresh}/>}
-      {atab==='fixture_adm' && <AdminFixture partidos={partidos} showMsg={showMsg} onRefresh={onRefresh}/>}
       {atab==='participantes_adm' && <AdminParticipantes participantes={participantes} podios={podios} showMsg={showMsg} onRefresh={onRefresh}/>}
       {atab==='etapas_adm' && <AdminEtapas etapas={etapas} partidos={partidos} showMsg={showMsg} onRefresh={onRefresh}/>}
     </div>
