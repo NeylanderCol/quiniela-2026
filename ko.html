@@ -367,6 +367,7 @@ const FLAG_URLS = {
   "Inglaterra":"https://flagcdn.com/32x24/gb-eng.png","Croacia":"https://flagcdn.com/32x24/hr.png",
   "Ghana":"https://flagcdn.com/32x24/gh.png","Panamá":"https://flagcdn.com/32x24/pa.png",
   "Uzbekistán":"https://flagcdn.com/32x24/uz.png","Colombia":"https://flagcdn.com/32x24/co.png",
+  "USA":"https://flagcdn.com/32x24/us.png","Congo DR":"https://flagcdn.com/32x24/cd.png",
 };
 
 // ── HELPERS ──────────────────────────────────────────────
@@ -1013,12 +1014,13 @@ function TabBracket({partidos, etapas, partidosGrupos=[], pronosticos=[], partic
 
           {/* IZQUIERDA: 16avos → 8vos → 4tos → Semi
               Pares correctos FIFA:
-              P73+P75 → P90 | P74+P77 → P89 | P76+P78 → P91 | P79+P80 → P92 */}
-          <BCol numeros={['P73','P75','P74','P77','P76','P78','P79','P80']} label="16AVOS" side="left" colClass="bcol-16"/>
+              P74+P77 → P89 | P73+P75 → P90 | P83+P84 → P93 | P81+P82 → P94
+              P97=W89vsW90 | P98=W93vsW94 | P101=W97vsW98 */}
+          <BCol numeros={['P74','P77','P73','P75','P83','P84','P81','P82']} label="16AVOS" side="left" colClass="bcol-16"/>
           <Connector rows={4} side="left"/>
-          <BCol numeros={['P90','P89','P91','P92']} label="8VOS" side="left" colClass="bcol-8"/>
+          <BCol numeros={['P89','P90','P93','P94']} label="8VOS" side="left" colClass="bcol-8"/>
           <Connector rows={2} side="left"/>
-          <BCol numeros={['P97','P99']} label="4TOS" side="left" colClass="bcol-4"/>
+          <BCol numeros={['P97','P98']} label="4TOS" side="left" colClass="bcol-4"/>
           <Connector rows={1} side="left"/>
           <BCol numeros={['P101']} label="SEMIS" side="left" colClass="bcol-semi"/>
           <Connector rows={1} side="left"/>
@@ -1028,15 +1030,16 @@ function TabBracket({partidos, etapas, partidosGrupos=[], pronosticos=[], partic
 
           {/* DERECHA: Semi → 4tos → 8vos → 16avos
               Pares correctos FIFA:
-              P83+P84 → P93 | P81+P82 → P94 | P86+P88 → P95 | P85+P87 → P96 */}
+              P76+P78 → P91 | P79+P80 → P92 | P86+P88 → P95 | P85+P87 → P96
+              P99=W91vsW92 | P100=W95vsW96 | P102=W99vsW100 */}
           <Connector rows={1} side="right"/>
           <BCol numeros={['P102']} label="SEMIS" side="right" colClass="bcol-semi"/>
           <Connector rows={1} side="right"/>
-          <BCol numeros={['P98','P100']} label="4TOS" side="right" colClass="bcol-4"/>
+          <BCol numeros={['P99','P100']} label="4TOS" side="right" colClass="bcol-4"/>
           <Connector rows={2} side="right"/>
-          <BCol numeros={['P93','P94','P95','P96']} label="8VOS" side="right" colClass="bcol-8"/>
+          <BCol numeros={['P91','P92','P95','P96']} label="8VOS" side="right" colClass="bcol-8"/>
           <Connector rows={4} side="right"/>
-          <BCol numeros={['P83','P84','P81','P82','P86','P88','P85','P87']} label="16AVOS" side="right" colClass="bcol-16"/>
+          <BCol numeros={['P76','P78','P79','P80','P86','P88','P85','P87']} label="16AVOS" side="right" colClass="bcol-16"/>
 
         </div>
       </div>
