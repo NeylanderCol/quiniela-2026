@@ -317,14 +317,14 @@ const EQUIPOS_GRUPOS = {
   A:['México','Corea del Sur','Chequia','Sudáfrica'],
   B:['Canadá','Catar','Suiza','Bosnia y Herzegovina'],
   C:['Brasil','Marruecos','Haití','Escocia'],
-  D:['Estados Unidos','Australia','Turquía','Paraguay'],
+  D:['USA','Australia','Turquía','Paraguay'],
   E:['Alemania','Costa de Marfil','Ecuador','Curazao'],
   F:['Países Bajos','Japón','Suecia','Túnez'],
   G:['Bélgica','Irán','Nueva Zelanda','Egipto'],
   H:['España','Arabia Saudita','Uruguay','Cabo Verde'],
   I:['Francia','Noruega','Senegal','Irak'],
   J:['Argentina','Austria','Argelia','Jordania'],
-  K:['Portugal','Colombia','Uzbekistán','Congo'],
+  K:['Portugal','Colombia','Uzbekistán','Congo DR'],
   L:['Inglaterra','Croacia','Ghana','Panamá'],
 };
 
@@ -346,7 +346,7 @@ const FLAG_URLS = {
   "México":"https://flagcdn.com/32x24/mx.png","Sudáfrica":"https://flagcdn.com/32x24/za.png",
   "Corea del Sur":"https://flagcdn.com/32x24/kr.png","Chequia":"https://flagcdn.com/32x24/cz.png",
   "Canadá":"https://flagcdn.com/32x24/ca.png","Bosnia y Herzegovina":"https://flagcdn.com/32x24/ba.png",
-  "Estados Unidos":"https://flagcdn.com/32x24/us.png","Paraguay":"https://flagcdn.com/32x24/py.png",
+  "USA":"https://flagcdn.com/32x24/us.png","Paraguay":"https://flagcdn.com/32x24/py.png",
   "Catar":"https://flagcdn.com/32x24/qa.png","Suiza":"https://flagcdn.com/32x24/ch.png",
   "Brasil":"https://flagcdn.com/32x24/br.png","Marruecos":"https://flagcdn.com/32x24/ma.png",
   "Haití":"https://flagcdn.com/32x24/ht.png","Escocia":"https://flagcdn.com/32x24/gb-sct.png",
@@ -363,11 +363,10 @@ const FLAG_URLS = {
   "Irak":"https://flagcdn.com/32x24/iq.png","Noruega":"https://flagcdn.com/32x24/no.png",
   "Argentina":"https://flagcdn.com/32x24/ar.png","Argelia":"https://flagcdn.com/32x24/dz.png",
   "Austria":"https://flagcdn.com/32x24/at.png","Jordania":"https://flagcdn.com/32x24/jo.png",
-  "Portugal":"https://flagcdn.com/32x24/pt.png","Congo":"https://flagcdn.com/32x24/cd.png",
+  "Portugal":"https://flagcdn.com/32x24/pt.png","Congo DR":"https://flagcdn.com/32x24/cd.png",
   "Inglaterra":"https://flagcdn.com/32x24/gb-eng.png","Croacia":"https://flagcdn.com/32x24/hr.png",
   "Ghana":"https://flagcdn.com/32x24/gh.png","Panamá":"https://flagcdn.com/32x24/pa.png",
   "Uzbekistán":"https://flagcdn.com/32x24/uz.png","Colombia":"https://flagcdn.com/32x24/co.png",
-  "USA":"https://flagcdn.com/32x24/us.png","Congo DR":"https://flagcdn.com/32x24/cd.png",
 };
 
 // ── HELPERS ──────────────────────────────────────────────
@@ -2835,7 +2834,7 @@ function AdminResultados({partidos, etapas, pronosticos, podios, showMsg, onRefr
           // Buscar etapa actual y siguiente
           const etapaActual = etapas.find(e=>e.id===etapaActualId);
           if(etapaActual){
-            const siguienteEtapa = etapas.find(e=>e.orden===etapaActual.orden+1&&e.orden<=4);
+            const siguienteEtapa = etapas.find(e=>e.orden===etapaActual.orden+1);
             if(siguienteEtapa&&!siguienteEtapa.abierta){
               await sb(`etapas_ko?id=eq.${siguienteEtapa.id}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({abierta:true})});
               showMsg(`✓ Resultado guardado — ${siguienteEtapa.nombre} ABIERTA para pronósticos 🎯`);
